@@ -5,6 +5,7 @@ document.getElementById('userInfo').textContent = `${usuario.nome} (${usuario.ti
 
 if (usuario.tipo !== 'admin') {
     document.getElementById('btnNovaEmpresa').style.display = 'none';
+    document.getElementById('btnUploadExcel').style.display = 'none';
 }
 
 async function carregarEmpresas(filtros = {}) {
@@ -96,6 +97,68 @@ document.getElementById('novaEmpresaForm').addEventListener('submit', async (e) 
         }
     } catch (error) {
         alert('Erro de conexão com o servidor');
+    }
+});
+
+function showUploadExcelModal() {
+    document.getElementById('uploadExcelModal').classList.remove('hidden');
+}
+
+function hideUploadExcelModal() {
+    document.getElementById('uploadExcelModal').classList.add('hidden');
+    document.getElementById('uploadExcelForm').reset();
+    document.getElementById('uploadResult').classList.add('hidden');
+}
+
+document.getElementById('uploadExcelForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const fileInput = document.getElementById('excelFile');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        alert('Selecione um arquivo');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+        const response = await fetch('/api/empresas/upload-excel', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) throw new Error(result.detail || 'Erro no upload');
+        
+        const resultDiv = document.getElementById('uploadResult');
+        resultDiv.className = 'bg-green-900/30 border border-green-500 text-green-300 p-4 rounded';
+        resultDiv.innerHTML = `
+            <p class="font-semibold mb-2">${result.message}</p>
+            <ul class="text-sm space-y-1">
+                <li>✅ Empresas criadas: ${result.empresas_criadas}</li>
+                <li>⏭️ Empresas ignoradas (já existentes): ${result.empresas_ignoradas}</li>
+                <li>📊 Total processado: ${result.total_processadas}</li>
+            </ul>
+        `;
+        resultDiv.classList.remove('hidden');
+        
+        setTimeout(() => {
+            hideUploadExcelModal();
+            carregarEmpresas();
+        }, 3000);
+    } catch (error) {
+        console.error('Erro no upload:', error);
+        const resultDiv = document.getElementById('uploadResult');
+        resultDiv.className = 'bg-red-900/30 border border-red-500 text-red-300 p-4 rounded';
+        resultDiv.textContent = `Erro: ${error.message}`;
+        resultDiv.classList.remove('hidden');
     }
 });
 

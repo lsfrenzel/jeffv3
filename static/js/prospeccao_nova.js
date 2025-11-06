@@ -188,12 +188,23 @@ document.getElementById('novaProspeccaoForm').addEventListener('submit', async (
         hora_ligacao: document.getElementById('hora_ligacao').value || null,
         resultado: document.getElementById('resultado').value || null,
         observacoes: document.getElementById('observacoes').value || null,
+        
+        nome_contato: document.getElementById('nome_contato').value || null,
+        telefone_contato: document.getElementById('telefone_contato').value || null,
+        email_contato: document.getElementById('email_contato').value || null,
+        cargo_contato: document.getElementById('cargo_contato').value || null,
+        
         interesse_treinamento: document.getElementById('interesse_treinamento').checked,
         interesse_consultoria: document.getElementById('interesse_consultoria').checked,
         interesse_certificacao: document.getElementById('interesse_certificacao').checked,
         interesse_eventos: document.getElementById('interesse_eventos').checked,
         interesse_produtos: document.getElementById('interesse_produtos').checked,
-        outros_interesses: document.getElementById('outros_interesses').value || null
+        interesse_seguranca: document.getElementById('interesse_seguranca').checked,
+        interesse_meio_ambiente: document.getElementById('interesse_meio_ambiente').checked,
+        outros_interesses: document.getElementById('outros_interesses').value || null,
+        
+        potencial_negocio: document.getElementById('potencial_negocio').value || null,
+        status_follow_up: document.getElementById('status_follow_up').value || null
     };
     
     try {
@@ -214,67 +225,6 @@ document.getElementById('novaProspeccaoForm').addEventListener('submit', async (
     } catch (error) {
         console.error('Erro ao criar prospecção:', error);
         alert('Erro ao criar prospecção');
-    }
-});
-
-function showUploadExcelModal() {
-    document.getElementById('uploadExcelModal').classList.remove('hidden');
-}
-
-function hideUploadExcelModal() {
-    document.getElementById('uploadExcelModal').classList.add('hidden');
-    document.getElementById('uploadExcelForm').reset();
-    document.getElementById('uploadResult').classList.add('hidden');
-}
-
-document.getElementById('uploadExcelForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const fileInput = document.getElementById('excelFile');
-    const file = fileInput.files[0];
-    
-    if (!file) {
-        alert('Selecione um arquivo');
-        return;
-    }
-    
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    try {
-        const response = await fetch('/api/empresas/upload-excel', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: formData
-        });
-        
-        const result = await response.json();
-        
-        if (!response.ok) throw new Error(result.detail || 'Erro no upload');
-        
-        const resultDiv = document.getElementById('uploadResult');
-        resultDiv.className = 'bg-green-900/30 border border-green-500 text-green-300 p-4 rounded';
-        resultDiv.innerHTML = `
-            <p class="font-semibold mb-2">${result.message}</p>
-            <ul class="text-sm space-y-1">
-                <li>✅ Empresas criadas: ${result.empresas_criadas}</li>
-                <li>⏭️ Empresas ignoradas (já existentes): ${result.empresas_ignoradas}</li>
-                <li>📊 Total processado: ${result.total_processadas}</li>
-            </ul>
-        `;
-        resultDiv.classList.remove('hidden');
-        
-        setTimeout(() => {
-            hideUploadExcelModal();
-        }, 3000);
-    } catch (error) {
-        console.error('Erro no upload:', error);
-        const resultDiv = document.getElementById('uploadResult');
-        resultDiv.className = 'bg-red-900/30 border border-red-500 text-red-300 p-4 rounded';
-        resultDiv.textContent = `Erro: ${error.message}`;
-        resultDiv.classList.remove('hidden');
     }
 });
 

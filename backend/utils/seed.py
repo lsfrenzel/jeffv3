@@ -27,6 +27,43 @@ def criar_usuario_admin_padrao(db: Session):
         print(f"✓ Usuário admin já existe: {admin_email}")
         return usuario_existente
 
+def criar_consultores_padrao(db: Session):
+    """Cria consultores Gabriel e Lucas para teste"""
+    consultores = [
+        {
+            "nome": "Gabriel Silva",
+            "email": "gabriel@nucleo.com",
+            "senha": "gabriel123",
+            "tipo": TipoUsuario.consultor
+        },
+        {
+            "nome": "Lucas Oliveira",
+            "email": "lucas@nucleo.com",
+            "senha": "lucas123",
+            "tipo": TipoUsuario.consultor
+        }
+    ]
+    
+    consultores_criados = 0
+    for cons_data in consultores:
+        consultor_existente = db.query(Usuario).filter(Usuario.email == cons_data["email"]).first()
+        
+        if not consultor_existente:
+            novo_consultor = Usuario(
+                nome=cons_data["nome"],
+                email=cons_data["email"],
+                senha_hash=obter_hash_senha(cons_data["senha"]),
+                tipo=cons_data["tipo"]
+            )
+            db.add(novo_consultor)
+            consultores_criados += 1
+    
+    if consultores_criados > 0:
+        db.commit()
+        print(f"✓ {consultores_criados} consultores criados")
+    else:
+        print(f"✓ Consultores já existem no banco")
+
 def criar_empresas_padrao(db: Session):
     """Cria empresas padrão que permanecerão fixas no banco"""
     empresas_padrao = [

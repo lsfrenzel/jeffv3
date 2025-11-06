@@ -6,13 +6,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.database import engine, Base, SessionLocal
 from backend.models import Usuario, Empresa, Prospeccao, Agendamento, AtribuicaoEmpresa
 from backend.routers import auth, empresas, prospeccoes, agendamentos, admin, atribuicoes
-from backend.utils.seed import criar_usuario_admin_padrao, criar_empresas_padrao
+from backend.utils.seed import criar_usuario_admin_padrao, criar_empresas_padrao, criar_consultores_padrao
 
 Base.metadata.create_all(bind=engine)
 
 db = SessionLocal()
 try:
     criar_usuario_admin_padrao(db)
+    criar_consultores_padrao(db)
     criar_empresas_padrao(db)
 finally:
     db.close()
