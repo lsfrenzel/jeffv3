@@ -30,9 +30,12 @@ Sistema web completo desenvolvido em Python com FastAPI para gestão e prospecç
 │   │   └── agendamentos.py
 │   ├── routers/         # Rotas da API
 │   │   ├── auth.py
+│   │   ├── admin.py
 │   │   ├── empresas.py
 │   │   ├── prospeccoes.py
 │   │   └── agendamentos.py
+│   ├── utils/          # Utilitários
+│   │   └── seed.py     # Criação do admin padrão
 │   ├── schemas/         # Schemas Pydantic
 │   │   ├── usuarios.py
 │   │   ├── empresas.py
@@ -45,6 +48,7 @@ Sistema web completo desenvolvido em Python com FastAPI para gestão e prospecç
 │   ├── base.html
 │   ├── login.html
 │   ├── dashboard.html
+│   ├── admin_usuarios.html
 │   ├── empresas.html
 │   ├── empresa_perfil.html
 │   ├── prospeccao.html
@@ -55,6 +59,7 @@ Sistema web completo desenvolvido em Python com FastAPI para gestão e prospecç
 │       ├── auth.js
 │       ├── login.js
 │       ├── dashboard.js
+│       ├── admin_usuarios.js
 │       ├── empresas.js
 │       ├── empresa_perfil.js
 │       ├── prospeccao.js
@@ -64,9 +69,12 @@ Sistema web completo desenvolvido em Python com FastAPI para gestão e prospecç
 
 ## Funcionalidades Implementadas
 
-### 1. Autenticação e Usuários
-- ✅ Tela de login e registro
+### 1. Autenticação e Usuários (Admin-Only)
+- ✅ Sistema de autenticação admin-only (sem registro público)
+- ✅ Usuário admin padrão criado automaticamente (admin@admin.com / admin123)
 - ✅ Dois tipos de usuário: Admin e Consultor
+- ✅ Apenas admins podem criar novos usuários
+- ✅ Interface de administração para gerenciar usuários
 - ✅ Sessão persistente com JWT
 - ✅ Logout seguro
 - ✅ Controle de acesso baseado em permissões
@@ -110,29 +118,38 @@ Sistema web completo desenvolvido em Python com FastAPI para gestão e prospecç
 
 ### 1. Primeiro Acesso
 1. Acesse o sistema em http://localhost:5000
-2. Clique em "Registre-se"
-3. Crie uma conta (escolha "Administrador" para acesso completo)
-4. Faça login com suas credenciais
+2. Faça login com o usuário admin padrão:
+   - **Email**: admin@admin.com
+   - **Senha**: admin123
+3. **IMPORTANTE**: Altere a senha do admin após o primeiro acesso (recomendado)
+4. Para criar novos usuários, acesse o menu "Administração" (disponível apenas para admins)
 
-### 2. Cadastrar Empresas (Admin)
+### 2. Gerenciar Usuários (Admin)
+1. No menu lateral, clique em "Administração"
+2. Clique em "+ Novo Usuário"
+3. Preencha os dados: nome, email, senha e tipo (Admin ou Consultor)
+4. Clique em "Criar Usuário"
+5. Você também pode alterar o tipo de usuário ou deletar usuários existentes
+
+### 3. Cadastrar Empresas (Admin)
 1. No menu lateral, clique em "Empresas"
 2. Clique em "+ Nova Empresa"
 3. Preencha os dados da empresa
 4. Clique em "Salvar Empresa"
 
-### 3. Criar Prospecção
+### 4. Criar Prospecção
 1. No menu lateral, clique em "Prospecções"
 2. Clique em "+ Nova Prospecção"
 3. Selecione a empresa e consultor (se Admin)
 4. Registre a ligação com data, hora, resultado e observações
 5. Clique em "Salvar Prospecção"
 
-### 4. Criar Agendamento
+### 5. Criar Agendamento
 1. Na lista de prospecções, clique em "Agendar"
 2. Digite a data e hora do agendamento
 3. Adicione observações (opcional)
 
-### 5. Visualizar Alertas
+### 6. Visualizar Alertas
 1. No menu lateral, clique em "Alertas"
 2. Veja os agendamentos categorizados por cores
 3. Marque como "realizado" quando completar
@@ -140,8 +157,14 @@ Sistema web completo desenvolvido em Python com FastAPI para gestão e prospecç
 ## API Endpoints
 
 ### Autenticação
-- `POST /api/auth/registro` - Criar nova conta
+- `POST /api/auth/registro` - Criar nova conta (requer autenticação de admin)
 - `POST /api/auth/login` - Fazer login
+
+### Administração (Apenas Admin)
+- `GET /api/admin/usuarios` - Listar todos os usuários
+- `POST /api/admin/usuarios` - Criar novo usuário
+- `DELETE /api/admin/usuarios/{id}` - Deletar usuário
+- `PUT /api/admin/usuarios/{id}/tipo` - Alterar tipo do usuário
 
 ### Empresas
 - `GET /api/empresas` - Listar empresas (com filtros)
@@ -182,7 +205,8 @@ Sistema web completo desenvolvido em Python com FastAPI para gestão e prospecç
 - PostgreSQL (via psycopg2-binary)
 - Pydantic 2.5.3 (com validação de email)
 - python-jose (JWT)
-- passlib (bcrypt para senhas)
+- passlib 1.7.4 (hashing de senhas)
+- bcrypt 4.3.0 (compatibilidade com passlib)
 - Jinja2 3.1.3
 - Uvicorn (servidor ASGI)
 
@@ -197,8 +221,12 @@ O sistema requer as seguintes variáveis de ambiente configuradas:
 - **`SESSION_SECRET`** - Chave secreta para JWT (obrigatório)
   - Deve ser uma string aleatória segura
   - No Replit, configurado automaticamente
+
+- **`ADMIN_EMAIL`** - Email do admin padrão (opcional, padrão: admin@admin.com)
+- **`ADMIN_PASSWORD`** - Senha do admin padrão (opcional, padrão: admin123)
+- **`ADMIN_NAME`** - Nome do admin padrão (opcional, padrão: Administrador)
   
-**Importante**: O sistema não inicia sem estas variáveis configuradas, garantindo segurança desde o primeiro uso.
+**Importante**: O sistema não inicia sem as variáveis DATABASE_URL e SESSION_SECRET configuradas. O usuário admin é criado automaticamente no primeiro startup.
 
 ## Melhorias Futuras
 - Upload de planilha Excel para cadastro em massa
@@ -211,4 +239,4 @@ O sistema requer as seguintes variáveis de ambiente configuradas:
 06 de Novembro de 2025
 
 ## Última Atualização
-06 de Novembro de 2025
+06 de Novembro de 2025 - Implementado sistema de autenticação admin-only com gestão de usuários
