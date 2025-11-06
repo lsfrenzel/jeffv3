@@ -85,13 +85,21 @@ Sistema web completo desenvolvido em Python com FastAPI para gestão e prospecç
 - ✅ Página de perfil com dados completos
 - ✅ Histórico de prospecções por empresa
 - ✅ Apenas Admin pode cadastrar empresas
+- ✅ **Upload de planilha Excel para cadastro em massa (novembro 2025)**
+- ✅ **Atribuição de empresas a consultores via interface admin (novembro 2025)**
 
 ### 3. Módulo de Prospecção
 - ✅ Admin pode criar prospecções e atribuir a consultores
 - ✅ Consultor pode registrar ligações
+- ✅ **Checklist enriquecido com campos detalhados (novembro 2025)**:
+  - Dados do contato: nome, telefone, email, cargo
+  - Interesses adicionais: segurança no trabalho, meio ambiente
+  - Potencial de negócio (alto/médio/baixo)
+  - Status de follow-up
 - ✅ Campos: data, hora, resultado, observações
 - ✅ Vinculação com empresa e consultor
 - ✅ Histórico completo de prospecções
+- ✅ Agendamentos salvos e visíveis no perfil da empresa
 
 ### 4. Módulo de Agendamentos
 - ✅ Criação de agendamentos vinculados a prospecções
@@ -228,15 +236,31 @@ O sistema requer as seguintes variáveis de ambiente configuradas:
   
 **Importante**: O sistema não inicia sem as variáveis DATABASE_URL e SESSION_SECRET configuradas. O usuário admin é criado automaticamente no primeiro startup.
 
+## Consultores no Sistema
+
+O sistema possui dois consultores criados automaticamente:
+
+1. **Gabriel**
+   - Email: gabriel@consultoria.com
+   - Senha: gabriel123
+   - Tipo: Consultor
+
+2. **Lucas**
+   - Email: lucas@consultoria.com
+   - Senha: lucas123
+   - Tipo: Consultor
+
+**Nota**: Administradores podem atribuir empresas a estes consultores através da interface de administração.
+
 ## Melhorias Futuras
-- Upload de planilha Excel para cadastro em massa
 - Exportação de relatórios (CSV/PDF)
 - Dashboard com gráficos e estatísticas
 - Notificações em tempo real
 - Histórico de alterações
+- Adoção de Alembic para migrações de banco de dados
 
 ## Data de Criação
 06 de Novembro de 2025
 
 ## Última Atualização
-06 de Novembro de 2025 - Implementado sistema de autenticação admin-only com gestão de usuários
+06 de Novembro de 2025 - Implementadas melhorias: upload Excel de empresas, checklist enriquecido de prospecção, criação de consultores (Gabriel e Lucas), e interface de atribuição de empresas
