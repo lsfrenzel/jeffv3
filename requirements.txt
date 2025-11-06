@@ -37,3 +37,4 @@ python-jose[cryptography]
 python-multipart
 sqlalchemy
 uvicorn[standard]
+reportlab
