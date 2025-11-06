@@ -1,14 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import Usuario
+from backend.models import Usuario, TipoUsuario
 from backend.schemas.usuarios import UsuarioCriar, UsuarioLogin, Token, UsuarioResposta
-from backend.auth.security import verificar_senha, obter_hash_senha, criar_token_acesso
+from backend.auth.security import verificar_senha, obter_hash_senha, criar_token_acesso, obter_usuario_admin
 
 router = APIRouter(prefix="/api/auth", tags=["Autenticação"])
 
 @router.post("/registro", response_model=UsuarioResposta)
-def registrar_usuario(usuario: UsuarioCriar, db: Session = Depends(get_db)):
+def registrar_usuario(
+    usuario: UsuarioCriar,
+    db: Session = Depends(get_db),
+    admin: Usuario = Depends(obter_usuario_admin)
+):
     db_usuario = db.query(Usuario).filter(Usuario.email == usuario.email).first()
     if db_usuario:
         raise HTTPException(
@@ -21,7 +25,7 @@ def registrar_usuario(usuario: UsuarioCriar, db: Session = Depends(get_db)):
         nome=usuario.nome,
         email=usuario.email,
         senha_hash=senha_hash,
-        tipo=usuario.tipo
+        tipo=usuario.tipo if usuario.tipo else TipoUsuario.consultor
     )
     db.add(novo_usuario)
     db.commit()
