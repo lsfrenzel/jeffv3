@@ -13,8 +13,8 @@ if (usuario.tipo === 'admin') {
 async function carregarDashboard() {
     try {
         const [empresasRes, prospeccoesRes, alertasRes] = await Promise.all([
-            apiRequest('/api/empresas'),
-            apiRequest('/api/prospeccoes'),
+            apiRequest('/api/empresas/'),
+            apiRequest('/api/prospeccoes/'),
             apiRequest('/api/agendamentos/alertas')
         ]);
         

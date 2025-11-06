@@ -10,7 +10,7 @@ if (usuario.tipo !== 'admin') {
 
 async function carregarEmpresas(filtros = {}) {
     try {
-        let url = '/api/empresas?';
+        let url = '/api/empresas/?';
         if (filtros.nome) url += `nome=${filtros.nome}&`;
         if (filtros.cnpj) url += `cnpj=${filtros.cnpj}&`;
         if (filtros.municipio) url += `municipio=${filtros.municipio}&`;

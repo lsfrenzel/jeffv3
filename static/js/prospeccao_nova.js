@@ -4,12 +4,22 @@ const usuario = getUsuario();
 document.getElementById('userInfo').textContent = `${usuario.nome} (${usuario.tipo})`;
 
 document.getElementById('agendar_proxima').addEventListener('change', function() {
-    document.getElementById('agendamentoOptions').classList.toggle('hidden', !this.checked);
+    const opcoes = document.getElementById('agendamentoOptions');
+    const dataInput = document.getElementById('data_proxima_ligacao');
+    opcoes.classList.toggle('hidden', !this.checked);
+    
+    if (this.checked && !dataInput.value) {
+        const hoje = new Date();
+        hoje.setDate(hoje.getDate() + 7);
+        dataInput.value = hoje.toISOString().split('T')[0];
+    }
+    
+    dataInput.required = this.checked;
 });
 
 async function carregarProspeccoes() {
     try {
-        const response = await apiRequest('/api/prospeccoes');
+        const response = await apiRequest('/api/prospeccoes/');
         const prospeccoes = await response.json();
         
         mostrarProspeccoesCards(prospeccoes);
@@ -132,11 +142,14 @@ function showNovaProspeccaoModal() {
 function hideNovaProspeccaoModal() {
     document.getElementById('novaProspeccaoModal').classList.add('hidden');
     document.getElementById('novaProspeccaoForm').reset();
+    document.getElementById('agendamentoOptions').classList.add('hidden');
+    document.getElementById('data_proxima_ligacao').required = false;
+    document.getElementById('data_proxima_ligacao').value = '';
 }
 
 async function carregarEmpresas() {
     try {
-        const response = await apiRequest('/api/empresas?limit=1000');
+        const response = await apiRequest('/api/empresas/?limit=1000');
         const empresas = await response.json();
         
         const select = document.getElementById('empresa_id');
@@ -179,7 +192,12 @@ document.getElementById('novaProspeccaoForm').addEventListener('submit', async (
         usuario.id;
     
     const agendarProxima = document.getElementById('agendar_proxima').checked;
-    const diasProxima = document.getElementById('dias_proxima_ligacao').value;
+    const dataProxima = document.getElementById('data_proxima_ligacao').value;
+    
+    if (agendarProxima && !dataProxima) {
+        alert('Por favor, selecione a data da próxima ligação');
+        return;
+    }
     
     const prospeccaoData = {
         empresa_id: parseInt(document.getElementById('empresa_id').value),
@@ -209,8 +227,8 @@ document.getElementById('novaProspeccaoForm').addEventListener('submit', async (
     
     try {
         const url = agendarProxima ? 
-            `/api/prospeccoes/com-agendamento?agendar_proxima=true&dias_proxima_ligacao=${diasProxima}` :
-            '/api/prospeccoes';
+            `/api/prospeccoes/com-agendamento?agendar_proxima=true&data_proxima_ligacao=${dataProxima}` :
+            '/api/prospeccoes/';
         
         const response = await apiRequest(url, {
             method: 'POST',

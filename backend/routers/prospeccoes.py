@@ -92,7 +92,7 @@ def obter_prospeccao(
 def criar_prospeccao_com_agendamento(
     prospeccao: ProspeccaoCriar,
     agendar_proxima: bool = False,
-    dias_proxima_ligacao: int = 7,
+    data_proxima_ligacao: str = None,
     db: Session = Depends(get_db),
     usuario: Usuario = Depends(obter_usuario_atual)
 ):
@@ -120,8 +120,15 @@ def criar_prospeccao_com_agendamento(
     db.add(nova_prospeccao)
     db.flush()
     
-    if agendar_proxima:
-        data_proxima = datetime.now() + timedelta(days=dias_proxima_ligacao)
+    if agendar_proxima and data_proxima_ligacao:
+        try:
+            data_proxima = datetime.strptime(data_proxima_ligacao, "%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Data inválida. Use o formato YYYY-MM-DD"
+            )
+        
         novo_agendamento = Agendamento(
             prospeccao_id=nova_prospeccao.id,
             data_agendada=data_proxima,
@@ -133,10 +140,12 @@ def criar_prospeccao_com_agendamento(
     db.commit()
     db.refresh(nova_prospeccao)
     
+    agendamento_realmente_criado = bool(agendar_proxima and data_proxima_ligacao)
+    
     return {
         "prospeccao": nova_prospeccao,
-        "agendamento_criado": agendar_proxima,
-        "message": "Prospecção criada com sucesso" + (" e próxima ligação agendada" if agendar_proxima else "")
+        "agendamento_criado": agendamento_realmente_criado,
+        "message": "Prospecção criada com sucesso" + (" e próxima ligação agendada" if agendamento_realmente_criado else "")
     }
 
 @router.get("/export-pdf/{prospeccao_id}")

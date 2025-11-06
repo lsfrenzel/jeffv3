@@ -8,10 +8,10 @@ async function carregarAlertas() {
         const response = await apiRequest('/api/agendamentos/alertas');
         const alertas = await response.json();
         
-        const empresasResponse = await apiRequest('/api/empresas');
+        const empresasResponse = await apiRequest('/api/empresas/');
         const empresas = await empresasResponse.json();
         
-        const prospeccoesResponse = await apiRequest('/api/prospeccoes');
+        const prospeccoesResponse = await apiRequest('/api/prospeccoes/');
         const prospeccoes = await prospeccoesResponse.json();
         
         mostrarAlertas('alertasVencidos', alertas.vencidos, empresas, prospeccoes, 'text-red-400');
