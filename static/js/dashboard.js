@@ -12,23 +12,18 @@ if (usuario.tipo === 'admin') {
 
 async function carregarDashboard() {
     try {
-        const [empresasRes, prospeccoesRes, alertasRes] = await Promise.all([
-            apiRequest('/api/empresas/'),
-            apiRequest('/api/prospeccoes/'),
-            apiRequest('/api/agendamentos/alertas')
-        ]);
+        const statsRes = await apiRequest('/api/dashboard/stats');
+        if (!statsRes.ok) {
+            throw new Error(`Erro ao carregar estatísticas: ${statsRes.status}`);
+        }
+        const stats = await statsRes.json();
         
-        const empresas = await empresasRes.json();
-        const prospeccoes = await prospeccoesRes.json();
-        const alertas = await alertasRes.json();
+        document.getElementById('totalEmpresas').textContent = stats.total_empresas;
+        document.getElementById('totalProspeccoes').textContent = stats.total_prospeccoes;
+        document.getElementById('totalAgendamentos').textContent = stats.total_agendamentos;
         
-        document.getElementById('totalEmpresas').textContent = empresas.length;
-        document.getElementById('totalProspeccoes').textContent = prospeccoes.length;
-        
-        const totalAgendamentos = alertas.vencidos.length + alertas.hoje.length + alertas.futuros.length;
-        document.getElementById('totalAgendamentos').textContent = totalAgendamentos;
-        
-        mostrarAlertasRecentes(alertas);
+        mostrarAlertasRecentes(stats.alertas);
+        renderizarGraficos(stats);
         
         if (usuario.tipo !== 'admin') {
             await carregarEmpresasAtribuidas();
@@ -36,8 +31,138 @@ async function carregarDashboard() {
             document.getElementById('empresasAtribuidasSection').style.display = 'none';
         }
     } catch (error) {
-        console.error('Erro ao carregar dashboard:', error);
+        console.error('Erro ao carregar dashboard:', error.message || error);
+        document.getElementById('totalEmpresas').textContent = 'Erro';
+        document.getElementById('totalProspeccoes').textContent = 'Erro';
+        document.getElementById('totalAgendamentos').textContent = 'Erro';
     }
+}
+
+function renderizarGraficos(stats) {
+    renderizarGraficoProspeccoes(stats.prospeccoes_por_resultado);
+    renderizarGraficoAgendamentos(stats.agendamentos_por_status);
+    renderizarGraficoEmpresas(stats.empresas_por_estado);
+}
+
+function renderizarGraficoProspeccoes(data) {
+    const ctx = document.getElementById('graficoProspeccoes');
+    if (!ctx) return;
+    
+    const labels = Object.keys(data);
+    const valores = Object.values(data);
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Prospecções por Resultado',
+                data: valores,
+                backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: { color: '#fff' }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#9ca3af' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                },
+                x: {
+                    ticks: { color: '#9ca3af' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                }
+            }
+        }
+    });
+}
+
+function renderizarGraficoAgendamentos(data) {
+    const ctx = document.getElementById('graficoAgendamentos');
+    if (!ctx) return;
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Vencidos', 'Hoje', 'Futuros'],
+            datasets: [{
+                data: [data.vencidos, data.hoje, data.futuros],
+                backgroundColor: [
+                    'rgba(239, 68, 68, 0.5)',
+                    'rgba(251, 191, 36, 0.5)',
+                    'rgba(34, 197, 94, 0.5)'
+                ],
+                borderColor: [
+                    'rgba(239, 68, 68, 1)',
+                    'rgba(251, 191, 36, 1)',
+                    'rgba(34, 197, 94, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#fff' }
+                }
+            }
+        }
+    });
+}
+
+function renderizarGraficoEmpresas(data) {
+    const ctx = document.getElementById('graficoEmpresas');
+    if (!ctx) return;
+    
+    const labels = Object.keys(data).slice(0, 10);
+    const valores = Object.values(data).slice(0, 10);
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Empresas por Estado (Top 10)',
+                data: valores,
+                backgroundColor: 'rgba(168, 85, 247, 0.5)',
+                borderColor: 'rgba(168, 85, 247, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: {
+                    labels: { color: '#fff' }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: { color: '#9ca3af' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                },
+                y: {
+                    ticks: { color: '#9ca3af' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                }
+            }
+        }
+    });
 }
 
 async function carregarEmpresasAtribuidas() {
