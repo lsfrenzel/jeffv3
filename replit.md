@@ -91,11 +91,19 @@ Sistema web completo desenvolvido em Python com FastAPI para gestão e prospecç
 ### 3. Módulo de Prospecção
 - ✅ Admin pode criar prospecções e atribuir a consultores
 - ✅ Consultor pode registrar ligações
+- ✅ **Autocomplete de empresas (novembro 2025)**:
+  - Busca em tempo real ao digitar o nome da empresa
+  - Sugestões aparecem automaticamente (mínimo 2 caracteres)
+  - Proteção contra XSS e validação obrigatória
+  - Debounce de 300ms para otimização
 - ✅ **Checklist enriquecido com campos detalhados (novembro 2025)**:
-  - Dados do contato: nome, telefone, email, cargo
-  - Interesses adicionais: segurança no trabalho, meio ambiente
+  - Dados do contato: nome, telefone, email, cargo (opcionais)
   - Potencial de negócio (alto/médio/baixo)
   - Status de follow-up
+- ✅ **Agendamento de próxima ligação (novembro 2025)**:
+  - Checkbox para agendar automaticamente
+  - Seletor de data com calendário
+  - Data padrão sugerida: hoje + 7 dias
 - ✅ Campos: data, hora, resultado, observações
 - ✅ Vinculação com empresa e consultor
 - ✅ Histórico completo de prospecções
@@ -148,9 +156,17 @@ Sistema web completo desenvolvido em Python com FastAPI para gestão e prospecç
 ### 4. Criar Prospecção
 1. No menu lateral, clique em "Prospecções"
 2. Clique em "+ Nova Prospecção"
-3. Selecione a empresa e consultor (se Admin)
-4. Registre a ligação com data, hora, resultado e observações
-5. Clique em "Salvar Prospecção"
+3. **Digite o nome da empresa** - sugestões aparecem automaticamente
+4. **Clique na empresa** desejada para selecionar
+5. Selecione o consultor (se você for Admin)
+6. Preencha os dados da prospecção:
+   - Data e hora da ligação
+   - Resultado da ligação
+   - Dados de contato (opcionais): nome, telefone, email, cargo
+   - Potencial de negócio e status de follow-up
+   - Observações
+7. (Opcional) Marque "Agendar próxima ligação" e escolha a data
+8. Clique em "Salvar Prospecção"
 
 ### 5. Criar Agendamento
 1. Na lista de prospecções, clique em "Agendar"
@@ -263,7 +279,7 @@ O sistema possui dois consultores criados automaticamente:
 06 de Novembro de 2025
 
 ## Última Atualização
-06 de Novembro de 2025 - Melhorias implementadas:
+10 de Novembro de 2025 - Melhorias implementadas:
 
 ### Manhã (importação inicial)
 - Upload Excel de empresas
@@ -285,7 +301,7 @@ O sistema possui dois consultores criados automaticamente:
   - Melhor experiência em telas menores
 - ✅ **Formato CRUD completo**: Todas as entidades agora suportam edição completa
 
-### Noite (correções críticas)
+### Noite (correções críticas - 06/11)
 - ✅ **Correção de carregamento de empresas**: Resolvido problema de 307 redirect
   - Todas as URLs de API agora incluem barra final (trailing slash)
   - Empresas, prospecções, agendamentos e alertas carregam corretamente
@@ -296,3 +312,18 @@ O sistema possui dois consultores criados automaticamente:
   - Validação apenas quando agendamento está habilitado
   - Reset adequado do formulário entre usos
   - Backend retorna boolean correto para agendamento_criado
+
+### Autocomplete de Empresas (10/11)
+- ✅ **Autocomplete inteligente na criação de prospecções**:
+  - Substituído select por campo de busca com autocomplete
+  - Busca em tempo real ao digitar (mínimo 2 caracteres)
+  - Sugestões mostram nome da empresa, município e estado
+  - Debounce de 300ms para otimizar performance de rede
+- ✅ **Segurança e validação**:
+  - Proteção contra XSS usando createElement/textContent
+  - Validação obrigatória: não permite enviar sem selecionar empresa válida
+  - Mensagens de erro claras para o usuário
+- ✅ **Simplificação do formulário**:
+  - Campos de contato (nome, telefone, email, cargo) são opcionais
+  - Campos de interesse tornados opcionais no JavaScript
+  - Formulário mais limpo e focado nas informações essenciais

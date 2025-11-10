@@ -273,30 +273,40 @@ document.getElementById('novaProspeccaoForm').addEventListener('submit', async (
         return;
     }
     
+    const getCheckboxValue = (id) => {
+        const element = document.getElementById(id);
+        return element ? element.checked : false;
+    };
+    
+    const getInputValue = (id) => {
+        const element = document.getElementById(id);
+        return element ? (element.value || null) : null;
+    };
+    
     const prospeccaoData = {
         empresa_id: parseInt(document.getElementById('empresa_id').value),
         consultor_id: consultorId,
-        data_ligacao: document.getElementById('data_ligacao').value || null,
-        hora_ligacao: document.getElementById('hora_ligacao').value || null,
-        resultado: document.getElementById('resultado').value || null,
-        observacoes: document.getElementById('observacoes').value || null,
+        data_ligacao: getInputValue('data_ligacao'),
+        hora_ligacao: getInputValue('hora_ligacao'),
+        resultado: getInputValue('resultado'),
+        observacoes: getInputValue('observacoes'),
         
-        nome_contato: document.getElementById('nome_contato').value || null,
-        telefone_contato: document.getElementById('telefone_contato').value || null,
-        email_contato: document.getElementById('email_contato').value || null,
-        cargo_contato: document.getElementById('cargo_contato').value || null,
+        nome_contato: getInputValue('nome_contato'),
+        telefone_contato: getInputValue('telefone_contato'),
+        email_contato: getInputValue('email_contato'),
+        cargo_contato: getInputValue('cargo_contato'),
         
-        interesse_treinamento: document.getElementById('interesse_treinamento').checked,
-        interesse_consultoria: document.getElementById('interesse_consultoria').checked,
-        interesse_certificacao: document.getElementById('interesse_certificacao').checked,
-        interesse_eventos: document.getElementById('interesse_eventos').checked,
-        interesse_produtos: document.getElementById('interesse_produtos').checked,
-        interesse_seguranca: document.getElementById('interesse_seguranca').checked,
-        interesse_meio_ambiente: document.getElementById('interesse_meio_ambiente').checked,
-        outros_interesses: document.getElementById('outros_interesses').value || null,
+        interesse_treinamento: getCheckboxValue('interesse_treinamento'),
+        interesse_consultoria: getCheckboxValue('interesse_consultoria'),
+        interesse_certificacao: getCheckboxValue('interesse_certificacao'),
+        interesse_eventos: getCheckboxValue('interesse_eventos'),
+        interesse_produtos: getCheckboxValue('interesse_produtos'),
+        interesse_seguranca: getCheckboxValue('interesse_seguranca'),
+        interesse_meio_ambiente: getCheckboxValue('interesse_meio_ambiente'),
+        outros_interesses: getInputValue('outros_interesses'),
         
-        potencial_negocio: document.getElementById('potencial_negocio').value || null,
-        status_follow_up: document.getElementById('status_follow_up').value || null
+        potencial_negocio: getInputValue('potencial_negocio'),
+        status_follow_up: getInputValue('status_follow_up')
     };
     
     try {
