@@ -327,3 +327,23 @@ O sistema possui dois consultores criados automaticamente:
   - Campos de contato (nome, telefone, email, cargo) são opcionais
   - Campos de interesse tornados opcionais no JavaScript
   - Formulário mais limpo e focado nas informações essenciais
+
+### Dashboard com Gráficos e Busca de CNPJ (10/11 - Tarde/Noite)
+- ✅ **Dashboard com estatísticas visuais**:
+  - Integração com Chart.js para visualizações de dados
+  - Gráfico de prospecções por resultado (sucesso, tentativa, sem interesse, etc.)
+  - Gráfico de agendamentos por status (pendente, realizado, vencido)
+  - Gráfico de distribuição de empresas por estado
+  - Endpoint `/api/dashboard/stats` para fornecer dados agregados
+  - Design responsivo e integrado ao tema escuro
+
+- ✅ **Busca de empresas por CNPJ**:
+  - Nova página de busca com três APIs gratuitas de fallback
+  - Sistema de fallback robusto: ReceitaWS → BrasilAPI → publica.cnpj.ws
+  - Proteção contra falhas de APIs externas
+  - Mapeamento correto de campos para o modelo Empresa
+  - Consolidação de endereço completo (logradouro, número, complemento, CEP)
+  - Dados extras salvos em observação (nome fantasia, telefone, email, data abertura, situação)
+  - Tratamento defensivo de campos nulos/ausentes
+  - Serialização correta com `jsonable_encoder` para respostas JSON
+  - Interface intuitiva com feedback visual de sucesso/erro
