@@ -41,7 +41,7 @@ async function carregarDashboard() {
 function renderizarGraficos(stats) {
     renderizarGraficoProspeccoes(stats.prospeccoes_por_resultado);
     renderizarGraficoAgendamentos(stats.agendamentos_por_status);
-    renderizarGraficoEmpresas(stats.empresas_por_estado);
+    renderizarGraficoEmpresas(stats.empresas_por_consultor);
 }
 
 function renderizarGraficoProspeccoes(data) {
@@ -134,7 +134,7 @@ function renderizarGraficoEmpresas(data) {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Empresas por Estado (Top 10)',
+                label: 'Empresas por Consultor (Top 10)',
                 data: valores,
                 backgroundColor: 'rgba(168, 85, 247, 0.5)',
                 borderColor: 'rgba(168, 85, 247, 1)',
@@ -209,7 +209,7 @@ function criarProspeccaoRapida(empresaId) {
 function mostrarAlertasRecentes(alertas) {
     const container = document.getElementById('alertasRecentes');
     
-    if (alertas.vencidos.length === 0 && alertas.hoje.length === 0 && alertas.futuros.length === 0) {
+    if (!alertas || (alertas.vencidos.length === 0 && alertas.hoje.length === 0 && alertas.futuros.length === 0)) {
         container.innerHTML = '<p class="text-gray-400 text-center py-4">Nenhum alerta no momento</p>';
         return;
     }
@@ -218,20 +218,36 @@ function mostrarAlertasRecentes(alertas) {
     
     alertas.vencidos.forEach(alerta => {
         html += `
-            <div class="bg-red-900/30 border-l-4 border-red-500 p-4 rounded">
-                <p class="text-red-300 font-semibold">Vencido</p>
-                <p class="text-gray-300 text-sm mt-1">${new Date(alerta.data_agendada).toLocaleString('pt-BR')}</p>
-                <p class="text-gray-400 text-sm">${alerta.observacoes || 'Sem observações'}</p>
+            <div class="bg-red-900/30 border-l-4 border-red-500 p-4 rounded cursor-pointer hover:bg-red-900/40 transition" onclick="window.location.href='/empresas'">
+                <div class="flex items-center justify-between">
+                    <p class="text-red-300 font-semibold">⚠️ Agendamento Vencido</p>
+                    <span class="text-xs text-red-400">${new Date(alerta.data_agendada).toLocaleDateString('pt-BR')}</span>
+                </div>
+                <p class="text-gray-300 text-sm mt-1">${alerta.observacoes || 'Sem observações'}</p>
             </div>
         `;
     });
     
     alertas.hoje.forEach(alerta => {
         html += `
-            <div class="bg-yellow-900/30 border-l-4 border-yellow-500 p-4 rounded">
-                <p class="text-yellow-300 font-semibold">Hoje</p>
-                <p class="text-gray-300 text-sm mt-1">${new Date(alerta.data_agendada).toLocaleString('pt-BR')}</p>
-                <p class="text-gray-400 text-sm">${alerta.observacoes || 'Sem observações'}</p>
+            <div class="bg-yellow-900/30 border-l-4 border-yellow-500 p-4 rounded cursor-pointer hover:bg-yellow-900/40 transition" onclick="window.location.href='/empresas'">
+                <div class="flex items-center justify-between">
+                    <p class="text-yellow-300 font-semibold">📅 Agendamento Hoje</p>
+                    <span class="text-xs text-yellow-400">${new Date(alerta.data_agendada).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}</span>
+                </div>
+                <p class="text-gray-300 text-sm mt-1">${alerta.observacoes || 'Sem observações'}</p>
+            </div>
+        `;
+    });
+    
+    alertas.futuros.slice(0, 3).forEach(alerta => {
+        html += `
+            <div class="bg-blue-900/30 border-l-4 border-blue-500 p-4 rounded cursor-pointer hover:bg-blue-900/40 transition" onclick="window.location.href='/empresas'">
+                <div class="flex items-center justify-between">
+                    <p class="text-blue-300 font-semibold">📌 Próximo Agendamento</p>
+                    <span class="text-xs text-blue-400">${new Date(alerta.data_agendada).toLocaleDateString('pt-BR')}</span>
+                </div>
+                <p class="text-gray-300 text-sm mt-1">${alerta.observacoes || 'Sem observações'}</p>
             </div>
         `;
     });

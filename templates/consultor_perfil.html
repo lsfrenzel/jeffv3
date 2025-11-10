@@ -19,17 +19,65 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                 <div class="lg:col-span-1 bg-dark-sidebar rounded-lg shadow-lg p-6">
                     <h3 class="text-xl font-semibold text-white mb-4">Informações Pessoais</h3>
+                    <div class="flex justify-center mb-6">
+                        <div class="relative">
+                            <img id="fotoConsultor" src="https://ui-avatars.com/api/?name=Consultor&size=150&background=3b82f6&color=fff" alt="Foto do consultor" class="w-32 h-32 rounded-full object-cover border-4 border-blue-500">
+                            <button onclick="abrirModalFoto()" class="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 shadow-lg transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                     <div id="perfilConsultor" class="space-y-4">
                         <p class="text-gray-400">Carregando...</p>
                     </div>
                 </div>
                 
-                <div class="lg:col-span-2 bg-dark-sidebar rounded-lg shadow-lg p-6">
-                    <h3 class="text-xl font-semibold text-white mb-4">Estatísticas</h3>
-                    <div id="estatisticas" class="grid grid-cols-2 gap-4">
-                        <div class="bg-dark-card rounded-lg p-4">
-                            <p class="text-gray-400 text-sm">Total de Prospecções</p>
-                            <p class="text-3xl font-bold text-white mt-2" id="totalProspeccoes">0</p>
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-dark-sidebar rounded-lg shadow-lg p-6">
+                        <h3 class="text-xl font-semibold text-white mb-4">Estatísticas</h3>
+                        <div id="estatisticas" class="grid grid-cols-2 gap-4">
+                            <div class="bg-dark-card rounded-lg p-4">
+                                <p class="text-gray-400 text-sm">Total de Prospecções</p>
+                                <p class="text-3xl font-bold text-white mt-2" id="totalProspeccoes">0</p>
+                            </div>
+                            <div class="bg-dark-card rounded-lg p-4">
+                                <p class="text-gray-400 text-sm">Empresas Atribuídas</p>
+                                <p class="text-3xl font-bold text-white mt-2" id="empresasAtribuidas">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-dark-sidebar rounded-lg shadow-lg p-6">
+                        <h3 class="text-xl font-semibold text-white mb-4">💬 Ações Rápidas</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <button onclick="abrirAtribuirProspeccao()" class="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-lg transition flex items-center gap-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                <span>Atribuir Prospecção</span>
+                            </button>
+                            <button onclick="abrirAtribuirEmpresas()" class="bg-green-600 hover:bg-green-700 text-white p-4 rounded-lg transition flex items-center gap-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                                <span>Atribuir Empresas</span>
+                            </button>
+                            <button onclick="abrirAtribuirAcoes()" class="bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-lg transition flex items-center gap-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                                </svg>
+                                <span>Definir Ações</span>
+                            </button>
+                            <button onclick="visualizarEmpresasAtribuidas()" class="bg-yellow-600 hover:bg-yellow-700 text-white p-4 rounded-lg transition flex items-center gap-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                <span>Ver Empresas</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -62,6 +110,95 @@
     </main>
 </div>
 {% endblock %}
+
+{% endblock %}
+
+<div id="modalFoto" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+    <div class="bg-dark-sidebar rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-xl font-semibold text-white mb-4">Atualizar Foto do Perfil</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-gray-400 text-sm mb-2">URL da Foto</label>
+                <input type="text" id="inputFotoUrl" class="w-full bg-dark-card border border-gray-700 rounded-lg px-4 py-2 text-white" placeholder="https://exemplo.com/foto.jpg">
+                <p class="text-gray-500 text-xs mt-1">Cole o link de uma imagem pública</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="salvarFoto()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition">
+                    Salvar
+                </button>
+                <button onclick="fecharModalFoto()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalAtribuirProspeccao" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+    <div class="bg-dark-sidebar rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <h3 class="text-xl font-semibold text-white mb-4">Atribuir Prospecção ao Consultor</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-gray-400 text-sm mb-2">Selecione a Empresa</label>
+                <input type="text" id="buscarEmpresa" class="w-full bg-dark-card border border-gray-700 rounded-lg px-4 py-2 text-white mb-2" placeholder="Buscar empresa...">
+                <div id="listaEmpresas" class="bg-dark-card rounded-lg max-h-60 overflow-y-auto">
+                    <p class="text-gray-400 text-center py-4">Carregando empresas...</p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="fecharModalAtribuirProspeccao()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalAtribuirEmpresas" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+    <div class="bg-dark-sidebar rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <h3 class="text-xl font-semibold text-white mb-4">Atribuir Empresas ao Consultor</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-gray-400 text-sm mb-2">Selecione as Empresas</label>
+                <input type="text" id="buscarEmpresaAtribuir" class="w-full bg-dark-card border border-gray-700 rounded-lg px-4 py-2 text-white mb-2" placeholder="Buscar empresa...">
+                <div id="listaEmpresasAtribuir" class="bg-dark-card rounded-lg max-h-60 overflow-y-auto">
+                    <p class="text-gray-400 text-center py-4">Carregando empresas...</p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="fecharModalAtribuirEmpresas()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalAtribuirAcoes" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+    <div class="bg-dark-sidebar rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <h3 class="text-xl font-semibold text-white mb-4">Definir Ações para Empresas</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-gray-400 text-sm mb-2">Selecione as Empresas Atribuídas</label>
+                <div id="empresasParaAcoes" class="bg-dark-card rounded-lg max-h-60 overflow-y-auto mb-4">
+                    <p class="text-gray-400 text-center py-4">Carregando empresas...</p>
+                </div>
+            </div>
+            <div>
+                <label class="block text-gray-400 text-sm mb-2">Ação a Realizar</label>
+                <textarea id="acaoTexto" class="w-full bg-dark-card border border-gray-700 rounded-lg px-4 py-2 text-white" rows="3" placeholder="Descreva a ação que o consultor deve realizar com as empresas selecionadas..."></textarea>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="salvarAcoes()" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg transition">
+                    Salvar Ações
+                </button>
+                <button onclick="fecharModalAtribuirAcoes()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% block scripts %}
 <script>

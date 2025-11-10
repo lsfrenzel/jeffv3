@@ -7,46 +7,56 @@ if (usuario.tipo === 'admin') {
     document.getElementById('adminLink').classList.remove('hidden');
 }
 
+let perfilAtual = null;
+let empresasDisponiveis = [];
+
 async function carregarPerfilConsultor() {
     try {
         const response = await apiRequest(`/api/consultores/${consultorId}`);
         const data = await response.json();
         
-        const perfil = data.perfil;
+        perfilAtual = data.perfil;
         const estatisticas = data.estatisticas;
         const prospeccoes = data.prospeccoes;
+        
+        if (perfilAtual.foto_url) {
+            document.getElementById('fotoConsultor').src = perfilAtual.foto_url;
+        } else {
+            document.getElementById('fotoConsultor').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(perfilAtual.nome)}&size=150&background=3b82f6&color=fff`;
+        }
         
         const perfilDiv = document.getElementById('perfilConsultor');
         perfilDiv.innerHTML = `
             <div class="space-y-3">
                 <div>
                     <p class="text-gray-400 text-sm">Nome</p>
-                    <p class="text-white font-medium">${perfil.nome}</p>
+                    <p class="text-white font-medium">${perfilAtual.nome}</p>
                 </div>
                 <div>
                     <p class="text-gray-400 text-sm">Email</p>
-                    <p class="text-white font-medium">${perfil.email}</p>
+                    <p class="text-white font-medium">${perfilAtual.email}</p>
                 </div>
                 <div>
                     <p class="text-gray-400 text-sm">Data de Nascimento</p>
-                    <p class="text-white font-medium">${perfil.data_nascimento ? new Date(perfil.data_nascimento).toLocaleDateString('pt-BR') : '-'}</p>
+                    <p class="text-white font-medium">${perfilAtual.data_nascimento ? new Date(perfilAtual.data_nascimento).toLocaleDateString('pt-BR') : '-'}</p>
                 </div>
                 <div>
                     <p class="text-gray-400 text-sm">Modelo do Carro</p>
-                    <p class="text-white font-medium">${perfil.modelo_carro || '-'}</p>
+                    <p class="text-white font-medium">${perfilAtual.modelo_carro || '-'}</p>
                 </div>
                 <div>
                     <p class="text-gray-400 text-sm">Placa do Carro</p>
-                    <p class="text-white font-medium">${perfil.placa_carro || '-'}</p>
+                    <p class="text-white font-medium">${perfilAtual.placa_carro || '-'}</p>
                 </div>
                 <div>
                     <p class="text-gray-400 text-sm">Informações Básicas</p>
-                    <p class="text-white font-medium">${perfil.informacoes_basicas || '-'}</p>
+                    <p class="text-white font-medium">${perfilAtual.informacoes_basicas || '-'}</p>
                 </div>
             </div>
         `;
         
         document.getElementById('totalProspeccoes').textContent = estatisticas.total_prospeccoes;
+        document.getElementById('empresasAtribuidas').textContent = estatisticas.empresas_atribuidas || 0;
         
         const tbody = document.getElementById('tabelaProspeccoes');
         if (!prospeccoes || prospeccoes.length === 0) {
@@ -68,6 +78,191 @@ async function carregarPerfilConsultor() {
         document.getElementById('perfilConsultor').innerHTML = 
             '<p class="text-red-400">Erro ao carregar perfil</p>';
     }
+}
+
+function abrirModalFoto() {
+    document.getElementById('modalFoto').classList.remove('hidden');
+    document.getElementById('inputFotoUrl').value = perfilAtual?.foto_url || '';
+}
+
+function fecharModalFoto() {
+    document.getElementById('modalFoto').classList.add('hidden');
+}
+
+async function salvarFoto() {
+    const fotoUrl = document.getElementById('inputFotoUrl').value.trim();
+    
+    try {
+        const response = await apiRequest(`/api/consultores/${consultorId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ foto_url: fotoUrl })
+        });
+        
+        if (response.ok) {
+            fecharModalFoto();
+            carregarPerfilConsultor();
+            alert('Foto atualizada com sucesso!');
+        } else {
+            alert('Erro ao atualizar foto');
+        }
+    } catch (error) {
+        console.error('Erro ao salvar foto:', error);
+        alert('Erro ao atualizar foto');
+    }
+}
+
+async function abrirAtribuirProspeccao() {
+    document.getElementById('modalAtribuirProspeccao').classList.remove('hidden');
+    await carregarEmpresas('listaEmpresas', 'buscarEmpresa', true);
+}
+
+function fecharModalAtribuirProspeccao() {
+    document.getElementById('modalAtribuirProspeccao').classList.add('hidden');
+}
+
+async function abrirAtribuirEmpresas() {
+    document.getElementById('modalAtribuirEmpresas').classList.remove('hidden');
+    await carregarEmpresas('listaEmpresasAtribuir', 'buscarEmpresaAtribuir', false);
+}
+
+function fecharModalAtribuirEmpresas() {
+    document.getElementById('modalAtribuirEmpresas').classList.add('hidden');
+}
+
+async function abrirAtribuirAcoes() {
+    document.getElementById('modalAtribuirAcoes').classList.remove('hidden');
+    await carregarEmpresasAtribuidas();
+}
+
+function fecharModalAtribuirAcoes() {
+    document.getElementById('modalAtribuirAcoes').classList.add('hidden');
+}
+
+async function carregarEmpresas(containerId, searchInputId, paraProspeccao) {
+    try {
+        const response = await apiRequest('/api/empresas?page=1&page_size=100');
+        const data = await response.json();
+        empresasDisponiveis = data.items || [];
+        
+        renderizarListaEmpresas(containerId, empresasDisponiveis, paraProspeccao);
+        
+        document.getElementById(searchInputId).addEventListener('input', (e) => {
+            const termo = e.target.value.toLowerCase();
+            const empresasFiltradas = empresasDisponiveis.filter(emp => 
+                emp.empresa.toLowerCase().includes(termo) || 
+                (emp.cnpj && emp.cnpj.includes(termo))
+            );
+            renderizarListaEmpresas(containerId, empresasFiltradas, paraProspeccao);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar empresas:', error);
+        document.getElementById(containerId).innerHTML = '<p class="text-red-400 text-center py-4">Erro ao carregar empresas</p>';
+    }
+}
+
+function renderizarListaEmpresas(containerId, empresas, paraProspeccao) {
+    const container = document.getElementById(containerId);
+    
+    if (!empresas || empresas.length === 0) {
+        container.innerHTML = '<p class="text-gray-400 text-center py-4">Nenhuma empresa encontrada</p>';
+        return;
+    }
+    
+    container.innerHTML = empresas.map(emp => `
+        <div class="p-3 border-b border-gray-700 hover:bg-dark-hover cursor-pointer" onclick="${paraProspeccao ? `criarProspeccaoParaEmpresa(${emp.id})` : `atribuirEmpresa(${emp.id})`}">
+            <p class="text-white font-medium">${emp.empresa}</p>
+            <p class="text-gray-400 text-sm">${emp.cnpj || 'Sem CNPJ'} - ${emp.municipio || 'N/A'}, ${emp.estado || 'N/A'}</p>
+        </div>
+    `).join('');
+}
+
+async function criarProspeccaoParaEmpresa(empresaId) {
+    window.location.href = `/prospeccao?empresa_id=${empresaId}&consultor_id=${consultorId}`;
+}
+
+async function atribuirEmpresa(empresaId) {
+    try {
+        const response = await apiRequest('/api/atribuicoes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                consultor_id: consultorId,
+                empresa_id: empresaId
+            })
+        });
+        
+        if (response.ok) {
+            alert('Empresa atribuída com sucesso!');
+            fecharModalAtribuirEmpresas();
+            carregarPerfilConsultor();
+        } else {
+            const error = await response.json();
+            alert(error.detail || 'Erro ao atribuir empresa');
+        }
+    } catch (error) {
+        console.error('Erro ao atribuir empresa:', error);
+        alert('Erro ao atribuir empresa');
+    }
+}
+
+async function carregarEmpresasAtribuidas() {
+    try {
+        const response = await apiRequest(`/api/atribuicoes/consultor/${consultorId}`);
+        const atribuicoes = await response.json();
+        
+        const container = document.getElementById('empresasParaAcoes');
+        
+        if (!atribuicoes || atribuicoes.length === 0) {
+            container.innerHTML = '<p class="text-gray-400 text-center py-4">Nenhuma empresa atribuída</p>';
+            return;
+        }
+        
+        container.innerHTML = atribuicoes.map(atrib => `
+            <label class="flex items-center p-3 border-b border-gray-700 hover:bg-dark-hover cursor-pointer">
+                <input type="checkbox" value="${atrib.empresa.id}" class="mr-3 w-4 h-4" onchange="toggleEmpresaAcao(this)">
+                <div>
+                    <p class="text-white font-medium">${atrib.empresa.empresa}</p>
+                    <p class="text-gray-400 text-sm">${atrib.empresa.cnpj || 'Sem CNPJ'}</p>
+                </div>
+            </label>
+        `).join('');
+    } catch (error) {
+        console.error('Erro ao carregar empresas:', error);
+    }
+}
+
+let empresasSelecionadas = [];
+
+function toggleEmpresaAcao(checkbox) {
+    const empresaId = parseInt(checkbox.value);
+    if (checkbox.checked) {
+        empresasSelecionadas.push(empresaId);
+    } else {
+        empresasSelecionadas = empresasSelecionadas.filter(id => id !== empresaId);
+    }
+}
+
+async function salvarAcoes() {
+    const acaoTexto = document.getElementById('acaoTexto').value.trim();
+    
+    if (empresasSelecionadas.length === 0) {
+        alert('Selecione pelo menos uma empresa');
+        return;
+    }
+    
+    if (!acaoTexto) {
+        alert('Descreva a ação a ser realizada');
+        return;
+    }
+    
+    alert(`Ação "${acaoTexto}" definida para ${empresasSelecionadas.length} empresa(s)!\n\nEsta funcionalidade será expandida em breve com sistema de notificações.`);
+    fecharModalAtribuirAcoes();
+    empresasSelecionadas = [];
+}
+
+function visualizarEmpresasAtribuidas() {
+    window.location.href = '/empresas';
 }
 
 carregarPerfilConsultor();

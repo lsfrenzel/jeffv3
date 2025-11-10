@@ -35,7 +35,8 @@ def listar_consultores(
             "data_nascimento": c.data_nascimento,
             "modelo_carro": c.modelo_carro,
             "placa_carro": c.placa_carro,
-            "informacoes_basicas": c.informacoes_basicas
+            "informacoes_basicas": c.informacoes_basicas,
+            "foto_url": c.foto_url
         }
         for c in consultores
     ]
@@ -73,6 +74,11 @@ def obter_consultor_perfil(
     
     prospeccoes_safe = [ProspeccaoResposta.model_validate(p) for p in prospeccoes]
     
+    from backend.models import AtribuicaoEmpresa
+    empresas_atribuidas = db.query(AtribuicaoEmpresa).filter(
+        AtribuicaoEmpresa.consultor_id == consultor_id
+    ).count()
+    
     return {
         "perfil": {
             "id": consultor.id,
@@ -81,10 +87,12 @@ def obter_consultor_perfil(
             "data_nascimento": consultor.data_nascimento,
             "modelo_carro": consultor.modelo_carro,
             "placa_carro": consultor.placa_carro,
-            "informacoes_basicas": consultor.informacoes_basicas
+            "informacoes_basicas": consultor.informacoes_basicas,
+            "foto_url": consultor.foto_url
         },
         "estatisticas": {
-            "total_prospeccoes": total_prospeccoes
+            "total_prospeccoes": total_prospeccoes,
+            "empresas_atribuidas": empresas_atribuidas
         },
         "prospeccoes": prospeccoes_safe
     }
@@ -122,5 +130,6 @@ def atualizar_consultor(
         "data_nascimento": consultor.data_nascimento,
         "modelo_carro": consultor.modelo_carro,
         "placa_carro": consultor.placa_carro,
-        "informacoes_basicas": consultor.informacoes_basicas
+        "informacoes_basicas": consultor.informacoes_basicas,
+        "foto_url": consultor.foto_url
     }

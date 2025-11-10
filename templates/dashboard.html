@@ -13,6 +13,13 @@
         </header>
         
         <div class="p-6">
+            <div class="bg-dark-sidebar rounded-lg p-6 shadow-lg mb-8">
+                <h3 class="text-xl font-semibold text-white mb-4">Alertas Recentes</h3>
+                <div id="alertasRecentes" class="space-y-3">
+                    <p class="text-gray-400 text-center py-8">Carregando alertas...</p>
+                </div>
+            </div>
+            
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div class="bg-dark-sidebar rounded-lg p-6 shadow-lg">
                     <h3 class="text-gray-400 text-sm font-medium">Total de Empresas</h3>
@@ -55,17 +62,10 @@
             
             <div class="grid grid-cols-1 gap-6 mb-8">
                 <div class="bg-dark-sidebar rounded-lg p-6 shadow-lg">
-                    <h3 class="text-xl font-semibold text-white mb-4">Empresas por Estado (Top 10)</h3>
+                    <h3 class="text-xl font-semibold text-white mb-4">Empresas por Consultor (Top 10)</h3>
                     <div style="height: 400px;">
                         <canvas id="graficoEmpresas"></canvas>
                     </div>
-                </div>
-            </div>
-            
-            <div class="bg-dark-sidebar rounded-lg p-6 shadow-lg">
-                <h3 class="text-xl font-semibold text-white mb-4">Alertas Recentes</h3>
-                <div id="alertasRecentes" class="space-y-3">
-                    <p class="text-gray-400 text-center py-8">Carregando alertas...</p>
                 </div>
             </div>
         </div>

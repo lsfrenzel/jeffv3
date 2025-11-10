@@ -20,6 +20,7 @@ class Usuario(Base):
     modelo_carro = Column(String(200), nullable=True)
     placa_carro = Column(String(20), nullable=True, index=True)
     informacoes_basicas = Column(Text, nullable=True)
+    foto_url = Column(String(500), nullable=True)
     
     empresas_atribuidas = relationship("AtribuicaoEmpresa", back_populates="consultor")
     prospeccoes = relationship("Prospeccao", foreign_keys="Prospeccao.consultor_id")

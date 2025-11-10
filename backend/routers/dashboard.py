@@ -70,22 +70,24 @@ def obter_estatisticas(
     
     total_agendamentos = len(vencidos) + len(hoje_agendamentos) + len(futuros)
     
-    empresas_por_estado = {}
-    if empresas_query:
-        estados = db.query(
-            Empresa.estado,
-            func.count(Empresa.id)
-        ).filter(Empresa.estado.isnot(None))
+    empresas_por_consultor = {}
+    if usuario.tipo == "admin":
+        from backend.models import AtribuicaoEmpresa
+        consultores_stats = db.query(
+            Usuario.nome,
+            func.count(AtribuicaoEmpresa.empresa_id)
+        ).join(
+            AtribuicaoEmpresa, Usuario.id == AtribuicaoEmpresa.consultor_id
+        ).filter(
+            Usuario.tipo == "consultor"
+        ).group_by(Usuario.id, Usuario.nome).all()
         
-        if usuario.tipo != "admin" and empresas_ids:
-            estados = estados.filter(Empresa.id.in_(empresas_ids))
-        
-        estados = estados.group_by(Empresa.estado).all()
-        
-        for estado, count in estados:
-            empresas_por_estado[estado] = count
+        for nome, count in consultores_stats:
+            empresas_por_consultor[nome] = count
+    else:
+        empresas_por_consultor[usuario.nome] = total_empresas
     
-    empresas_por_estado = dict(sorted(empresas_por_estado.items(), key=lambda x: x[1], reverse=True))
+    empresas_por_consultor = dict(sorted(empresas_por_consultor.items(), key=lambda x: x[1], reverse=True))
     
     return {
         "total_empresas": total_empresas,
@@ -97,7 +99,7 @@ def obter_estatisticas(
             "hoje": len(hoje_agendamentos),
             "futuros": len(futuros)
         },
-        "empresas_por_estado": empresas_por_estado,
+        "empresas_por_consultor": empresas_por_consultor,
         "alertas": {
             "vencidos": [{"id": a.id, "prospeccao_id": a.prospeccao_id, "data_agendada": a.data_agendada, "observacoes": a.observacoes} for a in vencidos],
             "hoje": [{"id": a.id, "prospeccao_id": a.prospeccao_id, "data_agendada": a.data_agendada, "observacoes": a.observacoes} for a in hoje_agendamentos],
