@@ -39,6 +39,7 @@ def criar_agendamento(
 def listar_agendamentos(
     skip: int = 0,
     limit: int = 100,
+    empresa_id: int = None,
     db: Session = Depends(get_db),
     usuario: Usuario = Depends(obter_usuario_atual)
 ):
@@ -46,6 +47,9 @@ def listar_agendamentos(
     
     if usuario.tipo != "admin":
         query = query.filter(Prospeccao.consultor_id == usuario.id)
+    
+    if empresa_id:
+        query = query.filter(Prospeccao.empresa_id == empresa_id)
     
     agendamentos = query.offset(skip).limit(limit).all()
     return agendamentos

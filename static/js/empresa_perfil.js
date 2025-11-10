@@ -9,7 +9,7 @@ async function carregarEmpresaPerfil() {
     try {
         const [empresaRes, prospeccoesRes] = await Promise.all([
             apiRequest(`/api/empresas/${empresaId}`),
-            apiRequest(`/api/prospeccoes?empresa_id=${empresaId}`)
+            apiRequest(`/api/prospeccoes/?empresa_id=${empresaId}`)
         ]);
         
         const empresa = await empresaRes.json();
@@ -52,7 +52,7 @@ async function carregarEmpresaPerfil() {
 
 async function carregarAgendamentos() {
     try {
-        const response = await apiRequest('/api/agendamentos');
+        const response = await apiRequest(`/api/agendamentos/?empresa_id=${empresaId}`);
         const agendamentos = await response.json();
         
         if (agendamentos.length === 0) {
