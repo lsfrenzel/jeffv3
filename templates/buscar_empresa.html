@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Buscar Empresa - Núcleo 1.03{% endblock %}
+
+{% set active_page = 'buscar_empresa' %}
+{% block content %}
+<div class="flex h-screen">
+    {% include "partials/sidebar.html" %}
+    
+    <main class="flex-1 overflow-y-auto">
+        <header class="bg-dark-sidebar shadow-lg p-6">
+            <h2 class="text-2xl font-semibold text-white">Buscar Empresa por CNPJ</h2>
+            <p class="text-gray-400 mt-2">Consulte informações de empresas e adicione à sua carteira</p>
+        </header>
+        
+        <div class="p-6">
+            <div class="bg-dark-sidebar rounded-lg p-6 shadow-lg mb-6">
+                <h3 class="text-xl font-semibold text-white mb-4">Consultar CNPJ</h3>
+                
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-gray-400 text-sm font-medium mb-2">CNPJ</label>
+                        <input 
+                            type="text" 
+                            id="cnpjInput" 
+                            placeholder="00.000.000/0000-00" 
+                            maxlength="18"
+                            class="w-full bg-dark-card text-white border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-blue-500"
+                        >
+                    </div>
+                    <div class="flex items-end">
+                        <button 
+                            onclick="buscarCNPJ()" 
+                            id="btnBuscar"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition"
+                        >
+                            Buscar
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="loadingMessage" class="hidden mt-4 text-yellow-400 flex items-center gap-2">
+                    <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Buscando informações...</span>
+                </div>
+                
+                <div id="errorMessage" class="hidden mt-4 bg-red-900/30 border-l-4 border-red-500 p-4 rounded">
+                    <p class="text-red-300 font-semibold">Erro</p>
+                    <p class="text-gray-300 text-sm mt-1" id="errorText"></p>
+                </div>
+            </div>
+            
+            <div id="resultadoContainer" class="hidden">
+                <div class="bg-dark-sidebar rounded-lg p-6 shadow-lg">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-semibold text-white">Informações da Empresa</h3>
+                        <span id="fonteBadge" class="px-3 py-1 bg-green-600 text-white text-xs rounded-full"></span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-gray-400 text-sm font-medium mb-3">Dados Principais</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="text-gray-500 text-xs">Razão Social</label>
+                                    <p class="text-white font-semibold" id="razaoSocial">-</p>
+                                </div>
+                                <div>
+                                    <label class="text-gray-500 text-xs">Nome Fantasia</label>
+                                    <p class="text-white" id="nomeFantasia">-</p>
+                                </div>
+                                <div>
+                                    <label class="text-gray-500 text-xs">CNPJ</label>
+                                    <p class="text-white" id="cnpjDisplay">-</p>
+                                </div>
+                                <div>
+                                    <label class="text-gray-500 text-xs">Situação</label>
+                                    <p class="text-white" id="situacao">-</p>
+                                </div>
+                                <div>
+                                    <label class="text-gray-500 text-xs">Data de Abertura</label>
+                                    <p class="text-white" id="dataAbertura">-</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-gray-400 text-sm font-medium mb-3">Endereço</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="text-gray-500 text-xs">Logradouro</label>
+                                    <p class="text-white" id="logradouro">-</p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-gray-500 text-xs">Número</label>
+                                        <p class="text-white" id="numero">-</p>
+                                    </div>
+                                    <div>
+                                        <label class="text-gray-500 text-xs">Complemento</label>
+                                        <p class="text-white" id="complemento">-</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-gray-500 text-xs">Bairro</label>
+                                    <p class="text-white" id="bairro">-</p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-gray-500 text-xs">Município</label>
+                                        <p class="text-white" id="municipio">-</p>
+                                    </div>
+                                    <div>
+                                        <label class="text-gray-500 text-xs">Estado</label>
+                                        <p class="text-white" id="estado">-</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-gray-500 text-xs">CEP</label>
+                                    <p class="text-white" id="cep">-</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-gray-400 text-sm font-medium mb-3">Contato</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="text-gray-500 text-xs">Telefone</label>
+                                    <p class="text-white" id="telefone">-</p>
+                                </div>
+                                <div>
+                                    <label class="text-gray-500 text-xs">Email</label>
+                                    <p class="text-white" id="email">-</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-gray-400 text-sm font-medium mb-3">Informações Adicionais</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="text-gray-500 text-xs">Atividade Principal</label>
+                                    <p class="text-white text-sm" id="atividadePrincipal">-</p>
+                                </div>
+                                <div>
+                                    <label class="text-gray-500 text-xs">Natureza Jurídica</label>
+                                    <p class="text-white" id="naturezaJuridica">-</p>
+                                </div>
+                                <div>
+                                    <label class="text-gray-500 text-xs">Porte</label>
+                                    <p class="text-white" id="porte">-</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 pt-6 border-t border-gray-700 flex gap-4">
+                        <button 
+                            onclick="salvarNaCarteira()" 
+                            id="btnSalvar"
+                            class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded transition font-semibold"
+                        >
+                            Salvar na Carteira
+                        </button>
+                        <button 
+                            onclick="limparBusca()" 
+                            class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded transition"
+                        >
+                            Nova Busca
+                        </button>
+                    </div>
+                    
+                    <div id="successMessage" class="hidden mt-4 bg-green-900/30 border-l-4 border-green-500 p-4 rounded">
+                        <p class="text-green-300 font-semibold">Sucesso!</p>
+                        <p class="text-gray-300 text-sm mt-1">Empresa salva na carteira com sucesso!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/buscar_empresa.js"></script>
+{% endblock %}

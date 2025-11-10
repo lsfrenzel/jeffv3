@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from backend.database import engine, Base, SessionLocal
 from backend.models import Usuario, Empresa, Prospeccao, Agendamento, AtribuicaoEmpresa
-from backend.routers import auth, empresas, prospeccoes, agendamentos, admin, atribuicoes, consultores, dashboard
+from backend.routers import auth, empresas, prospeccoes, agendamentos, admin, atribuicoes, consultores, dashboard, cnpj
 from backend.utils.seed import criar_usuario_admin_padrao, criar_empresas_padrao, criar_consultores_padrao
 
 Base.metadata.create_all(bind=engine)
@@ -39,6 +39,7 @@ app.include_router(agendamentos.router)
 app.include_router(atribuicoes.router)
 app.include_router(consultores.router)
 app.include_router(dashboard.router)
+app.include_router(cnpj.router)
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
@@ -79,6 +80,10 @@ async def consultores_page(request: Request):
 @app.get("/consultor/{consultor_id}", response_class=HTMLResponse)
 async def consultor_perfil_page(request: Request, consultor_id: int):
     return templates.TemplateResponse("consultor_perfil.html", {"request": request, "consultor_id": consultor_id})
+
+@app.get("/buscar-empresa", response_class=HTMLResponse)
+async def buscar_empresa_page(request: Request):
+    return templates.TemplateResponse("buscar_empresa.html", {"request": request})
 
 if __name__ == "__main__":
     import uvicorn
