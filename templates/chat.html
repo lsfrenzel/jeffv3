@@ -17,6 +17,12 @@
             <div class="w-80 bg-dark-sidebar border-r border-gray-700 overflow-y-auto">
                 <div class="p-4 border-b border-gray-700">
                     <h3 class="text-lg font-semibold text-white mb-3">Conversas</h3>
+                    <button onclick="abrirModalNovaConversa()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition mb-3 flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Nova Conversa
+                    </button>
                     <input type="text" id="buscarConversa" class="w-full bg-dark-card border border-gray-700 rounded-lg px-4 py-2 text-white text-sm" placeholder="Buscar conversa...">
                 </div>
                 <div id="listaConversas">
@@ -56,6 +62,27 @@
             </div>
         </div>
     </main>
+</div>
+
+<div id="modalNovaConversa" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-dark-card rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col">
+        <div class="p-6 border-b border-gray-700">
+            <h3 class="text-xl font-semibold text-white">Iniciar Nova Conversa</h3>
+        </div>
+        
+        <div class="p-6 overflow-y-auto flex-1">
+            <input type="text" id="buscarConsultorModal" class="w-full bg-dark-bg border border-gray-700 rounded-lg px-4 py-2 text-white mb-4" placeholder="Buscar por nome ou email...">
+            <div id="listaConsultoresModal">
+                <div class="text-center text-gray-400 py-4">Carregando consultores...</div>
+            </div>
+        </div>
+        
+        <div class="p-6 border-t border-gray-700 flex justify-end gap-3">
+            <button onclick="fecharModalNovaConversa()" class="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition">
+                Cancelar
+            </button>
+        </div>
+    </div>
 </div>
 {% endblock %}
 

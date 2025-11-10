@@ -146,6 +146,65 @@ document.getElementById('buscarConversa')?.addEventListener('input', (e) => {
     });
 });
 
+async function abrirModalNovaConversa() {
+    document.getElementById('modalNovaConversa').classList.remove('hidden');
+    await carregarConsultoresModal();
+}
+
+function fecharModalNovaConversa() {
+    document.getElementById('modalNovaConversa').classList.add('hidden');
+}
+
+async function carregarConsultoresModal() {
+    try {
+        const response = await apiRequest('/api/consultores/?page=1&page_size=100');
+        const data = await response.json();
+        
+        const container = document.getElementById('listaConsultoresModal');
+        
+        const consultoresFiltrados = data.consultores.filter(c => c.id !== usuario.id);
+        
+        if (consultoresFiltrados.length === 0) {
+            container.innerHTML = '<div class="text-center text-gray-400 py-4">Nenhum consultor disponível</div>';
+            return;
+        }
+        
+        container.innerHTML = consultoresFiltrados.map(consultor => `
+            <div onclick="iniciarNovaConversa(${consultor.id})" class="p-4 border border-gray-700 rounded-lg hover:bg-dark-hover cursor-pointer transition mb-3">
+                <div class="flex items-center">
+                    <img src="${consultor.foto_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(consultor.nome)}&size=50&background=3b82f6&color=fff`}" 
+                         alt="${consultor.nome}" 
+                         class="w-12 h-12 rounded-full mr-4">
+                    <div class="flex-1">
+                        <h4 class="text-white font-medium">${consultor.nome}</h4>
+                        <p class="text-gray-400 text-sm">${consultor.email}</p>
+                        ${consultor.telefone ? `<p class="text-gray-500 text-sm">${consultor.telefone}</p>` : ''}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Erro ao carregar consultores:', error);
+        document.getElementById('listaConsultoresModal').innerHTML = 
+            '<div class="text-center text-red-400 py-4">Erro ao carregar consultores</div>';
+    }
+}
+
+async function iniciarNovaConversa(consultorId) {
+    fecharModalNovaConversa();
+    await abrirConversa(consultorId);
+}
+
+document.getElementById('buscarConsultorModal')?.addEventListener('input', (e) => {
+    const termo = e.target.value.toLowerCase();
+    const itens = document.querySelectorAll('#listaConsultoresModal > div');
+    
+    itens.forEach(item => {
+        const texto = item.textContent.toLowerCase();
+        item.style.display = texto.includes(termo) ? 'block' : 'none';
+    });
+});
+
 carregarConversas();
 setInterval(carregarConversas, 10000);
 
