@@ -15,6 +15,7 @@ class UsuarioAtualizar(BaseModel):
     email: Optional[EmailStr] = None
     senha: Optional[str] = None
     tipo: Optional[str] = None
+    telefone: Optional[str] = None
     data_nascimento: Optional[date] = None
     modelo_carro: Optional[str] = None
     placa_carro: Optional[str] = None
@@ -23,6 +24,7 @@ class UsuarioAtualizar(BaseModel):
 
 class UsuarioResposta(UsuarioBase):
     id: int
+    telefone: Optional[str] = None
     data_nascimento: Optional[date] = None
     modelo_carro: Optional[str] = None
     placa_carro: Optional[str] = None
@@ -36,6 +38,7 @@ class ConsultorPerfil(BaseModel):
     id: int
     nome: str
     email: EmailStr
+    telefone: Optional[str] = None
     data_nascimento: Optional[date] = None
     modelo_carro: Optional[str] = None
     placa_carro: Optional[str] = None

@@ -37,6 +37,10 @@ async function carregarPerfilConsultor() {
                     <p class="text-white font-medium">${perfilAtual.email}</p>
                 </div>
                 <div>
+                    <p class="text-gray-400 text-sm">Telefone</p>
+                    <p class="text-white font-medium">${perfilAtual.telefone || '-'}</p>
+                </div>
+                <div>
                     <p class="text-gray-400 text-sm">Data de Nascimento</p>
                     <p class="text-white font-medium">${perfilAtual.data_nascimento ? new Date(perfilAtual.data_nascimento).toLocaleDateString('pt-BR') : '-'}</p>
                 </div>
@@ -263,6 +267,66 @@ async function salvarAcoes() {
 
 function visualizarEmpresasAtribuidas() {
     window.location.href = '/empresas';
+}
+
+function abrirModalEditarPerfil() {
+    if (!perfilAtual) {
+        alert('Carregando perfil...');
+        return;
+    }
+    
+    document.getElementById('editNome').value = perfilAtual.nome || '';
+    document.getElementById('editEmail').value = perfilAtual.email || '';
+    document.getElementById('editTelefone').value = perfilAtual.telefone || '';
+    document.getElementById('editDataNascimento').value = perfilAtual.data_nascimento || '';
+    document.getElementById('editModeloCarro').value = perfilAtual.modelo_carro || '';
+    document.getElementById('editPlacaCarro').value = perfilAtual.placa_carro || '';
+    document.getElementById('editFotoUrl').value = perfilAtual.foto_url || '';
+    document.getElementById('editInformacoesBasicas').value = perfilAtual.informacoes_basicas || '';
+    
+    document.getElementById('modalEditarPerfil').classList.remove('hidden');
+}
+
+function fecharModalEditarPerfil() {
+    document.getElementById('modalEditarPerfil').classList.add('hidden');
+}
+
+async function salvarPerfilCompleto() {
+    const dados = {
+        nome: document.getElementById('editNome').value.trim(),
+        email: document.getElementById('editEmail').value.trim(),
+        telefone: document.getElementById('editTelefone').value.trim() || null,
+        data_nascimento: document.getElementById('editDataNascimento').value || null,
+        modelo_carro: document.getElementById('editModeloCarro').value.trim() || null,
+        placa_carro: document.getElementById('editPlacaCarro').value.trim() || null,
+        foto_url: document.getElementById('editFotoUrl').value.trim() || null,
+        informacoes_basicas: document.getElementById('editInformacoesBasicas').value.trim() || null
+    };
+    
+    if (!dados.nome || !dados.email) {
+        alert('Nome e email são obrigatórios');
+        return;
+    }
+    
+    try {
+        const response = await apiRequest('/api/consultores/perfil/atualizar', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+        
+        if (response.ok) {
+            fecharModalEditarPerfil();
+            carregarPerfilConsultor();
+            alert('Perfil atualizado com sucesso!');
+        } else {
+            const error = await response.json();
+            alert(error.detail || 'Erro ao atualizar perfil');
+        }
+    } catch (error) {
+        console.error('Erro ao salvar perfil:', error);
+        alert('Erro ao atualizar perfil');
+    }
 }
 
 carregarPerfilConsultor();

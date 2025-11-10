@@ -84,6 +84,7 @@ def obter_consultor_perfil(
             "id": consultor.id,
             "nome": consultor.nome,
             "email": consultor.email,
+            "telefone": consultor.telefone,
             "data_nascimento": consultor.data_nascimento,
             "modelo_carro": consultor.modelo_carro,
             "placa_carro": consultor.placa_carro,
@@ -95,6 +96,45 @@ def obter_consultor_perfil(
             "empresas_atribuidas": empresas_atribuidas
         },
         "prospeccoes": prospeccoes_safe
+    }
+
+@router.put("/perfil/atualizar")
+def atualizar_meu_perfil(
+    dados: UsuarioAtualizar,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(obter_usuario_atual)
+):
+    consultor = db.query(Usuario).filter(Usuario.id == usuario.id).first()
+    
+    if not consultor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuário não encontrado"
+        )
+    
+    for key, value in dados.model_dump(exclude_unset=True).items():
+        if key == "senha" and value:
+            from backend.auth.security import hash_senha
+            setattr(consultor, "senha_hash", hash_senha(value))
+        elif key == "tipo":
+            continue
+        else:
+            setattr(consultor, key, value)
+    
+    db.commit()
+    db.refresh(consultor)
+    
+    return {
+        "id": consultor.id,
+        "nome": consultor.nome,
+        "email": consultor.email,
+        "tipo": consultor.tipo.value,
+        "telefone": consultor.telefone,
+        "data_nascimento": consultor.data_nascimento,
+        "modelo_carro": consultor.modelo_carro,
+        "placa_carro": consultor.placa_carro,
+        "informacoes_basicas": consultor.informacoes_basicas,
+        "foto_url": consultor.foto_url
     }
 
 @router.put("/{consultor_id}")
@@ -127,6 +167,7 @@ def atualizar_consultor(
         "nome": consultor.nome,
         "email": consultor.email,
         "tipo": consultor.tipo.value,
+        "telefone": consultor.telefone,
         "data_nascimento": consultor.data_nascimento,
         "modelo_carro": consultor.modelo_carro,
         "placa_carro": consultor.placa_carro,

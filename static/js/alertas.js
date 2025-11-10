@@ -8,22 +8,18 @@ async function carregarAlertas() {
         const response = await apiRequest('/api/agendamentos/alertas');
         const alertas = await response.json();
         
-        const empresasResponse = await apiRequest('/api/empresas/');
-        const empresasData = await empresasResponse.json();
-        const empresas = empresasData.items || empresasData;
-        
         const prospeccoesResponse = await apiRequest('/api/prospeccoes/');
         const prospeccoes = await prospeccoesResponse.json();
         
-        mostrarAlertas('alertasVencidos', alertas.vencidos, empresas, prospeccoes, 'text-red-400');
-        mostrarAlertas('alertasHoje', alertas.hoje, empresas, prospeccoes, 'text-yellow-400');
-        mostrarAlertas('alertasFuturos', alertas.futuros, empresas, prospeccoes, 'text-green-400');
+        mostrarAlertas('alertasVencidos', alertas.vencidos, prospeccoes, 'text-red-400');
+        mostrarAlertas('alertasHoje', alertas.hoje, prospeccoes, 'text-yellow-400');
+        mostrarAlertas('alertasFuturos', alertas.futuros, prospeccoes, 'text-green-400');
     } catch (error) {
         console.error('Erro ao carregar alertas:', error);
     }
 }
 
-function mostrarAlertas(elementId, alertas, empresas, prospeccoes, colorClass) {
+function mostrarAlertas(elementId, alertas, prospeccoes, colorClass) {
     const container = document.getElementById(elementId);
     
     if (alertas.length === 0) {
@@ -33,7 +29,7 @@ function mostrarAlertas(elementId, alertas, empresas, prospeccoes, colorClass) {
     
     container.innerHTML = alertas.map(alerta => {
         const prospeccao = prospeccoes.find(p => p.id === alerta.prospeccao_id);
-        const empresa = prospeccao ? empresas.find(e => e.id === prospeccao.empresa_id) : null;
+        const empresa = prospeccao && prospeccao.empresa ? prospeccao.empresa : null;
         
         return `
             <div class="bg-dark-card p-4 rounded hover:bg-dark-sidebar cursor-pointer transition" onclick="window.location.href='/empresa/${empresa ? empresa.id : '#'}'">

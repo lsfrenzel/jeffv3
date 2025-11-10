@@ -13,10 +13,21 @@ class AtribuicaoEmpresaCreate(AtribuicaoEmpresaBase):
 class AtribuicaoEmpresaUpdate(BaseModel):
     ativa: Optional[bool] = None
 
+class EmpresaSimples(BaseModel):
+    id: int
+    empresa: str
+    cnpj: Optional[str] = None
+    municipio: Optional[str] = None
+    estado: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
 class AtribuicaoEmpresaResponse(AtribuicaoEmpresaBase):
     id: int
     data_atribuicao: datetime
     data_desativacao: Optional[datetime] = None
+    empresa: EmpresaSimples
     
     class Config:
         from_attributes = True

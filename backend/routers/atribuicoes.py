@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from backend.database import get_db
 from backend.models import AtribuicaoEmpresa, Usuario, Empresa
 from backend.schemas.atribuicoes import AtribuicaoEmpresaCreate, AtribuicaoEmpresaResponse, AtribuicaoEmpresaUpdate
@@ -51,7 +51,9 @@ def listar_empresas_consultor(
     if current_user.tipo != "admin" and current_user.id != consultor_id:
         raise HTTPException(status_code=403, detail="Sem permissão para visualizar estas atribuições")
     
-    atribuicoes = db.query(AtribuicaoEmpresa).filter(
+    atribuicoes = db.query(AtribuicaoEmpresa).options(
+        joinedload(AtribuicaoEmpresa.empresa)
+    ).filter(
         AtribuicaoEmpresa.consultor_id == consultor_id,
         AtribuicaoEmpresa.ativa == True
     ).all()

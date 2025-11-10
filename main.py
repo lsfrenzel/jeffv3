@@ -4,8 +4,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from backend.database import engine, Base, SessionLocal
-from backend.models import Usuario, Empresa, Prospeccao, Agendamento, AtribuicaoEmpresa, Notificacao
-from backend.routers import auth, empresas, prospeccoes, agendamentos, admin, atribuicoes, consultores, dashboard, cnpj, notificacoes
+from backend.models import Usuario, Empresa, Prospeccao, Agendamento, AtribuicaoEmpresa, Notificacao, Mensagem
+from backend.routers import auth, empresas, prospeccoes, agendamentos, admin, atribuicoes, consultores, dashboard, cnpj, notificacoes, mensagens
 from backend.utils.seed import criar_usuario_admin_padrao, criar_empresas_padrao, criar_consultores_padrao
 
 Base.metadata.create_all(bind=engine)
@@ -41,6 +41,7 @@ app.include_router(consultores.router)
 app.include_router(dashboard.router)
 app.include_router(cnpj.router)
 app.include_router(notificacoes.router)
+app.include_router(mensagens.router)
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
@@ -85,6 +86,10 @@ async def consultor_perfil_page(request: Request, consultor_id: int):
 @app.get("/buscar-empresa", response_class=HTMLResponse)
 async def buscar_empresa_page(request: Request):
     return templates.TemplateResponse("buscar_empresa.html", {"request": request})
+
+@app.get("/chat", response_class=HTMLResponse)
+async def chat_page(request: Request):
+    return templates.TemplateResponse("chat.html", {"request": request})
 
 if __name__ == "__main__":
     import uvicorn

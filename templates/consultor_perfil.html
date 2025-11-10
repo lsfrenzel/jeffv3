@@ -18,7 +18,12 @@
         <div class="p-6">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                 <div class="lg:col-span-1 bg-dark-sidebar rounded-lg shadow-lg p-6">
-                    <h3 class="text-xl font-semibold text-white mb-4">Informações Pessoais</h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-white">Informações Pessoais</h3>
+                        <button onclick="abrirModalEditarPerfil()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded-lg transition">
+                            Editar Perfil
+                        </button>
+                    </div>
                     <div class="flex justify-center mb-6">
                         <div class="relative">
                             <img id="fotoConsultor" src="https://ui-avatars.com/api/?name=Consultor&size=150&background=3b82f6&color=fff" alt="Foto do consultor" class="w-32 h-32 rounded-full object-cover border-4 border-blue-500">
@@ -194,6 +199,60 @@
                 </button>
             </div>
         </div>
+    </div>
+</div>
+
+<div id="modalEditarPerfil" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+    <div class="bg-dark-sidebar rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <h3 class="text-xl font-semibold text-white mb-4">Editar Perfil</h3>
+        <form id="formEditarPerfil" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-400 text-sm mb-2">Nome</label>
+                    <input type="text" id="editNome" class="w-full bg-dark-card border border-gray-700 rounded-lg px-4 py-2 text-white" placeholder="Seu nome completo">
+                </div>
+                <div>
+                    <label class="block text-gray-400 text-sm mb-2">Email</label>
+                    <input type="email" id="editEmail" class="w-full bg-dark-card border border-gray-700 rounded-lg px-4 py-2 text-white" placeholder="seu@email.com">
+                </div>
+            </div>
+            <div>
+                <label class="block text-gray-400 text-sm mb-2">Telefone</label>
+                <input type="tel" id="editTelefone" class="w-full bg-dark-card border border-gray-700 rounded-lg px-4 py-2 text-white" placeholder="(00) 00000-0000">
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-400 text-sm mb-2">Data de Nascimento</label>
+                    <input type="date" id="editDataNascimento" class="w-full bg-dark-card border border-gray-700 rounded-lg px-4 py-2 text-white">
+                </div>
+                <div>
+                    <label class="block text-gray-400 text-sm mb-2">Modelo do Carro</label>
+                    <input type="text" id="editModeloCarro" class="w-full bg-dark-card border border-gray-700 rounded-lg px-4 py-2 text-white" placeholder="Ex: Honda Civic 2020">
+                </div>
+            </div>
+            <div>
+                <label class="block text-gray-400 text-sm mb-2">Placa do Carro</label>
+                <input type="text" id="editPlacaCarro" class="w-full bg-dark-card border border-gray-700 rounded-lg px-4 py-2 text-white" placeholder="Ex: ABC-1234">
+            </div>
+            <div>
+                <label class="block text-gray-400 text-sm mb-2">URL da Foto</label>
+                <input type="text" id="editFotoUrl" class="w-full bg-dark-card border border-gray-700 rounded-lg px-4 py-2 text-white" placeholder="https://exemplo.com/foto.jpg">
+                <p class="text-gray-500 text-xs mt-1">Cole o link de uma imagem pública</p>
+            </div>
+            <div>
+                <label class="block text-gray-400 text-sm mb-2">Informações Adicionais</label>
+                <textarea id="editInformacoesBasicas" class="w-full bg-dark-card border border-gray-700 rounded-lg px-4 py-2 text-white" rows="4" placeholder="Adicione informações adicionais sobre você, experiências, habilidades, etc."></textarea>
+                <p class="text-gray-500 text-xs mt-1">Use este campo para adicionar qualquer informação relevante sobre seu perfil</p>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="salvarPerfilCompleto()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition">
+                    Salvar Alterações
+                </button>
+                <button type="button" onclick="fecharModalEditarPerfil()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition">
+                    Cancelar
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}

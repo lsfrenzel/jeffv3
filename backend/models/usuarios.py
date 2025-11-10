@@ -16,6 +16,7 @@ class Usuario(Base):
     senha_hash = Column(String, nullable=False)
     tipo = Column(Enum(TipoUsuario), nullable=False, default=TipoUsuario.consultor)
     
+    telefone = Column(String(20), nullable=True)
     data_nascimento = Column(Date, nullable=True)
     modelo_carro = Column(String(200), nullable=True)
     placa_carro = Column(String(20), nullable=True, index=True)

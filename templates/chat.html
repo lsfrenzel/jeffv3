@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - Núcleo 1.03{% endblock %}
+
+{% set active_page = 'chat' %}
+
+{% block content %}
+<div class="flex h-screen">
+    {% include "partials/sidebar.html" %}
+    
+    <main class="flex-1 flex flex-col overflow-hidden">
+        <header class="bg-dark-sidebar shadow-lg p-6">
+            <h2 class="text-2xl font-semibold text-white">💬 Mensagens</h2>
+        </header>
+        
+        <div class="flex-1 flex overflow-hidden">
+            <div class="w-80 bg-dark-sidebar border-r border-gray-700 overflow-y-auto">
+                <div class="p-4 border-b border-gray-700">
+                    <h3 class="text-lg font-semibold text-white mb-3">Conversas</h3>
+                    <input type="text" id="buscarConversa" class="w-full bg-dark-card border border-gray-700 rounded-lg px-4 py-2 text-white text-sm" placeholder="Buscar conversa...">
+                </div>
+                <div id="listaConversas">
+                    <div class="p-4 text-center text-gray-400">
+                        Carregando conversas...
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex-1 flex flex-col">
+                <div id="cabecalhoChat" class="hidden bg-dark-sidebar border-b border-gray-700 p-4">
+                    <div class="flex items-center">
+                        <img id="fotoDestinatario" class="w-10 h-10 rounded-full mr-3" src="" alt="">
+                        <div>
+                            <h3 id="nomeDestinatario" class="text-white font-semibold"></h3>
+                            <p id="emailDestinatario" class="text-gray-400 text-sm"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-6 bg-dark-bg" id="areaMensagens">
+                    <div class="h-full flex items-center justify-center text-gray-400">
+                        Selecione uma conversa para começar
+                    </div>
+                </div>
+                
+                <div id="formularioMensagem" class="hidden bg-dark-sidebar border-t border-gray-700 p-4">
+                    <div class="flex gap-3">
+                        <textarea id="inputMensagem" class="flex-1 bg-dark-card border border-gray-700 rounded-lg px-4 py-2 text-white resize-none" rows="2" placeholder="Digite sua mensagem..."></textarea>
+                        <button onclick="enviarMensagem()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-lg transition">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/chat.js"></script>
+{% endblock %}
