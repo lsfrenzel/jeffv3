@@ -1,12 +1,30 @@
-checkAuth();
-
-const usuario = getUsuario();
-document.getElementById('userInfo').textContent = `${usuario.nome} (${usuario.tipo})`;
-
+// Variáveis globais
 let projetos = [];
 let consultores = [];
 let empresas = [];
 let visualizacao = 'timeline';
+
+// Inicialização quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', () => {
+    // Verificar autenticação
+    if (typeof checkAuth !== 'undefined') {
+        checkAuth();
+    }
+    
+    // Obter usuário
+    if (typeof getUsuario !== 'undefined') {
+        const usuario = getUsuario();
+        if (usuario && document.getElementById('userInfo')) {
+            document.getElementById('userInfo').textContent = `${usuario.nome} (${usuario.tipo})`;
+        }
+    }
+    
+    // Carregar dados iniciais
+    carregarDados();
+    
+    // Atualizar dados a cada 60 segundos
+    setInterval(carregarDados, 60000);
+});
 
 async function carregarDados() {
     try {
@@ -262,6 +280,3 @@ function abrirModalImportar() {
 function fecharModalImportar() {
     document.getElementById('modalImportar').classList.add('hidden');
 }
-
-carregarDados();
-setInterval(carregarDados, 60000);
