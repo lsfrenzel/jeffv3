@@ -291,6 +291,22 @@ function fecharModalImportar() {
     document.getElementById('modalImportar').classList.add('hidden');
 }
 
+function getCorPorSolucao(solucao) {
+    if (!solucao) return 'bg-teal-600';
+    
+    const solucaoLower = solucao.toLowerCase();
+    
+    if (solucaoLower.includes('implanta')) return 'bg-blue-600';
+    if (solucaoLower.includes('consultoria')) return 'bg-green-600';
+    if (solucaoLower.includes('treinamento')) return 'bg-purple-600';
+    if (solucaoLower.includes('suporte')) return 'bg-yellow-600';
+    if (solucaoLower.includes('desenvolvimento') || solucaoLower.includes('desenvolv')) return 'bg-pink-600';
+    if (solucaoLower.includes('personaliza')) return 'bg-indigo-600';
+    if (solucaoLower.includes('migra')) return 'bg-orange-600';
+    
+    return 'bg-teal-600';
+}
+
 function renderizarCalendario() {
     const container = document.getElementById('calendarioContainer');
     
@@ -329,24 +345,18 @@ function renderizarCalendario() {
         const hoje = new Date();
         const isHoje = dataAtual.toDateString() === hoje.toDateString();
         const corDia = isHoje ? 'bg-blue-900 border-2 border-blue-500' : 'bg-dark-bg';
+        const classeClicavel = projetosDoDia.length > 0 ? 'cursor-pointer hover:bg-dark-hover transition' : '';
         
-        html += `<div class="${corDia} rounded p-2 min-h-[100px] overflow-hidden">`;
+        html += `<div class="${corDia} ${classeClicavel} rounded p-2 min-h-[100px] overflow-hidden" ${projetosDoDia.length > 0 ? `onclick="abrirDetalhes('${dataStr}', ${dia})"` : ''}>`;
         html += `<div class="text-white font-semibold mb-1 ${isHoje ? 'text-blue-400' : ''}">${dia}</div>`;
         
         if (projetosDoDia.length > 0) {
             projetosDoDia.slice(0, 3).forEach(projeto => {
-                const statusCor = {
-                    'planejado': 'bg-gray-600',
-                    'em_andamento': 'bg-green-600',
-                    'concluido': 'bg-blue-600',
-                    'pausado': 'bg-yellow-600',
-                    'cancelado': 'bg-red-600'
-                }[projeto.status] || 'bg-gray-600';
-                
+                const corSolucao = getCorPorSolucao(projeto.solucao);
                 const nomeAbreviado = (projeto.proposta || projeto.sigla || 'Projeto').substring(0, 15);
                 
                 html += `
-                    <div class="${statusCor} text-white text-xs p-1 rounded mb-1 truncate" title="${projeto.proposta || 'Sem proposta'} - ${projeto.consultor_nome || 'Sem consultor'}">
+                    <div class="${corSolucao} text-white text-xs p-1 rounded mb-1 truncate" title="${projeto.proposta || 'Sem proposta'} - ${projeto.solucao || 'Sem solução'}">
                         ${nomeAbreviado}
                     </div>
                 `;
@@ -362,6 +372,64 @@ function renderizarCalendario() {
     
     html += '</div>';
     container.innerHTML = html;
+}
+
+function abrirDetalhes(dataStr, dia) {
+    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    
+    document.getElementById('modalTitulo').textContent = `Projetos de ${dia} de ${meses[mesNumero]} de ${anoAtual}`;
+    
+    const dataAtual = new Date(anoAtual, mesNumero, dia);
+    const projetosDoDia = projetos.filter(p => {
+        if (!p.data_inicio || !p.data_termino) return false;
+        const inicio = new Date(p.data_inicio).setHours(0, 0, 0, 0);
+        const fim = new Date(p.data_termino).setHours(0, 0, 0, 0);
+        const atual = dataAtual.setHours(0, 0, 0, 0);
+        return inicio <= atual && atual <= fim;
+    });
+    
+    let html = '';
+    
+    if (projetosDoDia.length === 0) {
+        html = '<p class="text-gray-400 text-center py-8">Nenhum projeto neste dia</p>';
+    } else {
+        projetosDoDia.forEach(projeto => {
+            const corSolucao = getCorPorSolucao(projeto.solucao);
+            
+            html += `
+                <div class="bg-dark-bg rounded-lg p-4 border-l-4 ${corSolucao.replace('bg-', 'border-')}">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="text-white font-semibold text-lg">${projeto.proposta || 'Sem proposta'}</h4>
+                        <span class="px-3 py-1 rounded text-xs text-white ${corSolucao}">
+                            ${projeto.solucao || 'Sem solução'}
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                        <p class="text-gray-400"><i class="fas fa-building mr-2"></i><strong>Empresa:</strong> ${projeto.sigla || projeto.cnpj || 'N/A'}</p>
+                        <p class="text-gray-400"><i class="fas fa-user mr-2"></i><strong>Consultor:</strong> ${projeto.consultor_nome || 'N/A'}</p>
+                        <p class="text-gray-400"><i class="fas fa-calendar mr-2"></i><strong>Início:</strong> ${projeto.data_inicio ? new Date(projeto.data_inicio).toLocaleDateString('pt-BR') : 'N/A'}</p>
+                        <p class="text-gray-400"><i class="fas fa-calendar-check mr-2"></i><strong>Término:</strong> ${projeto.data_termino ? new Date(projeto.data_termino).toLocaleDateString('pt-BR') : 'N/A'}</p>
+                        <p class="text-gray-400"><i class="fas fa-clock mr-2"></i><strong>Horas:</strong> ${projeto.horas_totais || 0}h</p>
+                        <p class="text-gray-400"><i class="fas fa-chart-line mr-2"></i><strong>Porte:</strong> ${projeto.porte || 'N/A'}</p>
+                    </div>
+                    ${projeto.regiao || projeto.municipio || projeto.uf ? `
+                        <p class="text-gray-400 text-sm mt-2"><i class="fas fa-map-marker-alt mr-2"></i>${projeto.municipio || ''} ${projeto.uf ? '- ' + projeto.uf : ''} ${projeto.regiao ? '(' + projeto.regiao + ')' : ''}</p>
+                    ` : ''}
+                    ${projeto.contato ? `
+                        <p class="text-gray-400 text-sm mt-2"><i class="fas fa-user-tie mr-2"></i><strong>Contato:</strong> ${projeto.contato} ${projeto.telefone || projeto.celular ? '- ' + (projeto.telefone || projeto.celular) : ''}</p>
+                    ` : ''}
+                </div>
+            `;
+        });
+    }
+    
+    document.getElementById('modalConteudo').innerHTML = html;
+    document.getElementById('modalDetalhes').classList.remove('hidden');
+}
+
+function fecharModalDetalhes() {
+    document.getElementById('modalDetalhes').classList.add('hidden');
 }
 
 function mesAnterior() {

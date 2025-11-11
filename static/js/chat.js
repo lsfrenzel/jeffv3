@@ -163,12 +163,12 @@ function fecharModalNovaConversa() {
 
 async function carregarConsultoresModal() {
     try {
-        const response = await apiRequest('/api/consultores/?page=1&page_size=100');
+        const response = await apiRequest('/api/usuarios/?page=1&page_size=100');
         const data = await response.json();
         
         const container = document.getElementById('listaConsultoresModal');
         
-        const consultoresFiltrados = data.consultores.filter(c => c.id !== usuario.id);
+        const consultoresFiltrados = (data.items || data.usuarios || []).filter(c => c.id !== usuario.id);
         
         if (consultoresFiltrados.length === 0) {
             container.innerHTML = '<div class="text-center text-gray-400 py-4">Nenhum consultor disponível</div>';
