@@ -1,4 +1,4 @@
-modules = ["python-3.12", "nodejs-20", "web", "postgresql-16"]
+modules = ["nodejs-20", "web", "python-3.11"]
 [agent]
 expertMode = true
 integrations = ["python_database:1.0.0"]
@@ -19,20 +19,20 @@ args = "nucleo-server"
 name = "nucleo-server"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python main.py"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "uvicorn main:app --host 0.0.0.0 --port 5000"
+waitForPort = 5000
 
 [[ports]]
 localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 34435
+localPort = 33827
 externalPort = 3000
 
 [[ports]]
