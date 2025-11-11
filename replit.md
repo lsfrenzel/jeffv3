@@ -36,14 +36,21 @@ The project is structured with clear separation of concerns: `backend/` for API 
 ## Recent Changes
 
 ### November 11, 2025
--   **Cronograma em Formato de Calendário**: Visualização de calendário implementada como visualização padrão
+-   **Cronograma em Formato de Calendário com Dias Clicáveis**: Visualização interativa de calendário implementada
     -   Adicionado botão "Calendário" como primeira opção de visualização (Timeline e Lista ainda disponíveis)
     -   Calendário mensal exibe projetos em andamento em cada dia baseado nas datas de início e término
+    -   **Dias clicáveis**: Clicar em um dia abre modal com detalhes completos de todos os projetos daquele dia
+    -   **Cores por tipo de solução**: Projetos coloridos conforme o tipo de solução (Implantação=Azul, Consultoria=Verde, Treinamento=Roxo, Suporte=Amarelo, Desenvolvimento=Rosa, Personalização=Índigo, Migração=Laranja, Outros=Teal)
+    -   **Legenda de cores**: Tabela de legenda mostrando o significado de cada cor
+    -   **Modal de detalhes**: Exibe proposta, empresa, consultor, datas, horas, porte, região, município, UF e contato
     -   Navegação entre meses com botões "Anterior" e "Próximo"
-    -   Projetos coloridos por status (planejado, em_andamento, concluído, pausado, cancelado)
     -   Dia atual destacado em azul para fácil identificação
     -   Limite de 3 projetos exibidos por dia com contador "+X mais" quando necessário
-    -   Tooltips mostram informações completas ao passar o mouse sobre os projetos
+    -   Sidebar e header corrigidos para navegação consistente
+-   **Correção do Chat**: Erro "Erro ao carregar consultores" corrigido
+    -   Alterado endpoint de `/api/consultores/` para `/api/usuarios/`
+    -   Corrigida propriedade de acesso de `data.consultores` para `data.items`
+    -   Chat agora carrega todos os usuários corretamente para iniciar conversas
 -   **Cronograma System Fixed and Populated**: Sistema de cronograma corrigido e dados importados com sucesso
     -   Corrigidos erros JavaScript de inicialização (checkAuth, visualizacao, projetos não definidos)
     -   Ajustada ordem de carregamento dos scripts (auth.js antes de cronograma.js)
