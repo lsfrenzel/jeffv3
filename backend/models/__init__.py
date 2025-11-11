@@ -5,3 +5,4 @@ from backend.models.agendamentos import Agendamento, StatusAgendamento
 from backend.models.atribuicoes import AtribuicaoEmpresa
 from backend.models.notificacoes import Notificacao, TipoNotificacao
 from backend.models.mensagens import Mensagem
+from backend.models.cronograma import CronogramaProjeto, CronogramaAtividade, StatusProjeto, StatusAtividade

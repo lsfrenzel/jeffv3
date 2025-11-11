@@ -11,6 +11,30 @@ from backend.models.usuarios import TipoUsuario
 
 router = APIRouter(prefix="/api/consultores", tags=["Consultores"])
 
+@router.get("/usuario/{usuario_id}")
+def obter_usuario_generico(
+    usuario_id: int,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(obter_usuario_atual)
+):
+    user = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuário não encontrado"
+        )
+    
+    return {
+        "perfil": {
+            "id": user.id,
+            "nome": user.nome,
+            "email": user.email,
+            "tipo": user.tipo.value,
+            "foto_url": user.foto_url
+        }
+    }
+
 @router.get("/")
 def listar_consultores(
     page: int = Query(1, ge=1, description="Número da página"),

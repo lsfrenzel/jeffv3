@@ -30,3 +30,4 @@ class Empresa(Base):
 
     prospeccoes = relationship("Prospeccao", back_populates="empresa")
     atribuicoes = relationship("AtribuicaoEmpresa", back_populates="empresa")
+    cronograma_projetos = relationship("CronogramaProjeto", back_populates="empresa")

@@ -51,9 +51,15 @@ async function abrirConversa(usuarioId) {
         conversaAtual = conversaUsuario ? conversaUsuario.usuario : null;
         
         if (!conversaAtual) {
-            const userResponse = await apiRequest(`/api/consultores/${usuarioId}`);
-            const userData = await userResponse.json();
-            conversaAtual = userData.perfil;
+            try {
+                const userResponse = await apiRequest(`/api/consultores/usuario/${usuarioId}`);
+                const userData = await userResponse.json();
+                conversaAtual = userData.perfil;
+            } catch (error) {
+                console.error('Usuário não encontrado:', error);
+                alert('Não foi possível encontrar este usuário');
+                return;
+            }
         }
         
         const fotoUrl = conversaAtual.foto_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(conversaAtual.nome)}&size=40&background=3b82f6&color=fff`;
