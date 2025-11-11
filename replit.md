@@ -33,6 +33,18 @@ The backend is built with FastAPI, using PostgreSQL as the database and SQLAlche
 ### System Design Choices
 The project is structured with clear separation of concerns: `backend/` for API logic, `templates/` for UI, and `static/` for assets. This modular approach facilitates maintenance and scalability. Security is emphasized with JWT for authentication, password hashing using `passlib` and `bcrypt`, and XSS protection in dynamic content. The system uses environment variables for sensitive configurations like database URLs and session secrets, enhancing deployability and security.
 
+## Recent Changes
+
+### November 11, 2025
+-   **Cronograma System Fixed and Populated**: Sistema de cronograma corrigido e dados importados com sucesso
+    -   Corrigidos erros JavaScript de inicialização (checkAuth, visualizacao, projetos não definidos)
+    -   Ajustada ordem de carregamento dos scripts (auth.js antes de cronograma.js)
+    -   Adicionadas verificações de tipo defensivas para prevenir erros de runtime
+    -   Reintroduzido refresh automático a cada 60 segundos
+    -   **224 projetos importados permanentemente no banco de dados** (219 concluídos, 5 em andamento)
+    -   Campo UF expandido para VARCHAR(50) para acomodar valores como "BRASIL"
+    -   Dados incluem: proposta, empresa, CNPJ, consultor, datas, horas, status, região, município, contatos
+
 ## External Dependencies
 
 -   **Database**: PostgreSQL
