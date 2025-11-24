@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from backend.models import Usuario, TipoUsuario
+from backend.models import Usuario, TipoUsuario, Stage
 from backend.models.empresas import Empresa
 from backend.auth.security import obter_hash_senha
 import os
@@ -143,3 +143,30 @@ def criar_empresas_padrao(db: Session):
         print(f"✓ {empresas_criadas} empresas padrão criadas")
     else:
         print(f"✓ Empresas padrão já existem no banco")
+
+def criar_stages_padrao(db: Session):
+    """Cria os estágios padrão do pipeline Kanban"""
+    stages_padrao = [
+        {"nome": "Prospecção", "descricao": "Empresa em prospecção inicial", "cor": "#6b7280", "ordem": 1},
+        {"nome": "Proposta Enviada", "descricao": "Proposta comercial enviada", "cor": "#3b82f6", "ordem": 2},
+        {"nome": "Negociação", "descricao": "Em negociação com o cliente", "cor": "#f59e0b", "ordem": 3},
+        {"nome": "Contrato Assinado", "descricao": "Contrato assinado, aguardando início", "cor": "#10b981", "ordem": 4},
+        {"nome": "Em Execução", "descricao": "Projeto em execução", "cor": "#8b5cf6", "ordem": 5},
+        {"nome": "Concluído", "descricao": "Projeto concluído com sucesso", "cor": "#059669", "ordem": 6},
+        {"nome": "Perdido", "descricao": "Oportunidade perdida", "cor": "#ef4444", "ordem": 7}
+    ]
+    
+    stages_criados = 0
+    for stage_data in stages_padrao:
+        stage_existente = db.query(Stage).filter(Stage.nome == stage_data["nome"]).first()
+        
+        if not stage_existente:
+            novo_stage = Stage(**stage_data)
+            db.add(novo_stage)
+            stages_criados += 1
+    
+    if stages_criados > 0:
+        db.commit()
+        print(f"✓ {stages_criados} estágios do pipeline criados")
+    else:
+        print(f"✓ Estágios do pipeline já existem no banco")
