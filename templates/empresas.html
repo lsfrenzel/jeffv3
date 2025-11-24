@@ -24,18 +24,25 @@
         
         <div class="p-6">
             <div class="bg-dark-sidebar rounded-lg p-6 shadow-lg mb-6">
-                <h3 class="text-lg font-semibold text-white mb-4">Filtros</h3>
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <h3 class="text-lg font-semibold text-white mb-4">Filtros de Empresas</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <input type="text" id="filtroNome" placeholder="Nome da empresa" 
                         class="px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <input type="text" id="filtroCNPJ" placeholder="CNPJ"
                         class="px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <input type="text" id="filtroMunicipio" placeholder="Município"
                         class="px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <input type="text" id="filtroER" placeholder="ER"
                         class="px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="filtroCarteira" placeholder="Carteira (ex: 1.01)"
+                        class="px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <button onclick="aplicarFiltros()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition">
-                        Filtrar
+                        🔍 Filtrar
+                    </button>
+                    <button onclick="limparFiltros()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition">
+                        ✖️ Limpar Filtros
                     </button>
                 </div>
             </div>

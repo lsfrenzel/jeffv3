@@ -22,6 +22,7 @@ async function carregarEmpresas(filtros = {}, pagina = 1) {
         if (filtros.cnpj) url += `&cnpj=${filtros.cnpj}`;
         if (filtros.municipio) url += `&municipio=${filtros.municipio}`;
         if (filtros.er) url += `&er=${filtros.er}`;
+        if (filtros.carteira) url += `&carteira=${filtros.carteira}`;
         
         const response = await apiRequest(url);
         const data = await response.json();
@@ -109,9 +110,19 @@ function aplicarFiltros() {
         nome: document.getElementById('filtroNome').value,
         cnpj: document.getElementById('filtroCNPJ').value,
         municipio: document.getElementById('filtroMunicipio').value,
-        er: document.getElementById('filtroER').value
+        er: document.getElementById('filtroER').value,
+        carteira: document.getElementById('filtroCarteira').value
     };
     carregarEmpresas(filtros, 1);
+}
+
+function limparFiltros() {
+    document.getElementById('filtroNome').value = '';
+    document.getElementById('filtroCNPJ').value = '';
+    document.getElementById('filtroMunicipio').value = '';
+    document.getElementById('filtroER').value = '';
+    document.getElementById('filtroCarteira').value = '';
+    carregarEmpresas({}, 1);
 }
 
 function showNovaEmpresaModal() {
@@ -148,9 +159,10 @@ document.getElementById('novaEmpresaForm').addEventListener('submit', async (e) 
         });
         
         if (response.ok) {
-            alert('Empresa cadastrada com sucesso!');
+            const empresaCriada = await response.json();
+            alert('Empresa cadastrada com sucesso! Redirecionando para adicionar informações de contato...');
             hideNovaEmpresaModal();
-            carregarEmpresas();
+            window.location.href = `/empresa/${empresaCriada.id}`;
         } else {
             const error = await response.json();
             alert(error.detail || 'Erro ao cadastrar empresa');

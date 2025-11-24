@@ -3,6 +3,9 @@ checkAuth();
 const usuario = getUsuario();
 document.getElementById('userInfo').textContent = `${usuario.nome} (${usuario.tipo})`;
 
+let todasProspeccoes = [];
+let visualizacaoAtual = 'cards';
+
 document.getElementById('agendar_proxima').addEventListener('change', function() {
     const opcoes = document.getElementById('agendamentoOptions');
     const dataInput = document.getElementById('data_proxima_ligacao');
@@ -17,20 +20,135 @@ document.getElementById('agendar_proxima').addEventListener('change', function()
     dataInput.required = this.checked;
 });
 
-async function carregarProspeccoes() {
-    try {
-        const response = await apiRequest('/api/prospeccoes/');
-        const prospeccoes = await response.json();
+function toggleVisualizacao(modo) {
+    visualizacaoAtual = modo;
+    
+    const btnCards = document.getElementById('btnCards');
+    const btnLista = document.getElementById('btnLista');
+    const viewCards = document.getElementById('viewCards');
+    const viewLista = document.getElementById('viewLista');
+    
+    if (modo === 'cards') {
+        btnCards.classList.remove('bg-gray-600');
+        btnCards.classList.add('bg-blue-600');
+        btnLista.classList.remove('bg-blue-600');
+        btnLista.classList.add('bg-gray-600');
+        viewCards.classList.remove('hidden');
+        viewLista.classList.add('hidden');
+    } else {
+        btnLista.classList.remove('bg-gray-600');
+        btnLista.classList.add('bg-blue-600');
+        btnCards.classList.remove('bg-blue-600');
+        btnCards.classList.add('bg-gray-600');
+        viewLista.classList.remove('hidden');
+        viewCards.classList.add('hidden');
+    }
+    
+    renderizarProspeccoes(todasProspeccoes);
+}
+
+function aplicarFiltros() {
+    const filtroEmpresa = document.getElementById('filtroEmpresa').value.toLowerCase();
+    const filtroConsultor = document.getElementById('filtroConsultor').value;
+    const filtroResultado = document.getElementById('filtroResultado').value;
+    const filtroStatus = document.getElementById('filtroStatus').value;
+    
+    let prospeccoesFiltradas = todasProspeccoes.filter(prosp => {
+        const matchEmpresa = !filtroEmpresa || prosp.empresa.empresa.toLowerCase().includes(filtroEmpresa);
+        const matchConsultor = !filtroConsultor || prosp.consultor.id == filtroConsultor;
+        const matchResultado = !filtroResultado || prosp.resultado === filtroResultado;
+        const matchStatus = !filtroStatus || prosp.status_follow_up === filtroStatus;
         
+        return matchEmpresa && matchConsultor && matchResultado && matchStatus;
+    });
+    
+    renderizarProspeccoes(prospeccoesFiltradas);
+}
+
+function limparFiltros() {
+    document.getElementById('filtroEmpresa').value = '';
+    document.getElementById('filtroConsultor').value = '';
+    document.getElementById('filtroResultado').value = '';
+    document.getElementById('filtroStatus').value = '';
+    renderizarProspeccoes(todasProspeccoes);
+}
+
+function renderizarProspeccoes(prospeccoes) {
+    if (visualizacaoAtual === 'cards') {
         mostrarProspeccoesCards(prospeccoes);
-    } catch (error) {
-        console.error('Erro ao carregar prospecções:', error);
-        document.getElementById('prospeccoesCards').innerHTML = '<div class="col-span-full text-center py-8 text-red-400">Erro ao carregar prospecções</div>';
+    } else {
+        mostrarProspeccoesLista(prospeccoes);
     }
 }
 
+async function carregarProspeccoes() {
+    try {
+        const response = await apiRequest('/api/prospeccoes/');
+        todasProspeccoes = await response.json();
+        
+        await carregarConsultoresParaFiltro();
+        renderizarProspeccoes(todasProspeccoes);
+    } catch (error) {
+        console.error('Erro ao carregar prospecções:', error);
+        document.getElementById('viewCards').innerHTML = '<div class="col-span-full text-center py-8 text-red-400">Erro ao carregar prospecções</div>';
+    }
+}
+
+async function carregarConsultoresParaFiltro() {
+    try {
+        const response = await apiRequest('/api/admin/usuarios');
+        const usuarios = await response.json();
+        
+        const consultores = usuarios.filter(u => u.tipo === 'consultor' || u.tipo === 'admin');
+        const select = document.getElementById('filtroConsultor');
+        select.innerHTML = '<option value="">Todos</option>';
+        consultores.forEach(consultor => {
+            const option = document.createElement('option');
+            option.value = consultor.id;
+            option.textContent = consultor.nome;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar consultores:', error);
+    }
+}
+
+function mostrarProspeccoesLista(prospeccoes) {
+    const tbody = document.getElementById('listaProspeccoesTable');
+    
+    if (prospeccoes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-gray-400">Nenhuma prospecção encontrada</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = prospeccoes.map(prosp => {
+        const resultadoClass = prosp.resultado && prosp.resultado.includes('Interesse') ? 'text-green-400' : 
+                              prosp.resultado && prosp.resultado.includes('Sem interesse') ? 'text-red-400' : 
+                              'text-blue-400';
+        
+        return `
+            <tr class="hover:bg-dark-hover transition">
+                <td class="px-6 py-4">
+                    <div class="text-white font-medium">${prosp.empresa.empresa}</div>
+                    <div class="text-gray-400 text-sm">${prosp.empresa.municipio || 'N/A'} - ${prosp.empresa.estado || 'N/A'}</div>
+                </td>
+                <td class="px-6 py-4 text-white">${prosp.consultor.nome}</td>
+                <td class="px-6 py-4 text-white">${prosp.data_ligacao ? new Date(prosp.data_ligacao).toLocaleDateString('pt-BR') : 'N/A'}</td>
+                <td class="px-6 py-4 ${resultadoClass} font-semibold">${prosp.resultado || 'N/A'}</td>
+                <td class="px-6 py-4 text-white">${prosp.status_follow_up || 'N/A'}</td>
+                <td class="px-6 py-4 text-white">${prosp.potencial_negocio || 'N/A'}</td>
+                <td class="px-6 py-4">
+                    <button onclick="exportarPDF(${prosp.id})" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition">
+                        📄 PDF
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
 function mostrarProspeccoesCards(prospeccoes) {
-    const container = document.getElementById('prospeccoesCards');
+    const container = document.getElementById('viewCards');
     
     if (prospeccoes.length === 0) {
         container.innerHTML = '<div class="col-span-full text-center py-8 text-gray-400">Nenhuma prospecção encontrada</div>';
