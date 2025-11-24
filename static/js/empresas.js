@@ -159,10 +159,18 @@ document.getElementById('novaEmpresaForm').addEventListener('submit', async (e) 
         });
         
         if (response.ok) {
-            const empresaCriada = await response.json();
-            alert('Empresa cadastrada com sucesso! Redirecionando para adicionar informações de contato...');
-            hideNovaEmpresaModal();
-            window.location.href = `/empresa/${empresaCriada.id}`;
+            const resultado = await response.json();
+            const empresaId = resultado.id || resultado.empresa_id;
+            
+            if (empresaId) {
+                alert('Empresa cadastrada com sucesso! Redirecionando para adicionar informações de contato...');
+                hideNovaEmpresaModal();
+                window.location.href = `/empresa/${empresaId}`;
+            } else {
+                alert('Empresa cadastrada com sucesso!');
+                hideNovaEmpresaModal();
+                carregarEmpresas();
+            }
         } else {
             const error = await response.json();
             alert(error.detail || 'Erro ao cadastrar empresa');

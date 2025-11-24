@@ -54,8 +54,11 @@ function aplicarFiltros() {
     const filtroStatus = document.getElementById('filtroStatus').value;
     
     let prospeccoesFiltradas = todasProspeccoes.filter(prosp => {
-        const matchEmpresa = !filtroEmpresa || prosp.empresa.empresa.toLowerCase().includes(filtroEmpresa);
-        const matchConsultor = !filtroConsultor || prosp.consultor.id == filtroConsultor;
+        const empresaNome = (prosp.empresa?.empresa || prosp.empresa_nome || '').toLowerCase();
+        const consultorId = prosp.consultor?.id || prosp.consultor_id;
+        
+        const matchEmpresa = !filtroEmpresa || empresaNome.includes(filtroEmpresa);
+        const matchConsultor = !filtroConsultor || consultorId == filtroConsultor;
         const matchResultado = !filtroResultado || prosp.resultado === filtroResultado;
         const matchStatus = !filtroStatus || prosp.status_follow_up === filtroStatus;
         
@@ -126,13 +129,18 @@ function mostrarProspeccoesLista(prospeccoes) {
                               prosp.resultado && prosp.resultado.includes('Sem interesse') ? 'text-red-400' : 
                               'text-blue-400';
         
+        const empresaNome = prosp.empresa?.empresa || prosp.empresa_nome || 'N/A';
+        const empresaMunicipio = prosp.empresa?.municipio || prosp.municipio || 'N/A';
+        const empresaEstado = prosp.empresa?.estado || prosp.estado || 'N/A';
+        const consultorNome = prosp.consultor?.nome || prosp.consultor_nome || 'N/A';
+        
         return `
             <tr class="hover:bg-dark-hover transition">
                 <td class="px-6 py-4">
-                    <div class="text-white font-medium">${prosp.empresa.empresa}</div>
-                    <div class="text-gray-400 text-sm">${prosp.empresa.municipio || 'N/A'} - ${prosp.empresa.estado || 'N/A'}</div>
+                    <div class="text-white font-medium">${empresaNome}</div>
+                    <div class="text-gray-400 text-sm">${empresaMunicipio} - ${empresaEstado}</div>
                 </td>
-                <td class="px-6 py-4 text-white">${prosp.consultor.nome}</td>
+                <td class="px-6 py-4 text-white">${consultorNome}</td>
                 <td class="px-6 py-4 text-white">${prosp.data_ligacao ? new Date(prosp.data_ligacao).toLocaleDateString('pt-BR') : 'N/A'}</td>
                 <td class="px-6 py-4 ${resultadoClass} font-semibold">${prosp.resultado || 'N/A'}</td>
                 <td class="px-6 py-4 text-white">${prosp.status_follow_up || 'N/A'}</td>
@@ -168,13 +176,18 @@ function mostrarProspeccoesCards(prospeccoes) {
                               prosp.resultado && prosp.resultado.includes('Sem interesse') ? 'bg-red-900/30 border-red-500' : 
                               'bg-blue-900/30 border-blue-500';
         
+        const empresaNome = prosp.empresa?.empresa || prosp.empresa_nome || 'N/A';
+        const empresaMunicipio = prosp.empresa?.municipio || prosp.municipio || 'N/A';
+        const empresaEstado = prosp.empresa?.estado || prosp.estado || 'N/A';
+        const consultorNome = prosp.consultor?.nome || prosp.consultor_nome || 'N/A';
+        
         html += `
             <div class="bg-dark-sidebar rounded-lg shadow-lg overflow-hidden border-l-4 ${resultadoClass} hover:shadow-xl transition">
                 <div class="p-6">
                     <div class="flex justify-between items-start mb-4">
                         <div>
-                            <h3 class="text-xl font-bold text-white mb-1">${prosp.empresa.empresa}</h3>
-                            <p class="text-gray-400 text-sm">${prosp.empresa.municipio || 'N/A'} - ${prosp.empresa.estado || 'N/A'}</p>
+                            <h3 class="text-xl font-bold text-white mb-1">${empresaNome}</h3>
+                            <p class="text-gray-400 text-sm">${empresaMunicipio} - ${empresaEstado}</p>
                         </div>
                         <button onclick="exportarPDF(${prosp.id})" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition">
                             📄 PDF
@@ -184,7 +197,7 @@ function mostrarProspeccoesCards(prospeccoes) {
                     <div class="space-y-2 mb-4">
                         <div class="flex items-center text-sm">
                             <span class="text-gray-400 w-24">Consultor:</span>
-                            <span class="text-white">${prosp.consultor.nome}</span>
+                            <span class="text-white">${consultorNome}</span>
                         </div>
                         <div class="flex items-center text-sm">
                             <span class="text-gray-400 w-24">Data:</span>
