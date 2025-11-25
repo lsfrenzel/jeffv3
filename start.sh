@@ -3,6 +3,20 @@
 # Script para iniciar a aplicação no Railway
 # Executa as migrações do banco de dados e depois inicia o servidor
 
+# CRÍTICO: Carregar variáveis de ambiente do Railway
+# Railway injeta variáveis em /etc/environment ou .env
+set -a
+if [ -f "/etc/environment" ]; then
+    source /etc/environment 2>/dev/null || true
+fi
+if [ -f "$RAILWAY_PROJECT_ROOT/.env" ]; then
+    source "$RAILWAY_PROJECT_ROOT/.env" 2>/dev/null || true
+fi
+if [ -f ".env" ]; then
+    source .env 2>/dev/null || true
+fi
+set +a
+
 echo "========================================="
 echo "🚀 Iniciando aplicação Núcleo 1.03"
 echo "========================================="
@@ -11,6 +25,7 @@ echo ""
 echo "🔍 Verificando variáveis de ambiente..."
 if [ -z "$DATABASE_URL" ]; then
     echo "❌ ERROR: DATABASE_URL não configurada!"
+    echo "   Verifique se o PostgreSQL está conectado no Railway"
     exit 1
 fi
 
