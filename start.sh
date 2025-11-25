@@ -3,6 +3,8 @@
 # Script para iniciar a aplicação no Railway
 # Executa as migrações do banco de dados e depois inicia o servidor
 
+set -e  # Exit on any error
+
 echo "🔄 Executando migrações do banco de dados..."
 alembic upgrade head
 
