@@ -1,4 +1,4 @@
-modules = ["python-3.12", "nodejs-20", "web", "bash", "postgresql-16"]
+modules = ["python-3.12", "nodejs-20", "web", "bash"]
 [agent]
 expertMode = true
 integrations = ["python_database:1.0.0"]
@@ -62,6 +62,10 @@ externalPort = 5173
 [[ports]]
 localPort = 44981
 externalPort = 3003
+
+[[ports]]
+localPort = 46057
+externalPort = 6800
 
 [nix]
 channel = "stable-25_05"
