@@ -35,6 +35,20 @@ The project is structured with clear separation of concerns: `backend/` for API 
 
 ## Recent Changes
 
+### November 25, 2025
+-   **Railway Deployment Preparation**: Sistema completamente adaptado para deploy no Railway com migrações automáticas
+    -   **Alembic integrado**: Sistema de migrações de banco de dados versionado e automático
+    -   **Migração PostgreSQL otimizada**: Migração inicial (`bf387194a72b`) criada com handling correto de tipos Enum PostgreSQL
+        - Tipos Enum criados explicitamente com `CREATE TYPE` antes das tabelas
+        - Todas as colunas Enum usam `create_type=False` para evitar duplicação
+        - Downgrade seguro com `DROP TYPE IF EXISTS`
+    -   **Script start.sh**: Executa `alembic upgrade head` automaticamente antes de iniciar o servidor
+    -   **Configuração Railway**: Arquivos `railway.toml` e `Procfile` criados para deploy automático
+    -   **Documentação completa**: `RAILWAY_DEPLOY.md` com guia passo a passo para deploy
+    -   **Remoção de create_all()**: `Base.metadata.create_all()` removido do main.py - agora usa apenas Alembic
+    -   **Arquivo .env.example**: Template de variáveis de ambiente para facilitar configuração
+    -   Sistema pronto para deploy com um clique no Railway com PostgreSQL automático
+
 ### November 11, 2025
 -   **Cronograma em Formato de Calendário com Dias Clicáveis**: Visualização interativa de calendário implementada
     -   Adicionado botão "Calendário" como primeira opção de visualização (Timeline e Lista ainda disponíveis)
@@ -63,6 +77,7 @@ The project is structured with clear separation of concerns: `backend/` for API 
 ## External Dependencies
 
 -   **Database**: PostgreSQL
+-   **Database Migrations**: Alembic (for version-controlled schema migrations)
 -   **Frontend Styling**: TailwindCSS (CDN)
 -   **Charting Library**: Chart.js
 -   **External APIs for CNPJ Lookup (with fallback)**:
@@ -70,3 +85,13 @@ The project is structured with clear separation of concerns: `backend/` for API 
     -   BrasilAPI
     -   publica.cnpj.ws
 -   **Avatar Generation**: ui-avatars.com (for default user avatars)
+
+## Deployment
+
+### Railway
+O sistema está completamente preparado para deploy no Railway:
+-   **Migrações automáticas** via Alembic executadas a cada deploy
+-   **PostgreSQL** provido automaticamente pelo Railway
+-   **Configuração zero**: Apenas conectar repositório GitHub e adicionar banco de dados
+-   **Seeding automático**: Usuários padrão e dados iniciais criados na primeira execução
+-   Veja `RAILWAY_DEPLOY.md` para instruções detalhadas

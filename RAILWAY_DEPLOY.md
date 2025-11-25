@@ -75,6 +75,21 @@ O sistema usa Alembic para gerenciar o schema do banco de dados:
 - **Primeira vez**: Cria todas as tabelas baseadas nos modelos SQLAlchemy
 - **Atualizações**: Detecta mudanças nos modelos e aplica automaticamente
 
+### Otimização PostgreSQL
+
+A migração inicial (`bf387194a72b`) foi otimizada especificamente para PostgreSQL:
+
+1. **Criação explícita de tipos Enum** usando `CREATE TYPE`:
+   - `tipousuario` (admin, consultor)
+   - `statusprojeto` (planejado, em_andamento, concluido, cancelado, pausado)
+   - `tiponotificacao` (PROSPECCAO_CRIADA, AGENDAMENTO_CRIADO, etc.)
+   - `statusagendamento` (pendente, realizado, vencido)
+   - `statusatividade` (pendente, em_andamento, concluida, cancelada)
+
+2. **Uso de `create_type=False`** em todas as colunas Enum para evitar duplicação
+
+3. **Downgrade seguro** com `DROP TYPE IF EXISTS` para reverter migrações sem erros
+
 ### Criar Nova Migração (Localmente)
 
 Se você modificar os modelos do banco, crie uma nova migração:
