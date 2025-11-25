@@ -3,23 +3,24 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from backend.database import engine, Base, SessionLocal
+from backend.database import SessionLocal
 from backend.models import Usuario, Empresa, Prospeccao, Agendamento, AtribuicaoEmpresa, Notificacao, Mensagem
 from backend.routers import auth, empresas, prospeccoes, agendamentos, admin, atribuicoes, consultores, dashboard, cnpj, notificacoes, mensagens, cronograma, pipeline
 from backend.utils.seed import criar_usuario_admin_padrao, criar_empresas_padrao, criar_consultores_padrao, criar_stages_padrao
 
-Base.metadata.create_all(bind=engine)
-
-db = SessionLocal()
-try:
-    criar_usuario_admin_padrao(db)
-    criar_consultores_padrao(db)
-    criar_empresas_padrao(db)
-    criar_stages_padrao(db)
-finally:
-    db.close()
-
 app = FastAPI(title="Núcleo 1.03", version="1.0.0")
+
+@app.on_event("startup")
+async def startup_event():
+    """Executa seed de dados iniciais ao iniciar a aplicação"""
+    db = SessionLocal()
+    try:
+        criar_usuario_admin_padrao(db)
+        criar_consultores_padrao(db)
+        criar_empresas_padrao(db)
+        criar_stages_padrao(db)
+    finally:
+        db.close()
 
 app.add_middleware(
     CORSMiddleware,
