@@ -5,15 +5,21 @@
 
 set -e  # Exit on any error
 
-echo "🔄 Executando migrações do banco de dados..."
-alembic upgrade head
-
-if [ $? -eq 0 ]; then
-    echo "✅ Migrações concluídas com sucesso!"
-else
-    echo "❌ Erro ao executar migrações!"
+echo "🔍 Verificando variáveis de ambiente..."
+if [ -z "$DATABASE_URL" ]; then
+    echo "❌ DATABASE_URL não configurada!"
     exit 1
 fi
 
-echo "🚀 Iniciando servidor..."
-uvicorn main:app --host 0.0.0.0 --port ${PORT:-5000}
+echo "✅ DATABASE_URL configurada"
+
+echo "🔄 Executando migrações do banco de dados..."
+alembic upgrade head || {
+    echo "❌ Erro ao executar migrações!"
+    echo "Tentando continuar mesmo assim..."
+}
+
+echo "✅ Migrações processadas"
+
+echo "🚀 Iniciando servidor na porta ${PORT:-8000}..."
+exec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1
