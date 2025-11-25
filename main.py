@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from backend.database import SessionLocal
 from backend.models import Usuario, Empresa, Prospeccao, Agendamento, AtribuicaoEmpresa, Notificacao, Mensagem
@@ -9,6 +9,10 @@ from backend.routers import auth, empresas, prospeccoes, agendamentos, admin, at
 from backend.utils.seed import criar_usuario_admin_padrao, criar_empresas_padrao, criar_consultores_padrao, criar_stages_padrao
 
 app = FastAPI(title="Núcleo 1.03", version="1.0.0")
+
+@app.get("/health")
+async def health_check():
+    return JSONResponse(content={"status": "healthy", "app": "Nucleo 1.03"}, status_code=200)
 
 @app.on_event("startup")
 async def startup_event():
