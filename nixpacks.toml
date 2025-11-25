@@ -10,7 +10,6 @@ cmds = [
 
 [variables]
 PYTHONUNBUFFERED = "1"
-PATH = "/opt/venv/bin:${PATH}"
 
 [start]
-cmd = ". /opt/venv/bin/activate && bash start.sh"
+cmd = "bash start.sh"

@@ -3,7 +3,13 @@
 # Script para iniciar a aplicação no Railway
 # Executa as migrações do banco de dados e depois inicia o servidor
 
-# CRÍTICO: Carregar variáveis de ambiente do Railway
+# CRÍTICO: Ativar ambiente virtual do Nixpacks (Railway)
+if [ -d "/opt/venv" ]; then
+    echo "🐍 Ativando ambiente virtual Python..."
+    source /opt/venv/bin/activate
+fi
+
+# Carregar variáveis de ambiente do Railway
 # Railway injeta variáveis em /etc/environment ou .env
 set -a
 if [ -f "/etc/environment" ]; then
