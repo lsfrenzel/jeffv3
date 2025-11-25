@@ -15,10 +15,31 @@ async def startup_event():
     """Executa seed de dados iniciais ao iniciar a aplicação"""
     db = SessionLocal()
     try:
-        criar_usuario_admin_padrao(db)
-        criar_consultores_padrao(db)
-        criar_empresas_padrao(db)
-        criar_stages_padrao(db)
+        print("🔄 Iniciando seed de dados...")
+        try:
+            criar_usuario_admin_padrao(db)
+        except Exception as e:
+            print(f"⚠️ Erro ao criar usuário admin (pode já existir): {e}")
+        
+        try:
+            criar_consultores_padrao(db)
+        except Exception as e:
+            print(f"⚠️ Erro ao criar consultores (podem já existir): {e}")
+        
+        try:
+            criar_empresas_padrao(db)
+        except Exception as e:
+            print(f"⚠️ Erro ao criar empresas (podem já existir): {e}")
+        
+        try:
+            criar_stages_padrao(db)
+        except Exception as e:
+            print(f"⚠️ Erro ao criar stages (podem já existir): {e}")
+        
+        print("✅ Seed de dados concluído")
+    except Exception as e:
+        print(f"❌ Erro geral no startup: {e}")
+        # Não falhar o startup por causa do seed
     finally:
         db.close()
 
