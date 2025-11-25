@@ -73,7 +73,7 @@ async def root(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request):
+async def dashboard_page(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request})
 
 @app.get("/empresas", response_class=HTMLResponse)

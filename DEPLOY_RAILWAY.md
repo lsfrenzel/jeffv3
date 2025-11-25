@@ -25,7 +25,10 @@ O Railway já configura automaticamente:
 - ✅ `DATABASE_URL` - URL de conexão com o PostgreSQL
 - ✅ `PORT` - Porta em que o servidor deve escutar
 
-**Não são necessárias variáveis adicionais!**
+**Variável opcional (recomendada para produção):**
+- 🔐 `SESSION_SECRET` - Chave para assinar tokens JWT
+
+> **Nota:** Se `SESSION_SECRET` não estiver configurada, uma chave temporária será gerada automaticamente. Para produção, é recomendado configurar esta variável com um valor fixo para evitar logout de usuários após restarts.
 
 ### 5. Verificação do Deploy
 
@@ -88,7 +91,9 @@ railway run bash
 
 Após o primeiro deploy, será criado automaticamente:
 - **Email**: admin@admin.com
-- **Senha**: Você precisará redefinir ou configurar via código
+- **Senha**: admin123
+
+⚠️ **IMPORTANTE:** Mude a senha do admin após o primeiro acesso por segurança!
 
 ### 10. Estrutura de Arquivos Importantes
 

@@ -29,7 +29,14 @@ if [ -z "$DATABASE_URL" ]; then
     exit 1
 fi
 
+# Gerar SESSION_SECRET se não existir
+if [ -z "$SESSION_SECRET" ]; then
+    export SESSION_SECRET=$(python3 -c "import secrets; print(secrets.token_hex(32))")
+    echo "⚠️ SESSION_SECRET não configurada, gerando automaticamente..."
+fi
+
 echo "✅ DATABASE_URL configurada: ${DATABASE_URL:0:30}..."
+echo "✅ SESSION_SECRET configurada"
 echo "✅ PORT configurada: ${PORT:-8000}"
 
 echo ""
