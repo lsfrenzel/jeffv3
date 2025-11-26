@@ -35,6 +35,16 @@ The project is structured with clear separation of concerns: `backend/` for API 
 
 ## Recent Changes
 
+### November 26, 2025
+-   **Gestão de Consultores para Admin**: Funcionalidade completa de inserir e excluir consultores na página de consultores
+    -   Botão "Novo Consultor" visível apenas para administradores
+    -   Modal de criação com campos: nome, email e senha
+    -   Botão "Excluir" em cada linha da tabela (apenas para admin)
+    -   Modal de confirmação antes de excluir
+    -   Exclusão remove automaticamente prospecções e atribuições associadas
+    -   Endpoints seguros com validação de admin no backend
+    -   Proteção contra XSS usando DOM seguro (createElement/textContent)
+
 ### November 25, 2025
 -   **Railway Deployment Preparation**: Sistema completamente adaptado para deploy no Railway com migrações automáticas
     -   **Alembic integrado**: Sistema de migrações de banco de dados versionado e automático
