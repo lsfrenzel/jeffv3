@@ -65,7 +65,8 @@ def obter_usuario_atual(
 def obter_usuario_admin(
     usuario_atual: Usuario = Depends(obter_usuario_atual)
 ) -> Usuario:
-    if usuario_atual.tipo != "admin":
+    from backend.models.usuarios import TipoUsuario
+    if usuario_atual.tipo != TipoUsuario.admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Acesso negado. Apenas administradores podem acessar este recurso."

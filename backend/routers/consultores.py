@@ -4,9 +4,9 @@ from sqlalchemy import func
 from typing import List
 from backend.database import get_db
 from backend.models import Usuario, Prospeccao
-from backend.schemas.usuarios import ConsultorPerfil, UsuarioAtualizar
+from backend.schemas.usuarios import ConsultorPerfil, UsuarioAtualizar, UsuarioCriar
 from backend.schemas.prospeccoes import ProspeccaoResposta
-from backend.auth.security import obter_usuario_atual, obter_usuario_admin
+from backend.auth.security import obter_usuario_atual, obter_usuario_admin, obter_hash_senha
 from backend.models.usuarios import TipoUsuario
 
 router = APIRouter(prefix="/api/consultores", tags=["Consultores"])
@@ -138,8 +138,7 @@ def atualizar_meu_perfil(
     
     for key, value in dados.model_dump(exclude_unset=True).items():
         if key == "senha" and value:
-            from backend.auth.security import hash_senha
-            setattr(consultor, "senha_hash", hash_senha(value))
+            setattr(consultor, "senha_hash", obter_hash_senha(value))
         elif key == "tipo":
             continue
         else:
@@ -178,8 +177,7 @@ def atualizar_consultor(
     
     for key, value in dados.model_dump(exclude_unset=True).items():
         if key == "senha" and value:
-            from backend.auth.security import hash_senha
-            setattr(consultor, "senha_hash", hash_senha(value))
+            setattr(consultor, "senha_hash", obter_hash_senha(value))
         else:
             setattr(consultor, key, value)
     
@@ -198,3 +196,66 @@ def atualizar_consultor(
         "informacoes_basicas": consultor.informacoes_basicas,
         "foto_url": consultor.foto_url
     }
+
+@router.post("/")
+def criar_consultor(
+    dados: UsuarioCriar,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(obter_usuario_admin)
+):
+    usuario_existente = db.query(Usuario).filter(Usuario.email == dados.email).first()
+    if usuario_existente:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email já cadastrado"
+        )
+    
+    novo_consultor = Usuario(
+        nome=dados.nome,
+        email=dados.email,
+        senha_hash=obter_hash_senha(dados.senha),
+        tipo=TipoUsuario.consultor
+    )
+    
+    db.add(novo_consultor)
+    db.commit()
+    db.refresh(novo_consultor)
+    
+    return {
+        "id": novo_consultor.id,
+        "nome": novo_consultor.nome,
+        "email": novo_consultor.email,
+        "tipo": novo_consultor.tipo.value,
+        "message": "Consultor criado com sucesso"
+    }
+
+@router.delete("/{consultor_id}")
+def excluir_consultor(
+    consultor_id: int,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(obter_usuario_admin)
+):
+    consultor = db.query(Usuario).filter(
+        Usuario.id == consultor_id,
+        Usuario.tipo == TipoUsuario.consultor
+    ).first()
+    
+    if not consultor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Consultor não encontrado"
+        )
+    
+    from backend.models import AtribuicaoEmpresa
+    db.query(AtribuicaoEmpresa).filter(
+        AtribuicaoEmpresa.consultor_id == consultor_id
+    ).delete()
+    
+    db.query(Prospeccao).filter(
+        Prospeccao.consultor_id == consultor_id
+    ).delete()
+    
+    db.delete(consultor)
+    db.commit()
+    
+    return {"message": "Consultor excluído com sucesso"}
