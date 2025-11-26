@@ -8,171 +8,219 @@
     {% include "partials/sidebar.html" %}
     
     <main class="flex-1 overflow-y-auto">
-        <header class="bg-dark-sidebar shadow-lg p-6">
+        <header class="sticky top-0 z-10 glass-effect border-b border-dark-border/50 px-8 py-4">
             <div class="flex justify-between items-center">
-                <h2 class="text-2xl font-semibold text-white">Cronograma Geral</h2>
-                <button onclick="abrirModalImportar()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition">
-                    <i class="fas fa-upload mr-2"></i>Importar Planilha
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Cronograma Geral</h2>
+                    <p class="text-gray-400 text-sm mt-1">Visualize e gerencie projetos</p>
+                </div>
+                <button onclick="abrirModalImportar()" class="btn-primary text-white px-5 py-2.5 rounded-xl flex items-center gap-2 font-medium">
+                    <i class="fas fa-upload"></i>
+                    Importar Planilha
                 </button>
             </div>
         </header>
         
-        <div class="p-6">
+        <div class="p-8 space-y-6">
+            <div class="glass-effect rounded-2xl p-6 border border-dark-border/50 animate-fade-in">
+                <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <i class="fas fa-filter text-blue-400"></i>
+                    Filtros
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Consultor</label>
+                        <select id="filtroConsultor" class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Empresa</label>
+                        <select id="filtroEmpresa" class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Data Início</label>
+                        <input type="date" id="filtroDataInicio" class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Data Fim</label>
+                        <input type="date" id="filtroDataFim" class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                    </div>
+                </div>
+                <div class="mt-4 flex gap-3">
+                    <button onclick="aplicarFiltros()" class="btn-primary text-white px-5 py-2.5 rounded-xl flex items-center gap-2 font-medium">
+                        <i class="fas fa-search"></i>
+                        Filtrar
+                    </button>
+                    <button onclick="limparFiltros()" class="bg-dark-card hover:bg-dark-hover text-gray-300 px-5 py-2.5 rounded-xl flex items-center gap-2 font-medium transition">
+                        <i class="fas fa-redo"></i>
+                        Limpar
+                    </button>
+                </div>
+            </div>
 
-    <div class="bg-dark-card rounded-lg p-6 mb-6">
-        <h2 class="text-white text-lg font-semibold mb-4">Filtros</h2>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-                <label class="block text-gray-400 text-sm mb-2">Consultor</label>
-                <select id="filtroConsultor" class="w-full bg-dark-bg border border-gray-700 text-white rounded px-3 py-2">
-                    <option value="">Todos</option>
-                </select>
+            <div class="glass-effect rounded-2xl p-6 border border-dark-border/50 animate-slide-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                        <i class="fas fa-project-diagram text-purple-400"></i>
+                        Cronograma de Projetos
+                    </h3>
+                    <div class="flex gap-2">
+                        <button onclick="alternarVisualizacao('calendario')" id="btnCalendario" class="px-4 py-2 rounded-xl bg-blue-500/20 text-blue-400 font-medium transition">
+                            <i class="fas fa-calendar-alt mr-2"></i>Calendário
+                        </button>
+                        <button onclick="alternarVisualizacao('timeline')" id="btnTimeline" class="px-4 py-2 rounded-xl bg-dark-card hover:bg-dark-hover text-gray-300 font-medium transition">
+                            <i class="fas fa-chart-bar mr-2"></i>Timeline
+                        </button>
+                        <button onclick="alternarVisualizacao('lista')" id="btnLista" class="px-4 py-2 rounded-xl bg-dark-card hover:bg-dark-hover text-gray-300 font-medium transition">
+                            <i class="fas fa-list mr-2"></i>Lista
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="calendarioView" class="overflow-x-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <button onclick="mesAnterior()" class="px-4 py-2 rounded-xl bg-dark-card hover:bg-dark-hover text-gray-300 flex items-center gap-2 transition">
+                            <i class="fas fa-chevron-left"></i>
+                            Anterior
+                        </button>
+                        <h3 id="mesAnoAtual" class="text-white text-xl font-semibold"></h3>
+                        <button onclick="proximoMes()" class="px-4 py-2 rounded-xl bg-dark-card hover:bg-dark-hover text-gray-300 flex items-center gap-2 transition">
+                            Próximo
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div id="calendarioContainer" class="min-h-[500px]"></div>
+                </div>
+                
+                <div id="timelineView" class="hidden overflow-x-auto">
+                    <div id="ganttChart" class="min-h-[400px]"></div>
+                </div>
+                
+                <div id="listaView" class="hidden">
+                    <div id="listaProjetos"></div>
+                </div>
             </div>
-            <div>
-                <label class="block text-gray-400 text-sm mb-2">Empresa</label>
-                <select id="filtroEmpresa" class="w-full bg-dark-bg border border-gray-700 text-white rounded px-3 py-2">
-                    <option value="">Todas</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-gray-400 text-sm mb-2">Data Início</label>
-                <input type="date" id="filtroDataInicio" class="w-full bg-dark-bg border border-gray-700 text-white rounded px-3 py-2">
-            </div>
-            <div>
-                <label class="block text-gray-400 text-sm mb-2">Data Fim</label>
-                <input type="date" id="filtroDataFim" class="w-full bg-dark-bg border border-gray-700 text-white rounded px-3 py-2">
-            </div>
-        </div>
-        <div class="mt-4 flex gap-2">
-            <button onclick="aplicarFiltros()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition">
-                <i class="fas fa-search mr-2"></i>Filtrar
-            </button>
-            <button onclick="limparFiltros()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition">
-                <i class="fas fa-redo mr-2"></i>Limpar
-            </button>
-        </div>
-    </div>
 
-    <div class="bg-dark-card rounded-lg p-6 mb-6">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-white text-lg font-semibold">Cronograma de Projetos</h2>
-            <div class="flex gap-2">
-                <button onclick="alternarVisualizacao('calendario')" id="btnCalendario" class="bg-blue-600 text-white px-4 py-2 rounded transition">
-                    <i class="fas fa-calendar-alt mr-2"></i>Calendário
-                </button>
-                <button onclick="alternarVisualizacao('timeline')" id="btnTimeline" class="bg-gray-600 text-white px-4 py-2 rounded transition">
-                    <i class="fas fa-chart-bar mr-2"></i>Timeline
-                </button>
-                <button onclick="alternarVisualizacao('lista')" id="btnLista" class="bg-gray-600 text-white px-4 py-2 rounded transition">
-                    <i class="fas fa-list mr-2"></i>Lista
-                </button>
-            </div>
-        </div>
-        
-        <div id="calendarioView" class="overflow-x-auto">
-            <div class="flex justify-between items-center mb-4">
-                <button onclick="mesAnterior()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition">
-                    <i class="fas fa-chevron-left mr-2"></i>Anterior
-                </button>
-                <h3 id="mesAnoAtual" class="text-white text-xl font-semibold"></h3>
-                <button onclick="proximoMes()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition">
-                    Próximo<i class="fas fa-chevron-right ml-2"></i>
-                </button>
-            </div>
-            <div id="calendarioContainer" class="min-h-[500px]"></div>
-        </div>
-        
-        <div id="timelineView" class="hidden overflow-x-auto">
-            <div id="ganttChart" class="min-h-[400px]"></div>
-        </div>
-        
-        <div id="listaView" class="hidden">
-            <div id="listaProjetos"></div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-dark-card rounded-lg p-6">
-            <h3 class="text-white font-semibold mb-2">Total de Projetos</h3>
-            <p class="text-3xl font-bold text-blue-500" id="totalProjetos">0</p>
-        </div>
-        <div class="bg-dark-card rounded-lg p-6">
-            <h3 class="text-white font-semibold mb-2">Em Andamento</h3>
-            <p class="text-3xl font-bold text-green-500" id="projetosAndamento">0</p>
-        </div>
-        <div class="bg-dark-card rounded-lg p-6">
-            <h3 class="text-white font-semibold mb-2">Concluídos</h3>
-            <p class="text-3xl font-bold text-purple-500" id="projetosConcluidos">0</p>
-        </div>
-        
-        <div class="bg-dark-card rounded-lg p-6 mt-6">
-            <h3 class="text-white font-semibold mb-4">Legenda de Cores</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 bg-blue-600 rounded"></div>
-                    <span class="text-gray-300 text-sm">Implantação</span>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up" style="animation-delay: 0.1s;">
+                <div class="stat-card card-gradient rounded-2xl p-6 shadow-card">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center">
+                            <i class="fas fa-folder-open text-blue-400 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-sm">Total de Projetos</p>
+                            <p class="text-3xl font-bold text-white" id="totalProjetos">0</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 bg-green-600 rounded"></div>
-                    <span class="text-gray-300 text-sm">Consultoria</span>
+                <div class="stat-card stat-card-success card-gradient rounded-2xl p-6 shadow-card">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-emerald-500/20 flex items-center justify-center">
+                            <i class="fas fa-spinner text-emerald-400 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-sm">Em Andamento</p>
+                            <p class="text-3xl font-bold text-white" id="projetosAndamento">0</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 bg-purple-600 rounded"></div>
-                    <span class="text-gray-300 text-sm">Treinamento</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 bg-yellow-600 rounded"></div>
-                    <span class="text-gray-300 text-sm">Suporte</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 bg-pink-600 rounded"></div>
-                    <span class="text-gray-300 text-sm">Desenvolvimento</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 bg-indigo-600 rounded"></div>
-                    <span class="text-gray-300 text-sm">Personalização</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 bg-orange-600 rounded"></div>
-                    <span class="text-gray-300 text-sm">Migração</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 bg-teal-600 rounded"></div>
-                    <span class="text-gray-300 text-sm">Outros</span>
+                <div class="stat-card card-gradient rounded-2xl p-6 shadow-card" style="--tw-gradient-stops: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-purple-500/20 flex items-center justify-center">
+                            <i class="fas fa-check-circle text-purple-400 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-sm">Concluídos</p>
+                            <p class="text-3xl font-bold text-white" id="projetosConcluidos">0</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
+            
+            <div class="glass-effect rounded-2xl p-6 border border-dark-border/50 animate-slide-up" style="animation-delay: 0.2s;">
+                <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <i class="fas fa-palette text-pink-400"></i>
+                    Legenda de Cores
+                </h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="flex items-center gap-3 p-3 rounded-xl bg-dark-card/50">
+                        <div class="w-4 h-4 bg-blue-600 rounded"></div>
+                        <span class="text-gray-300 text-sm">Implantação</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 rounded-xl bg-dark-card/50">
+                        <div class="w-4 h-4 bg-green-600 rounded"></div>
+                        <span class="text-gray-300 text-sm">Consultoria</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 rounded-xl bg-dark-card/50">
+                        <div class="w-4 h-4 bg-purple-600 rounded"></div>
+                        <span class="text-gray-300 text-sm">Treinamento</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 rounded-xl bg-dark-card/50">
+                        <div class="w-4 h-4 bg-yellow-600 rounded"></div>
+                        <span class="text-gray-300 text-sm">Suporte</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 rounded-xl bg-dark-card/50">
+                        <div class="w-4 h-4 bg-pink-600 rounded"></div>
+                        <span class="text-gray-300 text-sm">Desenvolvimento</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 rounded-xl bg-dark-card/50">
+                        <div class="w-4 h-4 bg-indigo-600 rounded"></div>
+                        <span class="text-gray-300 text-sm">Personalização</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 rounded-xl bg-dark-card/50">
+                        <div class="w-4 h-4 bg-orange-600 rounded"></div>
+                        <span class="text-gray-300 text-sm">Migração</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 rounded-xl bg-dark-card/50">
+                        <div class="w-4 h-4 bg-teal-600 rounded"></div>
+                        <span class="text-gray-300 text-sm">Outros</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 </div>
 
-<div id="modalDetalhes" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-dark-card rounded-lg p-8 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-white text-2xl font-bold" id="modalTitulo"></h3>
-            <button onclick="fecharModalDetalhes()" class="text-gray-400 hover:text-white">
-                <i class="fas fa-times text-2xl"></i>
+<div id="modalDetalhes" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
+    <div class="glass-effect rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-y-auto animate-slide-up">
+        <div class="p-6 border-b border-dark-border/50 flex justify-between items-center sticky top-0 glass-effect">
+            <h3 class="text-xl font-bold text-white" id="modalTitulo"></h3>
+            <button onclick="fecharModalDetalhes()" class="w-8 h-8 rounded-lg bg-dark-card hover:bg-dark-hover flex items-center justify-center text-gray-400 hover:text-white transition">
+                <i class="fas fa-times"></i>
             </button>
         </div>
-        <div id="modalConteudo" class="space-y-4"></div>
+        <div id="modalConteudo" class="p-6 space-y-4"></div>
     </div>
 </div>
 
-<div id="modalImportar" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-dark-card rounded-lg p-8 max-w-md w-full">
-        <h3 class="text-white text-xl font-bold mb-4">Importar Cronograma</h3>
-        <p class="text-gray-400 mb-4">
-            Para importar dados do cronograma, execute o seguinte comando no terminal:
-        </p>
-        <div class="bg-dark-bg p-4 rounded mb-4">
-            <code class="text-green-400 text-sm">python backend/utils/importar_cronograma.py attached_assets/CRONOGRAMA\ 2.0\ \(4\)_1762872257820.xlsx</code>
+<div id="modalImportar" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
+    <div class="glass-effect rounded-2xl shadow-2xl w-full max-w-md animate-slide-up">
+        <div class="p-6 border-b border-dark-border/50 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="fas fa-file-import text-blue-400"></i>
+                Importar Cronograma
+            </h3>
+            <button onclick="fecharModalImportar()" class="w-8 h-8 rounded-lg bg-dark-card hover:bg-dark-hover flex items-center justify-center text-gray-400 hover:text-white transition">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        <p class="text-gray-400 text-sm mb-4">
-            Após a importação, atualize esta página para ver os dados.
-        </p>
-        <div class="flex justify-end gap-2">
-            <button onclick="fecharModalImportar()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition">
+        <div class="p-6">
+            <p class="text-gray-300 mb-4">
+                Para importar dados do cronograma, execute o seguinte comando no terminal:
+            </p>
+            <div class="bg-dark-card/80 p-4 rounded-xl mb-4 overflow-x-auto">
+                <code class="text-emerald-400 text-sm whitespace-nowrap">python backend/utils/importar_cronograma.py attached_assets/CRONOGRAMA\ 2.0\ \(4\)_1762872257820.xlsx</code>
+            </div>
+            <div class="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl mb-6">
+                <p class="text-blue-300 text-sm flex items-start gap-2">
+                    <i class="fas fa-info-circle mt-0.5"></i>
+                    <span>Após a importação, atualize esta página para ver os dados.</span>
+                </p>
+            </div>
+            <button onclick="fecharModalImportar()" class="w-full px-4 py-3 bg-dark-card hover:bg-dark-hover text-gray-300 rounded-xl font-medium transition">
                 Fechar
             </button>
         </div>

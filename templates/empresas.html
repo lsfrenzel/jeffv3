@@ -8,165 +8,247 @@
     {% include "partials/sidebar.html" %}
     
     <main class="flex-1 overflow-y-auto">
-        <header class="bg-dark-sidebar shadow-lg p-6">
+        <header class="sticky top-0 z-10 glass-effect border-b border-dark-border/50 px-8 py-4">
             <div class="flex justify-between items-center">
-                <h2 class="text-2xl font-semibold text-white">Empresas</h2>
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Empresas</h2>
+                    <p class="text-gray-400 text-sm mt-1">Gerencie o cadastro de empresas</p>
+                </div>
                 <div class="flex gap-3">
-                    <button id="btnUploadExcel" onclick="showUploadExcelModal()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition">
-                        📊 Upload Excel
+                    <button id="btnUploadExcel" onclick="showUploadExcelModal()" class="btn-success text-white py-2.5 px-5 rounded-xl flex items-center gap-2 font-medium">
+                        <i class="fas fa-file-excel"></i>
+                        Upload Excel
                     </button>
-                    <button id="btnNovaEmpresa" onclick="showNovaEmpresaModal()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition">
-                        + Nova Empresa
+                    <button id="btnNovaEmpresa" onclick="showNovaEmpresaModal()" class="btn-primary text-white py-2.5 px-5 rounded-xl flex items-center gap-2 font-medium">
+                        <i class="fas fa-plus"></i>
+                        Nova Empresa
                     </button>
                 </div>
             </div>
         </header>
         
-        <div class="p-6">
-            <div class="bg-dark-sidebar rounded-lg p-6 shadow-lg mb-6">
-                <h3 class="text-lg font-semibold text-white mb-4">Filtros de Empresas</h3>
+        <div class="p-8 space-y-6">
+            <div class="glass-effect rounded-2xl p-6 border border-dark-border/50 animate-fade-in">
+                <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <i class="fas fa-filter text-blue-400"></i>
+                    Filtros de Empresas
+                </h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <input type="text" id="filtroNome" placeholder="Nome da empresa" 
-                        class="px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <input type="text" id="filtroCNPJ" placeholder="CNPJ"
-                        class="px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <input type="text" id="filtroMunicipio" placeholder="Município"
-                        class="px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Nome da Empresa</label>
+                        <input type="text" id="filtroNome" placeholder="Buscar por nome..." 
+                            class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">CNPJ</label>
+                        <input type="text" id="filtroCNPJ" placeholder="00.000.000/0000-00"
+                            class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Município</label>
+                        <input type="text" id="filtroMunicipio" placeholder="Cidade..."
+                            class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                    </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <input type="text" id="filtroER" placeholder="ER"
-                        class="px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <input type="text" id="filtroCarteira" placeholder="Carteira (ex: 1.01)"
-                        class="px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <button onclick="aplicarFiltros()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition">
-                        🔍 Filtrar
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">ER</label>
+                        <input type="text" id="filtroER" placeholder="ER..."
+                            class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Carteira</label>
+                        <input type="text" id="filtroCarteira" placeholder="Ex: 1.01"
+                            class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                    </div>
+                    <button onclick="aplicarFiltros()" class="btn-primary text-white py-3 px-4 rounded-xl flex items-center justify-center gap-2 font-medium self-end">
+                        <i class="fas fa-search"></i>
+                        Filtrar
                     </button>
-                    <button onclick="limparFiltros()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition">
-                        ✖️ Limpar Filtros
+                    <button onclick="limparFiltros()" class="bg-dark-card hover:bg-dark-hover text-gray-300 py-3 px-4 rounded-xl flex items-center justify-center gap-2 font-medium self-end transition">
+                        <i class="fas fa-times"></i>
+                        Limpar
                     </button>
                 </div>
             </div>
             
-            <div class="bg-dark-sidebar rounded-lg shadow-lg overflow-hidden">
-                <table class="w-full">
-                    <thead class="bg-dark-card">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Empresa</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">CNPJ</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Município</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">ER</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Carteira</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaEmpresas" class="divide-y divide-gray-700">
-                        <tr>
-                            <td colspan="6" class="px-6 py-8 text-center text-gray-400">Carregando empresas...</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="glass-effect rounded-2xl border border-dark-border/50 overflow-hidden animate-slide-up">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-dark-card/50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                    <i class="fas fa-building mr-2"></i>Empresa
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                    <i class="fas fa-id-card mr-2"></i>CNPJ
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                    <i class="fas fa-map-marker-alt mr-2"></i>Município
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">ER</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Carteira</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                    <i class="fas fa-cog mr-2"></i>Ações
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaEmpresas" class="divide-y divide-dark-border/30">
+                            <tr>
+                                <td colspan="6" class="px-6 py-12 text-center">
+                                    <div class="flex items-center justify-center">
+                                        <div class="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
                 
-                <div class="p-6 border-t border-gray-700 flex items-center justify-between">
-                    <div class="text-sm text-gray-400" id="paginacaoInfo">
-                        
-                    </div>
-                    <div class="flex gap-2" id="paginacaoControles">
-                        
-                    </div>
+                <div class="p-6 border-t border-dark-border/50 flex items-center justify-between bg-dark-card/30">
+                    <div class="text-sm text-gray-400" id="paginacaoInfo"></div>
+                    <div class="flex gap-2" id="paginacaoControles"></div>
                 </div>
             </div>
         </div>
     </main>
 </div>
 
-<div id="novaEmpresaModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center px-4 overflow-y-auto">
-    <div class="max-w-4xl w-full bg-dark-sidebar p-8 rounded-lg shadow-2xl my-8 max-h-[90vh] overflow-y-auto">
-        <h2 class="text-2xl font-bold text-white mb-6">Nova Empresa</h2>
-        <form id="novaEmpresaForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Empresa *</label>
-                <input type="text" id="empresa" required class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+<div id="novaEmpresaModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center px-4 z-50 overflow-y-auto">
+    <div class="glass-effect rounded-2xl shadow-2xl w-full max-w-4xl my-8 animate-slide-up">
+        <div class="p-6 border-b border-dark-border/50 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="fas fa-building text-blue-400"></i>
+                Nova Empresa
+            </h2>
+            <button onclick="hideNovaEmpresaModal()" class="w-8 h-8 rounded-lg bg-dark-card hover:bg-dark-hover flex items-center justify-center text-gray-400 hover:text-white transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="novaEmpresaForm" class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Empresa *</label>
+                    <input type="text" id="empresa" required class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">CNPJ</label>
+                    <input type="text" id="cnpj" class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Sigla</label>
+                    <input type="text" id="sigla" class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Porte</label>
+                    <input type="text" id="porte" class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">ER</label>
+                    <input type="text" id="er" class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Carteira</label>
+                    <input type="text" id="carteira" placeholder="Ex: 1.01" class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Endereço</label>
+                    <input type="text" id="endereco" class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Bairro</label>
+                    <input type="text" id="bairro" class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Município</label>
+                    <input type="text" id="municipio" class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Estado</label>
+                    <input type="text" id="estado" maxlength="2" class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Nº de Funcionários</label>
+                    <input type="number" id="numero_funcionarios" class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Observação</label>
+                    <textarea id="observacao" rows="3" class="w-full px-4 py-3 input-modern text-white rounded-xl focus:outline-none resize-none"></textarea>
+                </div>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">CNPJ</label>
-                <input type="text" id="cnpj" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Sigla</label>
-                <input type="text" id="sigla" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Porte</label>
-                <input type="text" id="porte" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">ER</label>
-                <input type="text" id="er" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Carteira</label>
-                <input type="text" id="carteira" placeholder="Ex: 1.01" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-300 mb-2">Endereço</label>
-                <input type="text" id="endereco" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Bairro</label>
-                <input type="text" id="bairro" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Município</label>
-                <input type="text" id="municipio" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Estado</label>
-                <input type="text" id="estado" maxlength="2" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Nº de Funcionários</label>
-                <input type="number" id="numero_funcionarios" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-300 mb-2">Observação</label>
-                <textarea id="observacao" rows="3" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-            </div>
-            <div class="md:col-span-2 flex space-x-3">
-                <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition">
-                    Salvar Empresa
-                </button>
-                <button type="button" onclick="hideNovaEmpresaModal()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition">
+            <div class="flex gap-3 mt-6 pt-6 border-t border-dark-border/50">
+                <button type="button" onclick="hideNovaEmpresaModal()" class="flex-1 px-4 py-3 bg-dark-card hover:bg-dark-hover text-gray-300 rounded-xl font-medium transition">
                     Cancelar
+                </button>
+                <button type="submit" class="flex-1 btn-primary text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2">
+                    <i class="fas fa-save"></i>
+                    Salvar Empresa
                 </button>
             </div>
         </form>
     </div>
 </div>
 
-<div id="uploadExcelModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center px-4 z-50">
-    <div class="max-w-lg w-full bg-dark-sidebar p-8 rounded-lg shadow-2xl">
-        <h2 class="text-2xl font-bold text-white mb-6">Upload de Empresas (Excel)</h2>
-        <div class="mb-4 text-gray-300 text-sm">
-            <p>Envie um arquivo Excel com os dados das empresas.</p>
-            <p class="mt-2 text-gray-400">• Empresas já cadastradas serão ignoradas</p>
-            <p class="text-gray-400">• Apenas novos registros serão adicionados</p>
+<div id="uploadExcelModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center px-4 z-50">
+    <div class="glass-effect rounded-2xl shadow-2xl w-full max-w-lg animate-slide-up">
+        <div class="p-6 border-b border-dark-border/50 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="fas fa-file-excel text-emerald-400"></i>
+                Upload de Empresas
+            </h2>
+            <button onclick="hideUploadExcelModal()" class="w-8 h-8 rounded-lg bg-dark-card hover:bg-dark-hover flex items-center justify-center text-gray-400 hover:text-white transition">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        <form id="uploadExcelForm" class="space-y-4">
-            <div>
-                <input type="file" id="excelFile" accept=".xlsx,.xls" required class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+        <div class="p-6">
+            <div class="mb-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+                <p class="text-blue-300 text-sm flex items-start gap-2">
+                    <i class="fas fa-info-circle mt-0.5"></i>
+                    <span>Envie um arquivo Excel (.xlsx) com os dados das empresas. Empresas já cadastradas serão ignoradas.</span>
+                </p>
             </div>
-            <div class="flex space-x-3">
-                <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition">
-                    Upload
-                </button>
-                <button type="button" onclick="hideUploadExcelModal()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition">
-                    Cancelar
-                </button>
-            </div>
-        </form>
-        <div id="uploadResult" class="mt-4 hidden"></div>
+            <form id="uploadExcelForm" class="space-y-4">
+                <div class="border-2 border-dashed border-dark-border rounded-xl p-8 text-center hover:border-emerald-500/50 transition cursor-pointer" onclick="document.getElementById('excelFile').click()">
+                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                    <p class="text-gray-300">Clique para selecionar ou arraste o arquivo</p>
+                    <p class="text-gray-500 text-sm mt-1">Formatos: .xlsx, .xls</p>
+                    <input type="file" id="excelFile" accept=".xlsx,.xls" required class="hidden">
+                </div>
+                <div id="selectedFile" class="hidden p-3 bg-dark-card rounded-xl flex items-center gap-3">
+                    <i class="fas fa-file-excel text-emerald-400 text-xl"></i>
+                    <span class="text-gray-300 flex-1 truncate" id="fileName"></span>
+                    <button type="button" onclick="clearFile()" class="text-gray-400 hover:text-red-400">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="hideUploadExcelModal()" class="flex-1 px-4 py-3 bg-dark-card hover:bg-dark-hover text-gray-300 rounded-xl font-medium transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="flex-1 btn-success text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2">
+                        <i class="fas fa-upload"></i>
+                        Upload
+                    </button>
+                </div>
+            </form>
+            <div id="uploadResult" class="mt-4 hidden"></div>
+        </div>
     </div>
 </div>
+
+<script>
+document.getElementById('excelFile').addEventListener('change', function(e) {
+    if (e.target.files.length > 0) {
+        document.getElementById('selectedFile').classList.remove('hidden');
+        document.getElementById('fileName').textContent = e.target.files[0].name;
+    }
+});
+
+function clearFile() {
+    document.getElementById('excelFile').value = '';
+    document.getElementById('selectedFile').classList.add('hidden');
+}
+</script>
 {% endblock %}
 
 {% block scripts %}

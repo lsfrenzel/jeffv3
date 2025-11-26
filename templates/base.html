@@ -13,24 +13,206 @@
                 extend: {
                     colors: {
                         dark: {
-                            bg: '#0f172a',
-                            sidebar: '#1e293b',
-                            card: '#334155',
-                            hover: '#475569',
+                            bg: '#0a0f1a',
+                            sidebar: '#111827',
+                            card: '#1f2937',
+                            hover: '#374151',
+                            border: '#374151',
+                        },
+                        accent: {
+                            primary: '#3b82f6',
+                            secondary: '#8b5cf6',
+                            success: '#10b981',
+                            warning: '#f59e0b',
+                            danger: '#ef4444',
                         }
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'gradient-card': 'linear-gradient(135deg, #1f2937 0%, #111827 100%)',
+                        'gradient-primary': 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+                        'gradient-success': 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        'gradient-warning': 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                        'gradient-danger': 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'slide-in': 'slideIn 0.3s ease-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        slideIn: {
+                            '0%': { opacity: '0', transform: 'translateX(-20px)' },
+                            '100%': { opacity: '1', transform: 'translateX(0)' },
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.3)' },
+                            '100%': { boxShadow: '0 0 30px rgba(139, 92, 246, 0.4)' },
+                        },
+                    },
+                    boxShadow: {
+                        'glow-blue': '0 0 20px rgba(59, 130, 246, 0.3)',
+                        'glow-purple': '0 0 20px rgba(139, 92, 246, 0.3)',
+                        'glow-green': '0 0 20px rgba(16, 185, 129, 0.3)',
+                        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)',
+                        'card-hover': '0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3)',
                     }
                 }
             }
         }
     </script>
     <style>
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #374151 #111827;
+        }
+        *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        *::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        *::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        *::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
         body {
-            background-color: #0f172a;
-            color: #e2e8f0;
+            background: linear-gradient(135deg, #0a0f1a 0%, #111827 50%, #0a0f1a 100%);
+            background-attachment: fixed;
+            color: #e5e7eb;
+            min-height: 100vh;
+        }
+        .glass-effect {
+            background: rgba(31, 41, 55, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(55, 65, 81, 0.5);
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(31, 41, 55, 0.9) 0%, rgba(17, 24, 39, 0.95) 100%);
+            border: 1px solid rgba(55, 65, 81, 0.5);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(239, 68, 68, 0.4);
+        }
+        .input-modern {
+            background: rgba(17, 24, 39, 0.8);
+            border: 1px solid rgba(55, 65, 81, 0.6);
+            transition: all 0.3s ease;
+        }
+        .input-modern:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            background: rgba(17, 24, 39, 1);
+        }
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        }
+        .stat-card-success::before {
+            background: linear-gradient(90deg, #10b981, #059669);
+        }
+        .stat-card-warning::before {
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+        }
+        .stat-card-danger::before {
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+        }
+        .table-row-hover {
+            transition: all 0.2s ease;
+        }
+        .table-row-hover:hover {
+            background: rgba(59, 130, 246, 0.1);
+            transform: scale(1.005);
+        }
+        .sidebar-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .sidebar-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+        .sidebar-link:hover::before,
+        .sidebar-link.active::before {
+            transform: scaleY(1);
+        }
+        .sidebar-link:hover,
+        .sidebar-link.active {
+            background: rgba(59, 130, 246, 0.1);
+        }
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+        }
+        .notification-badge {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .loading-shimmer {
+            background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
         }
     </style>
 </head>
-<body class="dark bg-dark-bg">
+<body class="dark">
     {% block content %}{% endblock %}
     
     <script src="/static/js/auth.js"></script>
