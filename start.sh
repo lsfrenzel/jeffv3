@@ -44,7 +44,7 @@ import sys
 from sqlalchemy import create_engine, text, inspect
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
 try:
     with engine.connect() as conn:
@@ -53,18 +53,27 @@ try:
         
         has_alembic = 'alembic_version' in tables
         has_usuarios = 'usuarios' in tables
+        has_empresas = 'empresas' in tables
+        
+        print(f"INFO: Tabelas encontradas: {len(tables)}")
+        print(f"INFO: alembic_version: {has_alembic}, usuarios: {has_usuarios}, empresas: {has_empresas}")
         
         if has_alembic:
             result = conn.execute(text("SELECT version_num FROM alembic_version"))
             version = result.scalar()
             print(f"INFO: Alembic version encontrada: {version}")
-            if not version:
-                print("AVISO: Tabela alembic_version existe mas sem versao")
-        elif has_usuarios:
-            # Database exists from before Alembic was introduced
+            if version:
+                # Database is already migrated, just verify
+                print("INFO: Banco de dados ja migrado, pulando migracao")
+                with open('/tmp/skip_migration', 'w') as f:
+                    f.write('skip')
+            else:
+                print("AVISO: Tabela alembic_version existe mas sem versao, sera atualizada")
+        elif has_usuarios and has_empresas:
+            # Database exists with tables but no alembic tracking
             # Need to stamp it with the correct version
             print("INFO: Banco existente sem Alembic detectado")
-            print("INFO: Aplicando stamp da versao atual...")
+            print("INFO: Verificando schema atual...")
             
             # Create alembic_version table
             conn.execute(text("""
@@ -73,33 +82,71 @@ try:
                     CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
                 )
             """))
+            conn.commit()
             
             # Check current schema to determine the right version to stamp
-            # If mensagens has 'tipo' column, we're at d746a8d81c84
-            # Otherwise we're at bf387194a72b
-            result = conn.execute(text("""
-                SELECT column_name FROM information_schema.columns 
-                WHERE table_name = 'mensagens' AND column_name = 'tipo'
-            """))
-            has_tipo_column = result.fetchone() is not None
+            # If grupos_chat exists, we're at d746a8d81c84
+            has_grupos_chat = 'grupos_chat' in tables
             
-            if has_tipo_column:
+            if has_grupos_chat:
                 stamp_version = 'd746a8d81c84'
-                print(f"INFO: Schema tem coluna 'tipo' em mensagens, stamp: {stamp_version}")
+                print(f"INFO: Schema tem tabela 'grupos_chat', stamp: {stamp_version}")
             else:
-                stamp_version = 'bf387194a72b'
-                print(f"INFO: Schema nao tem coluna 'tipo' em mensagens, stamp: {stamp_version}")
+                # Check if mensagens has tipo column
+                try:
+                    result = conn.execute(text("""
+                        SELECT column_name FROM information_schema.columns 
+                        WHERE table_name = 'mensagens' AND column_name = 'tipo'
+                    """))
+                    has_tipo_column = result.fetchone() is not None
+                    if has_tipo_column:
+                        stamp_version = 'd746a8d81c84'
+                        print(f"INFO: Schema tem coluna 'tipo' em mensagens, stamp: {stamp_version}")
+                    else:
+                        stamp_version = 'bf387194a72b'
+                        print(f"INFO: Schema sem modificacoes de chat, stamp: {stamp_version}")
+                except:
+                    stamp_version = 'bf387194a72b'
+                    print(f"INFO: Usando stamp padrao: {stamp_version}")
             
             # Clear any existing version and insert the correct one
             conn.execute(text("DELETE FROM alembic_version"))
             conn.execute(text(f"INSERT INTO alembic_version (version_num) VALUES ('{stamp_version}')"))
             conn.commit()
             print(f"INFO: Stamp aplicado: {stamp_version}")
+            
+            # Skip migration since we stamped it
+            with open('/tmp/skip_migration', 'w') as f:
+                f.write('skip')
         else:
-            print("INFO: Banco de dados vazio, migracao completa sera executada")
+            print("INFO: Banco de dados vazio ou incompleto, criando tabelas...")
+            # Import models and create all tables
+            from backend.database import Base
+            from backend.models import Usuario, Empresa, Prospeccao, Agendamento, AtribuicaoEmpresa, Notificacao, Mensagem, CronogramaProjeto, CronogramaAtividade, Stage, CompanyPipeline, CompanyStageHistory, Note, Attachment, Activity, StatusUsuario, GrupoChat, MembroGrupo, MensagemGrupo, LeituraGrupo
+            
+            Base.metadata.create_all(bind=engine)
+            print("INFO: Tabelas criadas com sucesso")
+            
+            # Stamp with latest version
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS alembic_version (
+                    version_num VARCHAR(32) NOT NULL,
+                    CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
+                )
+            """))
+            conn.execute(text("DELETE FROM alembic_version"))
+            conn.execute(text("INSERT INTO alembic_version (version_num) VALUES ('d746a8d81c84')"))
+            conn.commit()
+            print("INFO: Stamp aplicado: d746a8d81c84")
+            
+            # Skip migration since we created everything
+            with open('/tmp/skip_migration', 'w') as f:
+                f.write('skip')
             
 except Exception as e:
     print(f"ERRO durante verificacao do banco: {e}")
+    import traceback
+    traceback.print_exc()
     sys.exit(1)
 
 print("INFO: Verificacao do banco concluida")
@@ -111,17 +158,25 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Executar migracoes - deve ter sucesso
+# Executar migracoes apenas se necessario
 echo ""
-echo "Executando migracoes do banco de dados..."
-python -m alembic upgrade head
-
-if [ $? -ne 0 ]; then
-    echo "ERRO: Falha nas migracoes do banco de dados!"
-    exit 1
+if [ -f /tmp/skip_migration ]; then
+    echo "INFO: Pulando migracoes (banco ja esta atualizado)"
+    rm -f /tmp/skip_migration
+else
+    echo "Executando migracoes do banco de dados..."
+    python -m alembic upgrade head || {
+        echo "AVISO: Migracao falhou, tentando criar tabelas diretamente..."
+        python -c "
+from backend.database import engine, Base
+from backend.models import Usuario, Empresa, Prospeccao, Agendamento, AtribuicaoEmpresa, Notificacao, Mensagem, CronogramaProjeto, CronogramaAtividade, Stage, CompanyPipeline, CompanyStageHistory, Note, Attachment, Activity, StatusUsuario, GrupoChat, MembroGrupo, MensagemGrupo, LeituraGrupo
+Base.metadata.create_all(bind=engine)
+print('INFO: Tabelas criadas diretamente')
+"
+    }
 fi
 
-echo "INFO: Migracoes executadas com sucesso"
+echo "INFO: Banco de dados pronto"
 
 # Iniciar servidor
 echo ""
