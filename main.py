@@ -3,7 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from backend.database import SessionLocal
+from backend.database import SessionLocal, Base, engine
 from backend.models import Usuario, Empresa, Prospeccao, Agendamento, AtribuicaoEmpresa, Notificacao, Mensagem
 from backend.routers import auth, empresas, prospeccoes, agendamentos, admin, atribuicoes, consultores, dashboard, cnpj, notificacoes, mensagens, cronograma, pipeline
 from backend.utils.seed import criar_usuario_admin_padrao, criar_empresas_padrao, criar_consultores_padrao, criar_stages_padrao
@@ -16,7 +16,18 @@ async def health_check():
 
 @app.on_event("startup")
 async def startup_event():
-    """Executa seed de dados iniciais ao iniciar a aplicação"""
+    """Cria tabelas se necessário e executa seed de dados iniciais"""
+    if engine is None:
+        print("⚠️ DATABASE_URL não configurada - pulando inicialização do banco")
+        return
+    
+    try:
+        print("🔄 Verificando banco de dados...")
+        Base.metadata.create_all(bind=engine)
+        print("✅ Tabelas verificadas/criadas")
+    except Exception as e:
+        print(f"⚠️ Erro ao verificar tabelas: {e}")
+    
     db = SessionLocal()
     try:
         print("🔄 Iniciando seed de dados...")
@@ -43,7 +54,6 @@ async def startup_event():
         print("✅ Seed de dados concluído")
     except Exception as e:
         print(f"❌ Erro geral no startup: {e}")
-        # Não falhar o startup por causa do seed
     finally:
         db.close()
 
