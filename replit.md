@@ -36,6 +36,14 @@ The project is structured with clear separation of concerns: `backend/` for API 
 ## Recent Changes
 
 ### November 27, 2025
+-   **Correção das Ações Rápidas no Perfil do Consultor**: Funcionalidades de atribuição corrigidas
+    -   Padrão de chamada `apiRequest()` corrigido em admin_atribuicoes.html e consultor_perfil.js
+    -   URLs corrigidas para incluir trailing slash (`/api/atribuicoes/`)
+    -   Backend atualizado com `joinedload` para retornar dados completos de empresa
+    -   Verificações de permissão de admin adicionadas no frontend (JS)
+    -   Botões de admin (Atribuir Prospecção, Atribuir Empresas, Definir Ações) ocultos para consultores
+    -   Tratamento robusto de erros com null-checks em todas as respostas de API
+    -   Filtros defensivos para atribuições com dados de empresa válidos
 -   **Sidebar User Info Enhancement**: Sidebar atualizado para exibir informações do usuário logado
     -   Função centralizada `atualizarSidebar()` em auth.js
     -   Exibe foto do usuário (ou iniciais como fallback)
