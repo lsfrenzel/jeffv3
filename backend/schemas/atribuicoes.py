@@ -27,7 +27,7 @@ class AtribuicaoEmpresaResponse(AtribuicaoEmpresaBase):
     id: int
     data_atribuicao: datetime
     data_desativacao: Optional[datetime] = None
-    empresa: EmpresaSimples
+    empresa: Optional[EmpresaSimples] = None
     
     class Config:
         from_attributes = True

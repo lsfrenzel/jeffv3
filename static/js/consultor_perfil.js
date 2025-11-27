@@ -165,7 +165,7 @@ function fecharModalAtribuirAcoes() {
 
 async function carregarEmpresas(containerId, searchInputId, paraProspeccao) {
     try {
-        const response = await apiRequest('/api/empresas?page=1&page_size=100');
+        const response = await apiRequest('/api/empresas/?page=1&page_size=100');
         if (!response) {
             document.getElementById(containerId).innerHTML = '<p class="text-red-400 text-center py-4">Erro de autenticação</p>';
             return;
