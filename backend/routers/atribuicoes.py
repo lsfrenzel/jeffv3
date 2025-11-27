@@ -38,9 +38,12 @@ def atribuir_empresa(
     nova_atribuicao = AtribuicaoEmpresa(**atribuicao.dict())
     db.add(nova_atribuicao)
     db.commit()
-    db.refresh(nova_atribuicao)
     
-    return nova_atribuicao
+    atribuicao_com_empresa = db.query(AtribuicaoEmpresa).options(
+        joinedload(AtribuicaoEmpresa.empresa)
+    ).filter(AtribuicaoEmpresa.id == nova_atribuicao.id).first()
+    
+    return atribuicao_com_empresa
 
 @router.get("/consultor/{consultor_id}", response_model=List[AtribuicaoEmpresaResponse])
 def listar_empresas_consultor(
@@ -80,9 +83,12 @@ def atualizar_atribuicao(
             atribuicao.data_desativacao = datetime.utcnow()
     
     db.commit()
-    db.refresh(atribuicao)
     
-    return atribuicao
+    atribuicao_com_empresa = db.query(AtribuicaoEmpresa).options(
+        joinedload(AtribuicaoEmpresa.empresa)
+    ).filter(AtribuicaoEmpresa.id == atribuicao_id).first()
+    
+    return atribuicao_com_empresa
 
 @router.delete("/{atribuicao_id}")
 def remover_atribuicao(

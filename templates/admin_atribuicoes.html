@@ -50,7 +50,8 @@
     async function carregarConsultores() {
         try {
             const response = await apiRequest('/api/usuarios');
-            consultores = response.filter(u => u.tipo === 'consultor');
+            const data = await response.json();
+            consultores = data.filter(u => u.tipo === 'consultor');
             
             const select = document.getElementById('consultorSelect');
             select.innerHTML = '<option value="">Selecione um consultor</option>';
@@ -65,7 +66,8 @@
     async function carregarEmpresas() {
         try {
             const response = await apiRequest('/api/empresas');
-            empresas = response.items || response;
+            const data = await response.json();
+            empresas = data.items || data;
             renderizarEmpresas();
         } catch (error) {
             console.error('Erro ao carregar empresas:', error);
@@ -104,13 +106,21 @@
         }
 
         try {
-            await apiRequest('/api/atribuicoes/', 'POST', {
-                consultor_id: consultorSelecionado,
-                empresa_id: empresaId,
-                ativa: true
+            const response = await apiRequest('/api/atribuicoes/', {
+                method: 'POST',
+                body: JSON.stringify({
+                    consultor_id: consultorSelecionado,
+                    empresa_id: empresaId,
+                    ativa: true
+                })
             });
             
-            await carregarEmpresasAtribuidas();
+            if (response && response.ok) {
+                await carregarEmpresasAtribuidas();
+            } else {
+                const error = await response.json();
+                alert('Erro ao atribuir empresa: ' + (error.detail || 'Erro desconhecido'));
+            }
         } catch (error) {
             alert('Erro ao atribuir empresa: ' + error.message);
         }
@@ -121,22 +131,23 @@
 
         try {
             const response = await apiRequest(`/api/atribuicoes/consultor/${consultorSelecionado}`);
+            const atribuicoes = await response.json();
             const div = document.getElementById('empresasAtribuidas');
             
-            if (response.length === 0) {
+            if (!atribuicoes || atribuicoes.length === 0) {
                 div.innerHTML = '<p class="text-gray-400">Nenhuma empresa atribuída</p>';
                 return;
             }
 
             div.innerHTML = '';
-            for (const atr of response) {
-                const empresaResp = await apiRequest(`/api/empresas/${atr.empresa_id}`);
+            for (const atr of atribuicoes) {
+                const empresa = atr.empresa;
                 const empresaDiv = document.createElement('div');
                 empresaDiv.className = 'bg-dark-card p-3 rounded-lg flex justify-between items-center hover:bg-dark-hover transition';
                 empresaDiv.innerHTML = `
                     <div>
-                        <div class="font-semibold text-white">${empresaResp.empresa}</div>
-                        <div class="text-sm text-gray-400">${empresaResp.cnpj || 'N/A'}</div>
+                        <div class="font-semibold text-white">${empresa ? empresa.empresa : 'N/A'}</div>
+                        <div class="text-sm text-gray-400">${empresa ? (empresa.cnpj || 'N/A') : 'N/A'}</div>
                     </div>
                     <button onclick="removerAtribuicao(${atr.id})" 
                             class="bg-red-600 px-3 py-1 rounded text-sm hover:bg-red-500 text-white transition">
@@ -154,8 +165,21 @@
         if (!confirm('Deseja realmente remover esta atribuição?')) return;
 
         try {
-            await apiRequest(`/api/atribuicoes/${atribuicaoId}`, 'DELETE');
-            await carregarEmpresasAtribuidas();
+            const response = await apiRequest(`/api/atribuicoes/${atribuicaoId}`, {
+                method: 'DELETE'
+            });
+            if (response && response.ok) {
+                await carregarEmpresasAtribuidas();
+            } else if (response) {
+                try {
+                    const error = await response.json();
+                    alert('Erro ao remover atribuição: ' + (error.detail || 'Erro desconhecido'));
+                } catch {
+                    alert('Erro ao remover atribuição');
+                }
+            } else {
+                alert('Erro de autenticação');
+            }
         } catch (error) {
             alert('Erro ao remover atribuição: ' + error.message);
         }
