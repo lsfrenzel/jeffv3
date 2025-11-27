@@ -12,7 +12,21 @@ app = FastAPI(title="Núcleo 1.03", version="1.0.0")
 
 @app.get("/health")
 async def health_check():
-    return JSONResponse(content={"status": "healthy", "app": "Nucleo 1.03"}, status_code=200)
+    """Health check endpoint - must respond quickly and independently of database state"""
+    return JSONResponse(
+        content={
+            "status": "healthy", 
+            "app": "Nucleo 1.03",
+            "version": "1.0.0"
+        }, 
+        status_code=200,
+        headers={"Cache-Control": "no-cache"}
+    )
+
+@app.get("/healthz")
+async def healthz():
+    """Alternative health check endpoint for Kubernetes/Railway compatibility"""
+    return {"status": "ok"}
 
 @app.on_event("startup")
 async def startup_event():

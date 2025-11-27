@@ -10,21 +10,27 @@ if [ -d "/opt/venv" ]; then
     source /opt/venv/bin/activate
 fi
 
-# Verificar DATABASE_URL
+# Verificar DATABASE_URL (aviso, mas não bloqueia inicialização)
 if [ -z "$DATABASE_URL" ]; then
-    echo "ERRO: DATABASE_URL nao configurada!"
-    exit 1
+    echo "AVISO: DATABASE_URL nao configurada - algumas funcionalidades podem nao funcionar"
+else
+    echo "DATABASE_URL: configurada"
 fi
-echo "DATABASE_URL: configurada"
 
-# Definir porta
+# Definir porta - Railway define automaticamente via variável PORT
 export PORT="${PORT:-8000}"
 echo "PORT: $PORT"
 
-# Iniciar servidor diretamente
+# Iniciar servidor diretamente com configurações otimizadas para Railway
 echo ""
 echo "========================================="
 echo "Iniciando servidor Uvicorn na porta $PORT..."
 echo "========================================="
 
-exec python -m uvicorn main:app --host 0.0.0.0 --port "$PORT" --log-level info
+# Usar exec para que o processo uvicorn receba os sinais diretamente
+exec python -m uvicorn main:app \
+    --host 0.0.0.0 \
+    --port "$PORT" \
+    --log-level info \
+    --no-access-log \
+    --timeout-keep-alive 30

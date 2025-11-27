@@ -124,4 +124,9 @@ O sistema está completamente preparado para deploy no Railway:
 -   **PostgreSQL** provido automaticamente pelo Railway
 -   **Configuração zero**: Apenas conectar repositório GitHub e adicionar banco de dados
 -   **Seeding automático**: Usuários padrão e dados iniciais criados na primeira execução
+-   **Health check otimizado**: Endpoints `/health` e `/healthz` independentes do banco de dados
+-   **Configuração corrigida em Nov 27, 2025**: 
+    -   railway.toml com healthcheckTimeout=120 e startCommand explícito
+    -   nixpacks.toml com pacote `file` (libmagic) para python-magic
+    -   start.sh não bloqueia mais se DATABASE_URL não estiver definida
 -   Veja `RAILWAY_DEPLOY.md` para instruções detalhadas
