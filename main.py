@@ -31,6 +31,13 @@ async def healthz():
 @app.on_event("startup")
 async def startup_event():
     """Cria tabelas se necessário e executa seed de dados iniciais"""
+    import os
+    
+    # Skip if running via Docker (entrypoint already handled this)
+    if os.getenv("SKIP_STARTUP_SEED") == "true":
+        print("✅ Startup seed skipped (handled by entrypoint)")
+        return
+    
     if engine is None:
         print("⚠️ DATABASE_URL não configurada - pulando inicialização do banco")
         return

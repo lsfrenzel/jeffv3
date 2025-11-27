@@ -24,7 +24,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "uvicorn main:app --host 0.0.0.0 --port 5000"
+args = "uvicorn main:app --host 0.0.0.0 --port 5000 --reload"
 waitForPort = 5000
 
 [[ports]]
@@ -32,11 +32,7 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 35927
-externalPort = 8008
-
-[[ports]]
-localPort = 37003
+localPort = 37553
 externalPort = 3000
 
 [[ports]]
