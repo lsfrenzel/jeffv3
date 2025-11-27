@@ -35,6 +35,17 @@ The project is structured with clear separation of concerns: `backend/` for API 
 
 ## Recent Changes
 
+### November 27, 2025
+-   **Chat File Attachments**: Sistema de anexos do chat verificado e configurado
+    -   Diretório `static/uploads/` criado para armazenamento de arquivos
+    -   Dependência do sistema `libmagic` (file) instalada para detecção de tipos MIME
+    -   Backend com endpoint `/api/mensagens/upload` funcional
+    -   Frontend com funções `anexarArquivo()`, `handleFileSelect()`, `uploadArquivo()` implementadas
+    -   Suporte para imagens (JPEG, PNG, GIF, WebP), PDFs, Word, Excel e arquivos de texto
+    -   Limite de 10MB por arquivo com validação de tipo
+    -   Preview de anexos antes do envio com opção de cancelar
+    -   Exibição de anexos nas mensagens com download e visualização de imagens
+
 ### November 26, 2025
 -   **Gestão de Consultores para Admin**: Funcionalidade completa de inserir e excluir consultores na página de consultores
     -   Botão "Novo Consultor" visível apenas para administradores
