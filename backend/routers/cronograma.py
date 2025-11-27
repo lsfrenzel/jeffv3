@@ -4,13 +4,24 @@ from sqlalchemy import and_, or_
 from typing import List, Optional
 from datetime import date, datetime
 from backend.database import get_db
-from backend.models import CronogramaProjeto, CronogramaAtividade, Usuario, Empresa
+from backend.models import CronogramaProjeto, CronogramaAtividade, CronogramaEvento, Usuario, Empresa, CategoriaEvento, PeriodoEvento
 from backend.schemas.cronograma import (
     CronogramaProjetoCriar, CronogramaProjetoResposta, CronogramaProjetoAtualizar,
     CronogramaAtividadeCriar, CronogramaAtividadeResposta, CronogramaAtividadeAtualizar,
-    TimelineItem
+    CronogramaEventoCriar, CronogramaEventoResposta, CronogramaEventoAtualizar,
+    EventoCalendario, TimelineItem
 )
 from backend.auth.security import obter_usuario_atual
+
+CATEGORIA_CORES = {
+    "C": {"nome": "Consultoria", "cor": "#22c55e"},
+    "K": {"nome": "Kick-off", "cor": "#eab308"},
+    "F": {"nome": "Reuniao Final", "cor": "#3b82f6"},
+    "M": {"nome": "Mentoria", "cor": "#ef4444"},
+    "T": {"nome": "T0 - Diagnostico", "cor": "#f97316"},
+    "P": {"nome": "Programado", "cor": "#06b6d4"},
+    "O": {"nome": "Outros", "cor": "#6b7280"},
+}
 
 router = APIRouter(prefix="/api/cronograma", tags=["Cronograma"])
 
@@ -272,3 +283,160 @@ def obter_timeline(
             ))
     
     return timeline
+
+
+@router.get("/eventos", response_model=List[EventoCalendario])
+def listar_eventos(
+    consultor_id: Optional[int] = None,
+    data_inicio: Optional[date] = None,
+    data_fim: Optional[date] = None,
+    categoria: Optional[str] = None,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(obter_usuario_atual)
+):
+    query = db.query(CronogramaEvento).options(
+        joinedload(CronogramaEvento.consultor)
+    )
+    
+    if consultor_id:
+        query = query.filter(CronogramaEvento.consultor_id == consultor_id)
+    
+    if data_inicio:
+        query = query.filter(CronogramaEvento.data >= data_inicio)
+    
+    if data_fim:
+        query = query.filter(CronogramaEvento.data <= data_fim)
+    
+    if categoria:
+        try:
+            cat_enum = CategoriaEvento(categoria)
+            query = query.filter(CronogramaEvento.categoria == cat_enum)
+        except ValueError:
+            pass
+    
+    eventos = query.order_by(CronogramaEvento.data, CronogramaEvento.consultor_id).all()
+    
+    result = []
+    for evento in eventos:
+        cat_value = evento.categoria.value
+        cat_info = CATEGORIA_CORES.get(cat_value, {"nome": "Outros", "cor": "#6b7280"})
+        
+        result.append(EventoCalendario(
+            id=evento.id,
+            data=evento.data,
+            categoria=cat_value,
+            categoria_nome=cat_info["nome"],
+            periodo=evento.periodo.value if evento.periodo else "D",
+            sigla_empresa=evento.sigla_empresa,
+            consultor_id=evento.consultor_id,
+            consultor_nome=evento.consultor.nome if evento.consultor else "Sem consultor",
+            titulo=evento.titulo or f"{cat_value}-{evento.sigla_empresa or ''}",
+            cor=cat_info["cor"]
+        ))
+    
+    return result
+
+
+@router.get("/eventos/{evento_id}", response_model=CronogramaEventoResposta)
+def obter_evento(
+    evento_id: int,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(obter_usuario_atual)
+):
+    evento = db.query(CronogramaEvento).options(
+        joinedload(CronogramaEvento.consultor)
+    ).filter(CronogramaEvento.id == evento_id).first()
+    
+    if not evento:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Evento nao encontrado"
+        )
+    
+    return evento
+
+
+@router.post("/eventos", response_model=CronogramaEventoResposta, status_code=status.HTTP_201_CREATED)
+def criar_evento(
+    evento: CronogramaEventoCriar,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(obter_usuario_atual)
+):
+    consultor = db.query(Usuario).filter(Usuario.id == evento.consultor_id).first()
+    if not consultor:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Consultor nao encontrado"
+        )
+    
+    novo_evento = CronogramaEvento(**evento.model_dump())
+    
+    db.add(novo_evento)
+    db.commit()
+    db.refresh(novo_evento)
+    
+    return novo_evento
+
+
+@router.put("/eventos/{evento_id}", response_model=CronogramaEventoResposta)
+def atualizar_evento(
+    evento_id: int,
+    dados: CronogramaEventoAtualizar,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(obter_usuario_atual)
+):
+    evento = db.query(CronogramaEvento).filter(CronogramaEvento.id == evento_id).first()
+    
+    if not evento:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Evento nao encontrado"
+        )
+    
+    if dados.consultor_id:
+        consultor = db.query(Usuario).filter(Usuario.id == dados.consultor_id).first()
+        if not consultor:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Consultor nao encontrado"
+            )
+    
+    dados_atualizacao = dados.model_dump(exclude_unset=True)
+    for campo, valor in dados_atualizacao.items():
+        setattr(evento, campo, valor)
+    
+    evento.data_atualizacao = datetime.utcnow()
+    db.commit()
+    db.refresh(evento)
+    
+    return evento
+
+
+@router.delete("/eventos/{evento_id}")
+def deletar_evento(
+    evento_id: int,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(obter_usuario_atual)
+):
+    evento = db.query(CronogramaEvento).filter(CronogramaEvento.id == evento_id).first()
+    
+    if not evento:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Evento nao encontrado"
+        )
+    
+    db.delete(evento)
+    db.commit()
+    
+    return {"message": "Evento deletado com sucesso"}
+
+
+@router.get("/categorias")
+def listar_categorias(
+    usuario: Usuario = Depends(obter_usuario_atual)
+):
+    return [
+        {"codigo": k, "nome": v["nome"], "cor": v["cor"]}
+        for k, v in CATEGORIA_CORES.items()
+    ]

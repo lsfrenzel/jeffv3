@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 from datetime import date, datetime
-from backend.models.cronograma import StatusProjeto, StatusAtividade
+from backend.models.cronograma import StatusProjeto, StatusAtividade, CategoriaEvento, PeriodoEvento
 
 
 class CronogramaProjetoBase(BaseModel):
@@ -119,3 +119,62 @@ class CronogramaFiltros(BaseModel):
     data_inicio: Optional[date] = None
     data_fim: Optional[date] = None
     status: Optional[StatusProjeto] = None
+
+
+class ConsultorSimples(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: int
+    nome: str
+
+
+class CronogramaEventoBase(BaseModel):
+    data: date
+    categoria: CategoriaEvento
+    periodo: PeriodoEvento = PeriodoEvento.dia_todo
+    sigla_empresa: Optional[str] = None
+    empresa_id: Optional[int] = None
+    consultor_id: int
+    projeto_id: Optional[int] = None
+    titulo: Optional[str] = None
+    descricao: Optional[str] = None
+    observacoes: Optional[str] = None
+
+
+class CronogramaEventoCriar(CronogramaEventoBase):
+    pass
+
+
+class CronogramaEventoAtualizar(BaseModel):
+    data: Optional[date] = None
+    categoria: Optional[CategoriaEvento] = None
+    periodo: Optional[PeriodoEvento] = None
+    sigla_empresa: Optional[str] = None
+    empresa_id: Optional[int] = None
+    consultor_id: Optional[int] = None
+    projeto_id: Optional[int] = None
+    titulo: Optional[str] = None
+    descricao: Optional[str] = None
+    observacoes: Optional[str] = None
+
+
+class CronogramaEventoResposta(CronogramaEventoBase):
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: int
+    data_criacao: datetime
+    data_atualizacao: datetime
+    consultor: Optional[ConsultorSimples] = None
+
+
+class EventoCalendario(BaseModel):
+    id: int
+    data: date
+    categoria: str
+    categoria_nome: str
+    periodo: str
+    sigla_empresa: Optional[str] = None
+    consultor_id: int
+    consultor_nome: str
+    titulo: Optional[str] = None
+    cor: str

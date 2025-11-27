@@ -26,3 +26,4 @@ class Usuario(Base):
     empresas_atribuidas = relationship("AtribuicaoEmpresa", back_populates="consultor")
     prospeccoes = relationship("Prospeccao", foreign_keys="Prospeccao.consultor_id")
     cronograma_projetos = relationship("CronogramaProjeto", back_populates="consultor", foreign_keys="CronogramaProjeto.consultor_id")
+    eventos_cronograma = relationship("CronogramaEvento", back_populates="consultor", foreign_keys="CronogramaEvento.consultor_id")

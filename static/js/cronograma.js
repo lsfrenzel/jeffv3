@@ -1,60 +1,52 @@
-// Variáveis globais
-let projetos = [];
+let eventos = [];
 let consultores = [];
-let empresas = [];
-let visualizacao = 'calendario';
-let mesAtual = new Date();
+let categorias = [];
+let mesAtual = new Date().getMonth();
 let anoAtual = new Date().getFullYear();
-let mesNumero = new Date().getMonth();
+let dataSelecionada = null;
 
-// Inicialização quando o DOM estiver pronto
+const CATEGORIA_CORES = {
+    'C': { nome: 'Consultoria', cor: '#22c55e' },
+    'K': { nome: 'Kick-off', cor: '#eab308' },
+    'F': { nome: 'Reuniao Final', cor: '#3b82f6' },
+    'M': { nome: 'Mentoria', cor: '#ef4444' },
+    'T': { nome: 'T0 - Diagnostico', cor: '#f97316' },
+    'P': { nome: 'Programado', cor: '#06b6d4' },
+    'O': { nome: 'Outros', cor: '#6b7280' }
+};
+
+const MESES = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho', 
+               'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Verificar autenticação
     if (typeof checkAuth !== 'undefined') {
         checkAuth();
     }
     
-    // Atualizar sidebar com foto e nome do usuário
     if (typeof atualizarSidebar !== 'undefined') {
         atualizarSidebar();
     }
     
-    // Carregar dados iniciais
+    const hoje = new Date();
+    document.getElementById('filtroMesAno').value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+    
     carregarDados();
     
-    // Atualizar dados a cada 60 segundos
-    setInterval(carregarDados, 60000);
+    document.getElementById('formEvento').addEventListener('submit', salvarEvento);
 });
 
 async function carregarDados() {
     try {
         await Promise.all([
-            carregarProjetos(),
             carregarConsultores(),
-            carregarEmpresas()
+            carregarCategorias()
         ]);
         
-        atualizarEstatisticas();
-        renderizarVisualizacao();
+        await carregarEventos();
+        renderizarCalendario();
+        atualizarResumo();
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
-    }
-}
-
-async function carregarProjetos(filtros = {}) {
-    try {
-        const params = new URLSearchParams();
-        if (filtros.consultor_id) params.append('consultor_id', filtros.consultor_id);
-        if (filtros.empresa_id) params.append('empresa_id', filtros.empresa_id);
-        if (filtros.data_inicio) params.append('data_inicio', filtros.data_inicio);
-        if (filtros.data_fim) params.append('data_fim', filtros.data_fim);
-        params.append('page_size', '200');
-        
-        const response = await apiRequest(`/api/cronograma/projetos?${params}`);
-        projetos = await response.json();
-    } catch (error) {
-        console.error('Erro ao carregar projetos:', error);
-        projetos = [];
     }
 }
 
@@ -64,385 +56,500 @@ async function carregarConsultores() {
         const data = await response.json();
         consultores = data.items || [];
         
-        const select = document.getElementById('filtroConsultor');
-        select.innerHTML = '<option value="">Todos</option>';
+        const selectFiltro = document.getElementById('filtroConsultor');
+        const selectEvento = document.getElementById('eventoConsultor');
+        
+        selectFiltro.innerHTML = '<option value="">Todos os consultores</option>';
+        selectEvento.innerHTML = '<option value="">Selecione o consultor...</option>';
+        
         consultores.forEach(c => {
-            const option = document.createElement('option');
-            option.value = c.id;
-            option.textContent = c.nome;
-            select.appendChild(option);
+            const optFiltro = document.createElement('option');
+            optFiltro.value = c.id;
+            optFiltro.textContent = c.nome;
+            selectFiltro.appendChild(optFiltro);
+            
+            const optEvento = document.createElement('option');
+            optEvento.value = c.id;
+            optEvento.textContent = c.nome;
+            selectEvento.appendChild(optEvento);
         });
     } catch (error) {
         console.error('Erro ao carregar consultores:', error);
     }
 }
 
-async function carregarEmpresas() {
+async function carregarCategorias() {
     try {
-        const response = await apiRequest('/api/empresas/?page_size=200');
-        const data = await response.json();
-        empresas = data.items || [];
+        const response = await apiRequest('/api/cronograma/categorias');
+        categorias = await response.json();
         
-        const select = document.getElementById('filtroEmpresa');
-        select.innerHTML = '<option value="">Todas</option>';
-        empresas.forEach(e => {
+        const select = document.getElementById('filtroCategoria');
+        select.innerHTML = '<option value="">Todas as categorias</option>';
+        
+        categorias.forEach(cat => {
             const option = document.createElement('option');
-            option.value = e.id;
-            option.textContent = e.empresa;
+            option.value = cat.codigo;
+            option.textContent = `${cat.codigo} - ${cat.nome}`;
             select.appendChild(option);
         });
     } catch (error) {
-        console.error('Erro ao carregar empresas:', error);
+        console.error('Erro ao carregar categorias:', error);
+        categorias = Object.entries(CATEGORIA_CORES).map(([k, v]) => ({
+            codigo: k,
+            nome: v.nome,
+            cor: v.cor
+        }));
     }
 }
 
-function atualizarEstatisticas() {
-    const total = projetos.length;
-    const emAndamento = projetos.filter(p => p.status === 'em_andamento').length;
-    const concluidos = projetos.filter(p => p.status === 'concluido').length;
-    
-    document.getElementById('totalProjetos').textContent = total;
-    document.getElementById('projetosAndamento').textContent = emAndamento;
-    document.getElementById('projetosConcluidos').textContent = concluidos;
-}
-
-function renderizarVisualizacao() {
-    if (visualizacao === 'calendario') {
-        renderizarCalendario();
-    } else if (visualizacao === 'timeline') {
-        renderizarTimeline();
-    } else {
-        renderizarLista();
+async function carregarEventos() {
+    try {
+        const params = new URLSearchParams();
+        
+        const primeiroDia = new Date(anoAtual, mesAtual, 1);
+        const ultimoDia = new Date(anoAtual, mesAtual + 1, 0);
+        
+        params.append('data_inicio', primeiroDia.toISOString().split('T')[0]);
+        params.append('data_fim', ultimoDia.toISOString().split('T')[0]);
+        
+        const filtroConsultor = document.getElementById('filtroConsultor').value;
+        const filtroCategoria = document.getElementById('filtroCategoria').value;
+        
+        if (filtroConsultor) params.append('consultor_id', filtroConsultor);
+        if (filtroCategoria) params.append('categoria', filtroCategoria);
+        
+        const response = await apiRequest(`/api/cronograma/eventos?${params}`);
+        eventos = await response.json();
+    } catch (error) {
+        console.error('Erro ao carregar eventos:', error);
+        eventos = [];
     }
-}
-
-function renderizarTimeline() {
-    const container = document.getElementById('ganttChart');
-    
-    if (projetos.length === 0) {
-        container.innerHTML = '<div class="text-center text-gray-400 py-8">Nenhum projeto encontrado</div>';
-        return;
-    }
-    
-    const projetosOrdenados = [...projetos].sort((a, b) => {
-        if (!a.data_inicio) return 1;
-        if (!b.data_inicio) return 1;
-        return new Date(a.data_inicio) - new Date(b.data_inicio);
-    });
-    
-    let html = '<div class="space-y-2">';
-    
-    projetosOrdenados.forEach(projeto => {
-        if (!projeto.data_inicio || !projeto.data_termino) return;
-        
-        const inicio = new Date(projeto.data_inicio);
-        const fim = new Date(projeto.data_termino);
-        const hoje = new Date();
-        
-        const duracao = Math.ceil((fim - inicio) / (1000 * 60 * 60 * 24));
-        const progresso = Math.min(100, Math.max(0, ((hoje - inicio) / (fim - inicio)) * 100));
-        
-        const statusCor = {
-            'planejado': 'bg-gray-600',
-            'em_andamento': 'bg-green-600',
-            'concluido': 'bg-blue-600',
-            'pausado': 'bg-yellow-600',
-            'cancelado': 'bg-red-600'
-        }[projeto.status] || 'bg-gray-600';
-        
-        html += `
-            <div class="bg-dark-bg rounded p-3">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="flex-1">
-                        <h4 class="text-white font-medium">${projeto.proposta || 'Sem proposta'}</h4>
-                        <p class="text-gray-400 text-sm">${projeto.sigla || projeto.cnpj || ''} - ${projeto.consultor_nome || 'Sem consultor'}</p>
-                    </div>
-                    <div class="text-right">
-                        <span class="inline-block px-3 py-1 rounded text-xs text-white ${statusCor}">
-                            ${projeto.status.replace('_', ' ').toUpperCase()}
-                        </span>
-                        <p class="text-gray-400 text-xs mt-1">${duracao} dias</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4 text-sm">
-                    <span class="text-gray-400">
-                        <i class="far fa-calendar mr-1"></i>
-                        ${new Date(projeto.data_inicio).toLocaleDateString('pt-BR')} - ${new Date(projeto.data_termino).toLocaleDateString('pt-BR')}
-                    </span>
-                    <span class="text-gray-400">
-                        <i class="fas fa-clock mr-1"></i>
-                        ${projeto.horas_totais || 0}h
-                    </span>
-                </div>
-                <div class="mt-2">
-                    <div class="w-full bg-gray-700 rounded-full h-2">
-                        <div class="bg-blue-500 h-2 rounded-full transition-all" style="width: ${progresso}%"></div>
-                    </div>
-                    <p class="text-gray-400 text-xs mt-1">${Math.round(progresso)}% do tempo decorrido</p>
-                </div>
-            </div>
-        `;
-    });
-    
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-function renderizarLista() {
-    const container = document.getElementById('listaProjetos');
-    
-    if (projetos.length === 0) {
-        container.innerHTML = '<div class="text-center text-gray-400 py-8">Nenhum projeto encontrado</div>';
-        return;
-    }
-    
-    let html = '<div class="overflow-x-auto"><table class="w-full"><thead><tr class="border-b border-gray-700">';
-    html += '<th class="text-left text-gray-400 pb-2">Proposta</th>';
-    html += '<th class="text-left text-gray-400 pb-2">Empresa</th>';
-    html += '<th class="text-left text-gray-400 pb-2">Consultor</th>';
-    html += '<th class="text-left text-gray-400 pb-2">Início</th>';
-    html += '<th class="text-left text-gray-400 pb-2">Término</th>';
-    html += '<th class="text-left text-gray-400 pb-2">Horas</th>';
-    html += '<th class="text-left text-gray-400 pb-2">Status</th>';
-    html += '</tr></thead><tbody>';
-    
-    projetos.forEach(projeto => {
-        const statusCor = {
-            'planejado': 'bg-gray-600',
-            'em_andamento': 'bg-green-600',
-            'concluido': 'bg-blue-600',
-            'pausado': 'bg-yellow-600',
-            'cancelado': 'bg-red-600'
-        }[projeto.status] || 'bg-gray-600';
-        
-        html += `
-            <tr class="border-b border-gray-800 hover:bg-dark-hover">
-                <td class="py-3 text-white">${projeto.proposta || '-'}</td>
-                <td class="py-3 text-white">${projeto.sigla || projeto.cnpj || '-'}</td>
-                <td class="py-3 text-white">${projeto.consultor_nome || '-'}</td>
-                <td class="py-3 text-gray-400">${projeto.data_inicio ? new Date(projeto.data_inicio).toLocaleDateString('pt-BR') : '-'}</td>
-                <td class="py-3 text-gray-400">${projeto.data_termino ? new Date(projeto.data_termino).toLocaleDateString('pt-BR') : '-'}</td>
-                <td class="py-3 text-gray-400">${projeto.horas_totais || 0}h</td>
-                <td class="py-3">
-                    <span class="inline-block px-3 py-1 rounded text-xs text-white ${statusCor}">
-                        ${projeto.status.replace('_', ' ').toUpperCase()}
-                    </span>
-                </td>
-            </tr>
-        `;
-    });
-    
-    html += '</tbody></table></div>';
-    container.innerHTML = html;
-}
-
-function alternarVisualizacao(tipo) {
-    visualizacao = tipo;
-    
-    document.getElementById('btnCalendario').className = tipo === 'calendario' 
-        ? 'bg-blue-600 text-white px-4 py-2 rounded transition'
-        : 'bg-gray-600 text-white px-4 py-2 rounded transition';
-    
-    document.getElementById('btnTimeline').className = tipo === 'timeline' 
-        ? 'bg-blue-600 text-white px-4 py-2 rounded transition'
-        : 'bg-gray-600 text-white px-4 py-2 rounded transition';
-    
-    document.getElementById('btnLista').className = tipo === 'lista'
-        ? 'bg-blue-600 text-white px-4 py-2 rounded transition'
-        : 'bg-gray-600 text-white px-4 py-2 rounded transition';
-    
-    document.getElementById('calendarioView').className = tipo === 'calendario' ? 'overflow-x-auto' : 'hidden';
-    document.getElementById('timelineView').className = tipo === 'timeline' ? 'overflow-x-auto' : 'hidden';
-    document.getElementById('listaView').className = tipo === 'lista' ? '' : 'hidden';
-    
-    renderizarVisualizacao();
-}
-
-async function aplicarFiltros() {
-    const filtros = {
-        consultor_id: document.getElementById('filtroConsultor').value,
-        empresa_id: document.getElementById('filtroEmpresa').value,
-        data_inicio: document.getElementById('filtroDataInicio').value,
-        data_fim: document.getElementById('filtroDataFim').value
-    };
-    
-    await carregarProjetos(filtros);
-    atualizarEstatisticas();
-    renderizarVisualizacao();
-}
-
-function limparFiltros() {
-    document.getElementById('filtroConsultor').value = '';
-    document.getElementById('filtroEmpresa').value = '';
-    document.getElementById('filtroDataInicio').value = '';
-    document.getElementById('filtroDataFim').value = '';
-    
-    aplicarFiltros();
-}
-
-function abrirModalImportar() {
-    document.getElementById('modalImportar').classList.remove('hidden');
-}
-
-function fecharModalImportar() {
-    document.getElementById('modalImportar').classList.add('hidden');
-}
-
-function getCorPorSolucao(solucao) {
-    if (!solucao) return 'bg-teal-600';
-    
-    const solucaoLower = solucao.toLowerCase();
-    
-    if (solucaoLower.includes('implanta')) return 'bg-blue-600';
-    if (solucaoLower.includes('consultoria')) return 'bg-green-600';
-    if (solucaoLower.includes('treinamento')) return 'bg-purple-600';
-    if (solucaoLower.includes('suporte')) return 'bg-yellow-600';
-    if (solucaoLower.includes('desenvolvimento') || solucaoLower.includes('desenvolv')) return 'bg-pink-600';
-    if (solucaoLower.includes('personaliza')) return 'bg-indigo-600';
-    if (solucaoLower.includes('migra')) return 'bg-orange-600';
-    
-    return 'bg-teal-600';
 }
 
 function renderizarCalendario() {
-    const container = document.getElementById('calendarioContainer');
+    const container = document.getElementById('diasCalendario');
+    document.getElementById('mesAnoAtual').textContent = `${MESES[mesAtual]} ${anoAtual}`;
     
-    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const primeiroDia = new Date(anoAtual, mesAtual, 1);
+    const ultimoDia = new Date(anoAtual, mesAtual + 1, 0);
+    const diasNoMes = ultimoDia.getDate();
+    const diaSemanaInicio = primeiroDia.getDay();
     
-    document.getElementById('mesAnoAtual').textContent = `${meses[mesNumero]} ${anoAtual}`;
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
     
-    const primeiroDia = new Date(anoAtual, mesNumero, 1).getDay();
-    const ultimoDia = new Date(anoAtual, mesNumero + 1, 0).getDate();
+    let html = '';
     
-    const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-    
-    let html = '<div class="grid grid-cols-7 gap-2">';
-    
-    diasSemana.forEach(dia => {
-        html += `<div class="text-center font-semibold text-gray-400 p-2 border-b border-gray-700">${dia}</div>`;
-    });
-    
-    for (let i = 0; i < primeiroDia; i++) {
-        html += '<div class="bg-dark-bg rounded p-2 min-h-[100px]"></div>';
+    for (let i = 0; i < diaSemanaInicio; i++) {
+        html += '<div class="min-h-[120px] bg-dark-bg/30 rounded-lg"></div>';
     }
     
-    for (let dia = 1; dia <= ultimoDia; dia++) {
-        const dataAtual = new Date(anoAtual, mesNumero, dia);
+    for (let dia = 1; dia <= diasNoMes; dia++) {
+        const dataAtual = new Date(anoAtual, mesAtual, dia);
         const dataStr = dataAtual.toISOString().split('T')[0];
         
-        const projetosDoDia = projetos.filter(p => {
-            if (!p.data_inicio || !p.data_termino) return false;
-            const inicio = new Date(p.data_inicio).setHours(0, 0, 0, 0);
-            const fim = new Date(p.data_termino).setHours(0, 0, 0, 0);
-            const atual = dataAtual.setHours(0, 0, 0, 0);
-            return inicio <= atual && atual <= fim;
-        });
+        const eventosDoDia = eventos.filter(e => e.data === dataStr);
         
-        const hoje = new Date();
-        const isHoje = dataAtual.toDateString() === hoje.toDateString();
-        const corDia = isHoje ? 'bg-blue-900 border-2 border-blue-500' : 'bg-dark-bg';
-        const classeClicavel = projetosDoDia.length > 0 ? 'cursor-pointer hover:bg-dark-hover transition' : '';
+        const isHoje = dataAtual.getTime() === hoje.getTime();
+        const isDomingo = dataAtual.getDay() === 0;
+        const isSabado = dataAtual.getDay() === 6;
         
-        html += `<div class="${corDia} ${classeClicavel} rounded p-2 min-h-[100px] overflow-hidden" ${projetosDoDia.length > 0 ? `onclick="abrirDetalhes('${dataStr}', ${dia})"` : ''}>`;
-        html += `<div class="text-white font-semibold mb-1 ${isHoje ? 'text-blue-400' : ''}">${dia}</div>`;
+        let classesDia = 'min-h-[120px] rounded-lg p-2 transition cursor-pointer hover:ring-2 hover:ring-blue-500/50 ';
         
-        if (projetosDoDia.length > 0) {
-            projetosDoDia.slice(0, 3).forEach(projeto => {
-                const corSolucao = getCorPorSolucao(projeto.solucao);
-                const nomeAbreviado = (projeto.proposta || projeto.sigla || 'Projeto').substring(0, 15);
+        if (isHoje) {
+            classesDia += 'bg-blue-900/40 ring-2 ring-blue-500 ';
+        } else if (isDomingo) {
+            classesDia += 'bg-red-900/20 ';
+        } else if (isSabado) {
+            classesDia += 'bg-blue-900/20 ';
+        } else {
+            classesDia += 'bg-dark-bg/50 hover:bg-dark-bg/70 ';
+        }
+        
+        html += `<div class="${classesDia}" onclick="abrirDetalhesDia('${dataStr}', ${dia})">`;
+        
+        let classeDia = 'text-sm font-bold mb-2 ';
+        if (isHoje) classeDia += 'text-blue-400';
+        else if (isDomingo) classeDia += 'text-red-400';
+        else if (isSabado) classeDia += 'text-blue-300';
+        else classeDia += 'text-white';
+        
+        html += `<div class="${classeDia}">${dia}</div>`;
+        
+        if (eventosDoDia.length > 0) {
+            html += '<div class="space-y-1">';
+            
+            eventosDoDia.slice(0, 4).forEach(evento => {
+                const cor = CATEGORIA_CORES[evento.categoria]?.cor || '#6b7280';
+                const titulo = evento.sigla_empresa ? 
+                    `${evento.categoria}-${evento.sigla_empresa}` : 
+                    evento.titulo || evento.categoria_nome;
                 
                 html += `
-                    <div class="${corSolucao} text-white text-xs p-1 rounded mb-1 truncate" title="${projeto.proposta || 'Sem proposta'} - ${projeto.solucao || 'Sem solução'}">
-                        ${nomeAbreviado}
+                    <div class="text-xs px-2 py-1 rounded truncate text-white font-medium" 
+                         style="background-color: ${cor};"
+                         title="${evento.consultor_nome}: ${titulo}">
+                        ${titulo.substring(0, 12)}${titulo.length > 12 ? '...' : ''}
                     </div>
                 `;
             });
             
-            if (projetosDoDia.length > 3) {
-                html += `<div class="text-gray-400 text-xs">+${projetosDoDia.length - 3} mais</div>`;
+            if (eventosDoDia.length > 4) {
+                html += `<div class="text-xs text-gray-400 text-center">+${eventosDoDia.length - 4} mais</div>`;
             }
+            
+            html += '</div>';
         }
         
         html += '</div>';
     }
     
-    html += '</div>';
+    const celulasRestantes = (7 - ((diaSemanaInicio + diasNoMes) % 7)) % 7;
+    for (let i = 0; i < celulasRestantes; i++) {
+        html += '<div class="min-h-[120px] bg-dark-bg/30 rounded-lg"></div>';
+    }
+    
     container.innerHTML = html;
 }
 
-function abrirDetalhes(dataStr, dia) {
-    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+function atualizarResumo() {
+    document.getElementById('totalEventos').textContent = eventos.length;
     
-    document.getElementById('modalTitulo').textContent = `Projetos de ${dia} de ${meses[mesNumero]} de ${anoAtual}`;
-    
-    const dataAtual = new Date(anoAtual, mesNumero, dia);
-    const projetosDoDia = projetos.filter(p => {
-        if (!p.data_inicio || !p.data_termino) return false;
-        const inicio = new Date(p.data_inicio).setHours(0, 0, 0, 0);
-        const fim = new Date(p.data_termino).setHours(0, 0, 0, 0);
-        const atual = dataAtual.setHours(0, 0, 0, 0);
-        return inicio <= atual && atual <= fim;
+    const contagem = {};
+    eventos.forEach(e => {
+        contagem[e.categoria] = (contagem[e.categoria] || 0) + 1;
     });
     
+    const container = document.getElementById('resumoCategorias');
     let html = '';
     
-    if (projetosDoDia.length === 0) {
-        html = '<p class="text-gray-400 text-center py-8">Nenhum projeto neste dia</p>';
-    } else {
-        projetosDoDia.forEach(projeto => {
-            const corSolucao = getCorPorSolucao(projeto.solucao);
-            
+    Object.entries(CATEGORIA_CORES).forEach(([codigo, info]) => {
+        const qtd = contagem[codigo] || 0;
+        if (qtd > 0) {
             html += `
-                <div class="bg-dark-bg rounded-lg p-4 border-l-4 ${corSolucao.replace('bg-', 'border-')}">
-                    <div class="flex justify-between items-start mb-2">
-                        <h4 class="text-white font-semibold text-lg">${projeto.proposta || 'Sem proposta'}</h4>
-                        <span class="px-3 py-1 rounded text-xs text-white ${corSolucao}">
-                            ${projeto.solucao || 'Sem solução'}
-                        </span>
+                <div class="flex items-center justify-between p-2 rounded-lg" style="background-color: ${info.cor}20;">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold" style="background-color: ${info.cor};">${codigo}</div>
+                        <span class="text-gray-300 text-sm">${info.nome}</span>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                        <p class="text-gray-400"><i class="fas fa-building mr-2"></i><strong>Empresa:</strong> ${projeto.sigla || projeto.cnpj || 'N/A'}</p>
-                        <p class="text-gray-400"><i class="fas fa-user mr-2"></i><strong>Consultor:</strong> ${projeto.consultor_nome || 'N/A'}</p>
-                        <p class="text-gray-400"><i class="fas fa-calendar mr-2"></i><strong>Início:</strong> ${projeto.data_inicio ? new Date(projeto.data_inicio).toLocaleDateString('pt-BR') : 'N/A'}</p>
-                        <p class="text-gray-400"><i class="fas fa-calendar-check mr-2"></i><strong>Término:</strong> ${projeto.data_termino ? new Date(projeto.data_termino).toLocaleDateString('pt-BR') : 'N/A'}</p>
-                        <p class="text-gray-400"><i class="fas fa-clock mr-2"></i><strong>Horas:</strong> ${projeto.horas_totais || 0}h</p>
-                        <p class="text-gray-400"><i class="fas fa-chart-line mr-2"></i><strong>Porte:</strong> ${projeto.porte || 'N/A'}</p>
-                    </div>
-                    ${projeto.regiao || projeto.municipio || projeto.uf ? `
-                        <p class="text-gray-400 text-sm mt-2"><i class="fas fa-map-marker-alt mr-2"></i>${projeto.municipio || ''} ${projeto.uf ? '- ' + projeto.uf : ''} ${projeto.regiao ? '(' + projeto.regiao + ')' : ''}</p>
-                    ` : ''}
-                    ${projeto.contato ? `
-                        <p class="text-gray-400 text-sm mt-2"><i class="fas fa-user-tie mr-2"></i><strong>Contato:</strong> ${projeto.contato} ${projeto.telefone || projeto.celular ? '- ' + (projeto.telefone || projeto.celular) : ''}</p>
-                    ` : ''}
+                    <span class="text-white font-bold">${qtd}</span>
                 </div>
             `;
-        });
-    }
+        }
+    });
     
-    document.getElementById('modalConteudo').innerHTML = html;
-    document.getElementById('modalDetalhes').classList.remove('hidden');
+    container.innerHTML = html || '<p class="text-gray-500 text-sm col-span-2 text-center py-4">Nenhum evento neste mes</p>';
 }
 
-function fecharModalDetalhes() {
-    document.getElementById('modalDetalhes').classList.add('hidden');
+function abrirDetalhesDia(dataStr, dia) {
+    dataSelecionada = dataStr;
+    
+    const dataObj = new Date(dataStr + 'T12:00:00');
+    const diaSemana = ['Domingo', 'Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado'][dataObj.getDay()];
+    
+    document.getElementById('modalDetalhesTitulo').innerHTML = `
+        <i class="fas fa-calendar-day text-blue-400"></i>
+        ${diaSemana}, ${dia} de ${MESES[mesAtual]} de ${anoAtual}
+    `;
+    
+    const eventosDoDia = eventos.filter(e => e.data === dataStr);
+    
+    const container = document.getElementById('modalDetalhesConteudo');
+    
+    if (eventosDoDia.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-12">
+                <i class="fas fa-calendar-times text-4xl text-gray-600 mb-4"></i>
+                <p class="text-gray-400">Nenhum evento neste dia</p>
+                <button onclick="abrirModalNovoEventoData()" class="mt-4 px-4 py-2 btn-primary text-white rounded-xl text-sm">
+                    <i class="fas fa-plus mr-2"></i>Adicionar Evento
+                </button>
+            </div>
+        `;
+    } else {
+        let html = '';
+        
+        const eventosPorConsultor = {};
+        eventosDoDia.forEach(e => {
+            if (!eventosPorConsultor[e.consultor_nome]) {
+                eventosPorConsultor[e.consultor_nome] = [];
+            }
+            eventosPorConsultor[e.consultor_nome].push(e);
+        });
+        
+        Object.entries(eventosPorConsultor).forEach(([consultor, evts]) => {
+            html += `
+                <div class="bg-dark-card/50 rounded-xl p-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fas fa-user-tie text-blue-400"></i>
+                        <span class="text-white font-medium">${consultor}</span>
+                        <span class="text-gray-500 text-sm">(${evts.length} evento${evts.length > 1 ? 's' : ''})</span>
+                    </div>
+                    <div class="space-y-2">
+            `;
+            
+            evts.forEach(evento => {
+                const cor = CATEGORIA_CORES[evento.categoria]?.cor || '#6b7280';
+                const titulo = evento.sigla_empresa ? 
+                    `${evento.categoria}-${evento.sigla_empresa}` : 
+                    evento.titulo || evento.categoria_nome;
+                const periodo = evento.periodo === 'M' ? 'Manha' : evento.periodo === 'T' ? 'Tarde' : 'Dia todo';
+                
+                html += `
+                    <div class="flex items-center justify-between p-3 rounded-lg bg-dark-bg/50 hover:bg-dark-bg transition group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold" style="background-color: ${cor};">
+                                ${evento.categoria}
+                            </div>
+                            <div>
+                                <p class="text-white font-medium">${titulo}</p>
+                                <p class="text-gray-500 text-xs">${evento.categoria_nome} - ${periodo}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                            <button onclick="editarEvento(${evento.id})" class="w-8 h-8 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 flex items-center justify-center transition">
+                                <i class="fas fa-edit text-sm"></i>
+                            </button>
+                            <button onclick="confirmarExclusao(${evento.id})" class="w-8 h-8 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 flex items-center justify-center transition">
+                                <i class="fas fa-trash text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div></div>';
+        });
+        
+        container.innerHTML = html;
+    }
+    
+    document.getElementById('modalDetalhesDia').classList.remove('hidden');
+}
+
+function fecharModalDetalhesDia() {
+    document.getElementById('modalDetalhesDia').classList.add('hidden');
+    dataSelecionada = null;
+}
+
+function abrirModalNovoEvento() {
+    document.getElementById('modalEventoTitulo').innerHTML = '<i class="fas fa-calendar-plus text-blue-400"></i> Novo Evento';
+    document.getElementById('formEvento').reset();
+    document.getElementById('eventoId').value = '';
+    document.getElementById('btnExcluirEvento').classList.add('hidden');
+    
+    const hoje = new Date().toISOString().split('T')[0];
+    document.getElementById('eventoData').value = hoje;
+    
+    document.getElementById('modalEvento').classList.remove('hidden');
+}
+
+function abrirModalNovoEventoData() {
+    fecharModalDetalhesDia();
+    
+    document.getElementById('modalEventoTitulo').innerHTML = '<i class="fas fa-calendar-plus text-blue-400"></i> Novo Evento';
+    document.getElementById('formEvento').reset();
+    document.getElementById('eventoId').value = '';
+    document.getElementById('btnExcluirEvento').classList.add('hidden');
+    
+    if (dataSelecionada) {
+        document.getElementById('eventoData').value = dataSelecionada;
+    }
+    
+    document.getElementById('modalEvento').classList.remove('hidden');
+}
+
+async function editarEvento(eventoId) {
+    try {
+        const response = await apiRequest(`/api/cronograma/eventos/${eventoId}`);
+        const evento = await response.json();
+        
+        document.getElementById('modalEventoTitulo').innerHTML = '<i class="fas fa-calendar-edit text-blue-400"></i> Editar Evento';
+        document.getElementById('eventoId').value = evento.id;
+        document.getElementById('eventoData').value = evento.data;
+        document.getElementById('eventoCategoria').value = evento.categoria;
+        document.getElementById('eventoPeriodo').value = evento.periodo || 'D';
+        document.getElementById('eventoConsultor').value = evento.consultor_id;
+        document.getElementById('eventoSigla').value = evento.sigla_empresa || '';
+        document.getElementById('eventoDescricao').value = evento.descricao || '';
+        
+        document.getElementById('btnExcluirEvento').classList.remove('hidden');
+        
+        fecharModalDetalhesDia();
+        document.getElementById('modalEvento').classList.remove('hidden');
+    } catch (error) {
+        console.error('Erro ao carregar evento:', error);
+        alert('Erro ao carregar evento para edicao');
+    }
+}
+
+function fecharModalEvento() {
+    document.getElementById('modalEvento').classList.add('hidden');
+}
+
+async function salvarEvento(e) {
+    e.preventDefault();
+    
+    const eventoId = document.getElementById('eventoId').value;
+    const dados = {
+        data: document.getElementById('eventoData').value,
+        categoria: document.getElementById('eventoCategoria').value,
+        periodo: document.getElementById('eventoPeriodo').value,
+        consultor_id: parseInt(document.getElementById('eventoConsultor').value),
+        sigla_empresa: document.getElementById('eventoSigla').value || null,
+        descricao: document.getElementById('eventoDescricao').value || null
+    };
+    
+    try {
+        let response;
+        if (eventoId) {
+            response = await apiRequest(`/api/cronograma/eventos/${eventoId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+        } else {
+            response = await apiRequest('/api/cronograma/eventos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+        }
+        
+        if (response.ok) {
+            fecharModalEvento();
+            await carregarEventos();
+            renderizarCalendario();
+            atualizarResumo();
+            
+            if (dataSelecionada) {
+                const dia = new Date(dataSelecionada + 'T12:00:00').getDate();
+                abrirDetalhesDia(dataSelecionada, dia);
+            }
+        } else {
+            const error = await response.json();
+            alert(error.detail || 'Erro ao salvar evento');
+        }
+    } catch (error) {
+        console.error('Erro ao salvar evento:', error);
+        alert('Erro ao salvar evento');
+    }
+}
+
+async function excluirEvento() {
+    const eventoId = document.getElementById('eventoId').value;
+    if (!eventoId) return;
+    
+    if (!confirm('Tem certeza que deseja excluir este evento?')) return;
+    
+    try {
+        const response = await apiRequest(`/api/cronograma/eventos/${eventoId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            fecharModalEvento();
+            await carregarEventos();
+            renderizarCalendario();
+            atualizarResumo();
+        } else {
+            alert('Erro ao excluir evento');
+        }
+    } catch (error) {
+        console.error('Erro ao excluir evento:', error);
+        alert('Erro ao excluir evento');
+    }
+}
+
+async function confirmarExclusao(eventoId) {
+    if (!confirm('Tem certeza que deseja excluir este evento?')) return;
+    
+    try {
+        const response = await apiRequest(`/api/cronograma/eventos/${eventoId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            await carregarEventos();
+            renderizarCalendario();
+            atualizarResumo();
+            
+            if (dataSelecionada) {
+                const dia = new Date(dataSelecionada + 'T12:00:00').getDate();
+                abrirDetalhesDia(dataSelecionada, dia);
+            }
+        } else {
+            alert('Erro ao excluir evento');
+        }
+    } catch (error) {
+        console.error('Erro ao excluir evento:', error);
+        alert('Erro ao excluir evento');
+    }
 }
 
 function mesAnterior() {
-    mesNumero--;
-    if (mesNumero < 0) {
-        mesNumero = 11;
+    mesAtual--;
+    if (mesAtual < 0) {
+        mesAtual = 11;
         anoAtual--;
     }
-    renderizarCalendario();
+    document.getElementById('filtroMesAno').value = `${anoAtual}-${String(mesAtual + 1).padStart(2, '0')}`;
+    carregarEventos().then(() => {
+        renderizarCalendario();
+        atualizarResumo();
+    });
 }
 
 function proximoMes() {
-    mesNumero++;
-    if (mesNumero > 11) {
-        mesNumero = 0;
+    mesAtual++;
+    if (mesAtual > 11) {
+        mesAtual = 0;
         anoAtual++;
     }
+    document.getElementById('filtroMesAno').value = `${anoAtual}-${String(mesAtual + 1).padStart(2, '0')}`;
+    carregarEventos().then(() => {
+        renderizarCalendario();
+        atualizarResumo();
+    });
+}
+
+function irParaHoje() {
+    const hoje = new Date();
+    mesAtual = hoje.getMonth();
+    anoAtual = hoje.getFullYear();
+    document.getElementById('filtroMesAno').value = `${anoAtual}-${String(mesAtual + 1).padStart(2, '0')}`;
+    carregarEventos().then(() => {
+        renderizarCalendario();
+        atualizarResumo();
+    });
+}
+
+async function aplicarFiltros() {
+    const mesAno = document.getElementById('filtroMesAno').value;
+    if (mesAno) {
+        const [ano, mes] = mesAno.split('-').map(Number);
+        anoAtual = ano;
+        mesAtual = mes - 1;
+    }
+    
+    await carregarEventos();
     renderizarCalendario();
+    atualizarResumo();
+}
+
+function limparFiltros() {
+    document.getElementById('filtroConsultor').value = '';
+    document.getElementById('filtroCategoria').value = '';
+    
+    const hoje = new Date();
+    mesAtual = hoje.getMonth();
+    anoAtual = hoje.getFullYear();
+    document.getElementById('filtroMesAno').value = `${anoAtual}-${String(mesAtual + 1).padStart(2, '0')}`;
+    
+    aplicarFiltros();
+}
+
+function filtrarPorCategoria(categoria) {
+    document.getElementById('filtroCategoria').value = categoria;
+    aplicarFiltros();
 }
