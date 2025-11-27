@@ -36,6 +36,15 @@ The project is structured with clear separation of concerns: `backend/` for API 
 ## Recent Changes
 
 ### November 27, 2025
+-   **Sidebar User Info Enhancement**: Sidebar atualizado para exibir informações do usuário logado
+    -   Função centralizada `atualizarSidebar()` em auth.js
+    -   Exibe foto do usuário (ou iniciais como fallback)
+    -   Mostra nome e tipo do usuário (Administrador/Consultor)
+    -   Link de Admin visível apenas para administradores
+-   **Consultant Profile Quick Actions**: Botões de ação rápida no perfil do consultor aprimorados
+    -   "Ver Empresas" agora abre modal com lista de empresas atribuídas clicáveis
+    -   URL handling para pré-preencher formulário de nova prospecção
+    -   Verificações defensivas para prevenir erros de runtime
 -   **Chat File Attachments**: Sistema de anexos do chat verificado e configurado
     -   Diretório `static/uploads/` criado para armazenamento de arquivos
     -   Dependência do sistema `libmagic` (file) instalada para detecção de tipos MIME
