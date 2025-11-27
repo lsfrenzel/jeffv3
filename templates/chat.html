@@ -126,33 +126,42 @@
     {% include "partials/sidebar.html" %}
     
     <main class="flex-1 flex flex-col overflow-hidden">
-        <header class="glass-effect border-b border-dark-border/50 px-6 py-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center">
-                        <i class="fas fa-comments text-white"></i>
+        <header class="glass-effect border-b border-dark-border/50 px-4 sm:px-6 py-4">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <button onclick="toggleMobileSidebar()" class="mobile-menu-btn w-10 h-10 rounded-xl bg-dark-card hover:bg-dark-hover items-center justify-center text-gray-400 hover:text-white transition flex-shrink-0">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-comments text-white text-sm sm:text-base"></i>
                     </div>
-                    <div>
-                        <h2 class="text-xl font-bold text-white">Mensagens</h2>
-                        <p class="text-gray-400 text-sm">Comunicacao interna em tempo real</p>
+                    <div class="min-w-0">
+                        <h2 class="text-lg sm:text-xl font-bold text-white truncate">Mensagens</h2>
+                        <p class="text-gray-400 text-xs sm:text-sm hidden sm:block">Comunicação interna</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div class="relative">
-                        <input type="text" id="buscarGlobal" class="w-64 pl-10 pr-4 py-2 input-modern text-white rounded-xl text-sm" placeholder="Buscar mensagens...">
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <div class="relative hidden sm:block">
+                        <input type="text" id="buscarGlobal" class="w-40 lg:w-64 pl-10 pr-4 py-2 input-modern text-white rounded-xl text-sm" placeholder="Buscar...">
                         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
                     </div>
-                    <div id="statusConexao" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 text-sm">
+                    <div id="statusConexao" class="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 text-xs sm:text-sm">
                         <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-                        Online
+                        <span class="hidden sm:inline">Online</span>
                     </div>
                 </div>
             </div>
         </header>
         
         <div class="flex-1 flex overflow-hidden">
-            <div class="w-80 glass-effect border-r border-dark-border/50 flex flex-col">
+            <div id="chatSidebar" class="w-full sm:w-72 lg:w-80 glass-effect border-r border-dark-border/50 flex flex-col absolute sm:relative inset-0 sm:inset-auto z-30 sm:z-auto transform transition-transform duration-300 sm:transform-none -translate-x-full sm:translate-x-0" data-chat-sidebar>
                 <div class="p-4 border-b border-dark-border/50">
+                    <div class="flex items-center justify-between mb-3 sm:hidden">
+                        <span class="text-white font-semibold">Conversas</span>
+                        <button onclick="toggleChatSidebar()" class="w-8 h-8 rounded-lg bg-dark-card hover:bg-dark-hover flex items-center justify-center text-gray-400 hover:text-white transition">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                     <button onclick="abrirModalNovaConversa()" class="w-full btn-primary text-white py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 font-medium mb-3 hover:scale-[1.02] transition-transform">
                         <i class="fas fa-plus"></i>
                         Nova Conversa
@@ -171,9 +180,12 @@
             </div>
             
             <div class="flex-1 flex flex-col bg-dark-bg/50">
-                <div id="cabecalhoChat" class="hidden glass-effect border-b border-dark-border/50 p-4">
+                <div id="cabecalhoChat" class="hidden glass-effect border-b border-dark-border/50 p-3 sm:p-4">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <button onclick="toggleChatSidebar()" class="sm:hidden w-10 h-10 rounded-xl bg-dark-card hover:bg-dark-hover flex items-center justify-center text-gray-400 hover:text-white transition flex-shrink-0">
+                                <i class="fas fa-bars"></i>
+                            </button>
                             <div id="avatarContainer" class="online-indicator">
                                 <img id="fotoDestinatario" class="w-12 h-12 rounded-full ring-2 ring-emerald-500/30 object-cover" src="" alt="">
                             </div>
@@ -226,13 +238,16 @@
                     </div>
                 </div>
                 
-                <div class="flex-1 overflow-y-auto p-6" id="areaMensagens">
+                <div class="flex-1 overflow-y-auto p-4 sm:p-6" id="areaMensagens">
                     <div class="h-full flex flex-col items-center justify-center text-gray-400">
-                        <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center mb-4">
-                            <i class="fas fa-comments text-4xl text-blue-400/50"></i>
+                        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center mb-4">
+                            <i class="fas fa-comments text-3xl sm:text-4xl text-blue-400/50"></i>
                         </div>
-                        <p class="text-lg font-medium text-white/80">Selecione uma conversa</p>
-                        <p class="text-sm text-gray-500 mt-1">Escolha um contato para iniciar</p>
+                        <p class="text-base sm:text-lg font-medium text-white/80">Selecione uma conversa</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mt-1">Escolha um contato para iniciar</p>
+                        <button onclick="toggleChatSidebar()" class="sm:hidden mt-4 btn-primary text-white py-2 px-4 rounded-xl flex items-center gap-2">
+                            <i class="fas fa-list"></i> Ver Conversas
+                        </button>
                     </div>
                 </div>
                 
@@ -367,5 +382,25 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+function toggleChatSidebar() {
+    const sidebar = document.getElementById('chatSidebar');
+    if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        sidebar.classList.add('translate-x-0');
+    } else {
+        sidebar.classList.remove('translate-x-0');
+        sidebar.classList.add('-translate-x-full');
+    }
+}
+
+window.addEventListener('resize', function() {
+    const sidebar = document.getElementById('chatSidebar');
+    if (window.innerWidth >= 640) {
+        sidebar.classList.remove('-translate-x-full');
+        sidebar.classList.add('translate-x-0');
+    }
+});
+</script>
 <script src="/static/js/chat.js"></script>
 {% endblock %}

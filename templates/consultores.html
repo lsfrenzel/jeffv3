@@ -8,29 +8,34 @@
     {% include "partials/sidebar.html" %}
     
     <main class="flex-1 overflow-y-auto">
-        <header class="sticky top-0 z-10 glass-effect border-b border-dark-border/50 px-8 py-4">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h2 class="text-2xl font-bold text-white">Consultores</h2>
-                    <p class="text-gray-400 text-sm mt-1">Gerencie a equipe de consultores</p>
+        <header class="sticky top-0 z-10 glass-effect border-b border-dark-border/50 px-4 sm:px-8 py-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleMobileSidebar()" class="mobile-menu-btn w-10 h-10 rounded-xl bg-dark-card hover:bg-dark-hover items-center justify-center text-gray-400 hover:text-white transition">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-bold text-white">Consultores</h2>
+                        <p class="text-gray-400 text-xs sm:text-sm mt-1 hidden sm:block">Gerencie a equipe de consultores</p>
+                    </div>
                 </div>
-                <button id="btnNovoConsultor" onclick="abrirModalNovoConsultor()" class="hidden btn-primary text-white px-5 py-2.5 rounded-xl flex items-center gap-2 font-medium">
+                <button id="btnNovoConsultor" onclick="abrirModalNovoConsultor()" class="hidden btn-primary text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl flex items-center gap-2 font-medium w-full sm:w-auto justify-center">
                     <i class="fas fa-plus"></i>
                     Novo Consultor
                 </button>
             </div>
         </header>
         
-        <div class="p-8">
+        <div class="p-4 sm:p-6 lg:p-8">
             <div class="glass-effect rounded-2xl border border-dark-border/50 overflow-hidden animate-fade-in">
-                <div class="p-6 border-b border-dark-border/50">
-                    <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                <div class="p-4 sm:p-6 border-b border-dark-border/50">
+                    <h3 class="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
                         <i class="fas fa-users text-blue-400"></i>
                         Lista de Consultores
                     </h3>
                 </div>
                 
-                <div class="overflow-x-auto">
+                <div class="table-responsive">
                     <table class="w-full">
                         <thead class="bg-dark-card/50">
                             <tr>

@@ -8,12 +8,17 @@
     {% include "partials/sidebar.html" %}
     
     <main class="flex-1 overflow-y-auto">
-        <header class="bg-dark-sidebar shadow-lg p-6">
-            <h2 class="text-2xl font-semibold text-white">Atribuir Empresas a Consultores</h2>
+        <header class="sticky top-0 z-10 glass-effect border-b border-dark-border/50 px-4 sm:px-6 py-4">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleMobileSidebar()" class="mobile-menu-btn w-10 h-10 rounded-xl bg-dark-card hover:bg-dark-hover items-center justify-center text-gray-400 hover:text-white transition">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h2 class="text-xl sm:text-2xl font-semibold text-white">Atribuir Empresas a Consultores</h2>
+            </div>
         </header>
         
-        <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="p-4 sm:p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 <div class="bg-dark-sidebar rounded-lg p-6 shadow-lg">
                     <h3 class="text-xl font-semibold text-white mb-4">Selecionar Consultor</h3>
                     <select id="consultorSelect" class="w-full p-3 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">

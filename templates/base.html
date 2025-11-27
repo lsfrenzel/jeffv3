@@ -96,6 +96,83 @@
             color: #e5e7eb;
             min-height: 100vh;
         }
+        
+        /* Mobile Sidebar Styles */
+        .mobile-menu-btn {
+            display: none;
+        }
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 40;
+            backdrop-filter: blur(4px);
+        }
+        .sidebar-overlay.active {
+            display: block;
+        }
+        @media (max-width: 1023px) {
+            .mobile-menu-btn {
+                display: flex;
+            }
+            .sidebar-mobile {
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                z-index: 50;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+            }
+            .sidebar-mobile.open {
+                transform: translateX(0);
+            }
+        }
+        
+        /* Mobile responsive utilities */
+        @media (max-width: 640px) {
+            .mobile-stack {
+                flex-direction: column;
+                align-items: stretch !important;
+            }
+            .mobile-full {
+                width: 100% !important;
+            }
+            .mobile-text-sm {
+                font-size: 0.875rem !important;
+            }
+            .mobile-p-4 {
+                padding: 1rem !important;
+            }
+            .mobile-gap-2 {
+                gap: 0.5rem !important;
+            }
+            .mobile-hidden {
+                display: none !important;
+            }
+        }
+        
+        /* Table responsive wrapper */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        @media (max-width: 640px) {
+            .table-responsive th,
+            .table-responsive td {
+                padding: 0.75rem 0.5rem !important;
+                font-size: 0.75rem !important;
+            }
+            .table-responsive th:first-child,
+            .table-responsive td:first-child {
+                padding-left: 0.75rem !important;
+            }
+            .table-responsive th:last-child,
+            .table-responsive td:last-child {
+                padding-right: 0.75rem !important;
+            }
+        }
         .glass-effect {
             background: rgba(31, 41, 55, 0.7);
             backdrop-filter: blur(10px);

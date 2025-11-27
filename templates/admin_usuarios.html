@@ -8,16 +8,24 @@
     {% include "partials/sidebar.html" %}
     
     <main class="flex-1 overflow-y-auto">
-        <header class="bg-dark-sidebar shadow-lg p-6 flex justify-between items-center">
-            <h2 class="text-2xl font-semibold text-white">Administração de Usuários</h2>
-            <button onclick="showAddUserModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition">
-                + Novo Usuário
-            </button>
+        <header class="sticky top-0 z-10 glass-effect border-b border-dark-border/50 px-4 sm:px-6 py-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleMobileSidebar()" class="mobile-menu-btn w-10 h-10 rounded-xl bg-dark-card hover:bg-dark-hover items-center justify-center text-gray-400 hover:text-white transition">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h2 class="text-xl sm:text-2xl font-semibold text-white">Administração de Usuários</h2>
+                </div>
+                <button onclick="showAddUserModal()" class="btn-primary text-white font-semibold py-2 px-4 sm:px-6 rounded-xl transition w-full sm:w-auto flex items-center justify-center gap-2">
+                    <i class="fas fa-plus"></i> Novo Usuário
+                </button>
+            </div>
         </header>
         
-        <div class="p-6">
-            <div class="bg-dark-sidebar rounded-lg shadow-lg overflow-hidden">
-                <table class="w-full">
+        <div class="p-4 sm:p-6">
+            <div class="glass-effect rounded-2xl border border-dark-border/50 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="w-full">
                     <thead>
                         <tr class="bg-dark-hover text-gray-300 text-left text-sm">
                             <th class="p-4">ID</th>
@@ -32,7 +40,8 @@
                             <td colspan="5" class="p-8 text-center text-gray-400">Carregando usuários...</td>
                         </tr>
                     </tbody>
-                </table>
+                    </table>
+                </div>
             </div>
         </div>
     </main>

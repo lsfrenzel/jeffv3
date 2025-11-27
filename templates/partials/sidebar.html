@@ -1,13 +1,19 @@
-<aside class="w-72 bg-dark-sidebar/95 backdrop-blur-xl shadow-2xl border-r border-dark-border/50 flex flex-col h-screen">
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleMobileSidebar()"></div>
+<aside id="sidebar" class="w-72 bg-dark-sidebar/95 backdrop-blur-xl shadow-2xl border-r border-dark-border/50 flex flex-col h-screen sidebar-mobile lg:relative lg:transform-none">
     <div class="p-6 border-b border-dark-border/50">
-        <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-glow-blue">
-                <i class="fas fa-atom text-white text-xl"></i>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-glow-blue">
+                    <i class="fas fa-atom text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Núcleo 1.03</h1>
+                    <p class="text-gray-500 text-xs">Sistema de Gestão</p>
+                </div>
             </div>
-            <div>
-                <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Núcleo 1.03</h1>
-                <p class="text-gray-500 text-xs">Sistema de Gestão</p>
-            </div>
+            <button onclick="toggleMobileSidebar()" class="lg:hidden w-8 h-8 rounded-lg bg-dark-card hover:bg-dark-hover flex items-center justify-center text-gray-400 hover:text-white transition">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
     </div>
     
@@ -52,6 +58,13 @@
                 <i class="fas fa-handshake {% if active_page == 'prospeccao' %}text-blue-400{% else %}text-gray-400{% endif %}"></i>
             </div>
             <span class="font-medium">Prospecções</span>
+        </a>
+        
+        <a href="/pipeline" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg mb-1 {% if active_page == 'pipeline' %}active bg-blue-500/10 text-blue-400{% else %}text-gray-400 hover:text-white{% endif %}">
+            <div class="w-9 h-9 rounded-lg {% if active_page == 'pipeline' %}bg-blue-500/20{% else %}bg-dark-card{% endif %} flex items-center justify-center">
+                <i class="fas fa-project-diagram {% if active_page == 'pipeline' %}text-blue-400{% else %}text-gray-400{% endif %}"></i>
+            </div>
+            <span class="font-medium">Pipeline</span>
         </a>
         
         <a href="/consultores" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg mb-1 {% if active_page == 'consultores' %}active bg-blue-500/10 text-blue-400{% else %}text-gray-400 hover:text-white{% endif %}">
@@ -101,3 +114,23 @@
         </button>
     </div>
 </aside>
+
+<script>
+function toggleMobileSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('active');
+    document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+}
+
+window.addEventListener('resize', function() {
+    if (window.innerWidth >= 1024) {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+});
+</script>

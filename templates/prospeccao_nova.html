@@ -8,30 +8,35 @@
     {% include "partials/sidebar.html" %}
     
     <main class="flex-1 overflow-y-auto">
-        <header class="bg-dark-sidebar shadow-lg p-6">
-            <div class="flex justify-between items-center">
-                <h2 class="text-2xl font-semibold text-white">Prospecções</h2>
-                <button onclick="showNovaProspeccaoModal()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition">
-                    + Nova Prospecção
+        <header class="sticky top-0 z-10 glass-effect border-b border-dark-border/50 px-4 sm:px-6 py-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleMobileSidebar()" class="mobile-menu-btn w-10 h-10 rounded-xl bg-dark-card hover:bg-dark-hover items-center justify-center text-gray-400 hover:text-white transition">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h2 class="text-xl sm:text-2xl font-semibold text-white">Prospecções</h2>
+                </div>
+                <button onclick="showNovaProspeccaoModal()" class="btn-primary text-white py-2 px-4 rounded-xl transition w-full sm:w-auto flex items-center justify-center gap-2">
+                    <i class="fas fa-plus"></i> Nova Prospecção
                 </button>
             </div>
         </header>
         
-        <div class="p-6">
-            <div class="bg-dark-sidebar p-6 rounded-lg shadow-lg mb-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-white">Filtros e Visualização</h3>
-                    <div class="flex gap-2">
-                        <button onclick="toggleVisualizacao('cards')" id="btnCards" class="bg-blue-600 text-white px-4 py-2 rounded-lg transition hover:bg-blue-700">
-                            📱 Cards
+        <div class="p-4 sm:p-6">
+            <div class="glass-effect p-4 sm:p-6 rounded-2xl border border-dark-border/50 mb-4 sm:mb-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                    <h3 class="text-base sm:text-lg font-semibold text-white">Filtros e Visualização</h3>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button onclick="toggleVisualizacao('cards')" id="btnCards" class="flex-1 sm:flex-initial bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-xl transition hover:bg-blue-700 text-sm sm:text-base">
+                            <i class="fas fa-th-large mr-1"></i> Cards
                         </button>
-                        <button onclick="toggleVisualizacao('lista')" id="btnLista" class="bg-gray-600 text-white px-4 py-2 rounded-lg transition hover:bg-gray-700">
-                            📋 Lista
+                        <button onclick="toggleVisualizacao('lista')" id="btnLista" class="flex-1 sm:flex-initial bg-gray-600 text-white px-3 sm:px-4 py-2 rounded-xl transition hover:bg-gray-700 text-sm sm:text-base">
+                            <i class="fas fa-list mr-1"></i> Lista
                         </button>
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-2">Empresa</label>
                         <input type="text" id="filtroEmpresa" placeholder="Nome da empresa..." class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -65,16 +70,16 @@
                 </div>
                 
                 <div class="flex gap-2 mt-4">
-                    <button onclick="aplicarFiltros()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition">
-                        🔍 Filtrar
+                    <button onclick="aplicarFiltros()" class="btn-success text-white px-4 sm:px-6 py-2 rounded-xl transition flex items-center gap-2 text-sm sm:text-base">
+                        <i class="fas fa-search"></i> Filtrar
                     </button>
-                    <button onclick="limparFiltros()" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition">
-                        ✖️ Limpar
+                    <button onclick="limparFiltros()" class="bg-dark-card hover:bg-dark-hover text-gray-300 px-4 sm:px-6 py-2 rounded-xl transition flex items-center gap-2 text-sm sm:text-base">
+                        <i class="fas fa-times"></i> Limpar
                     </button>
                 </div>
             </div>
             
-            <div id="viewCards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="viewCards" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 <div class="col-span-full text-center py-8 text-gray-400">Carregando prospecções...</div>
             </div>
             
