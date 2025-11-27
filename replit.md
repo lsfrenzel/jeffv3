@@ -27,7 +27,14 @@ The backend uses FastAPI, PostgreSQL, and SQLAlchemy. Authentication is handled 
 -   **Dashboard & Reporting**: Visual statistics via Chart.js, covering prospecting results, appointment statuses, and company assignments.
 -   **CNPJ Lookup**: Dedicated search page for company details using multiple fallback APIs.
 -   **Profile Picture System**: Consultants can upload profile pictures via URL, with automatic avatar generation.
--   **Cronograma Geral (General Schedule)**: Project timeline management with Excel import, tracking proposals, companies, consultants, dates, hours, and statuses. Features visual timeline, list views, filtering, and status calculation. Includes calendar view with clickable days for project details and color-coding by solution type.
+-   **Cronograma Geral (General Schedule)**: Complete calendar event management with CRUD operations. Features:
+    - Monthly calendar view with color-coded categories
+    - Categories: C-Consultoria (green), K-Kick-off (yellow), F-Reuniao Final (blue), M-Mentoria (red), T-Diagnostico (orange), P-Programado (cyan), O-Outros (gray)
+    - 4,854 events imported from Excel spreadsheet
+    - 9 consultants: Andre Aoki, Fernando Figueredo, Leandro Silva, Lucas Azimovas, Marcello Figueiredo, Matheus Fernando, Ramon Silvati, Rafael Paula, Ricardo Ciuccio
+    - Filtering by consultant, category, and month
+    - Create, edit, and delete events via modals
+    - Morning (M) and Afternoon (T) periods
 -   **Chat System**: Internal messaging with real-time conversations, read statuses, unread counts, user lookup, and file attachment capabilities.
 
 ### System Design Choices

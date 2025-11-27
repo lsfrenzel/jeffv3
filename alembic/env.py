@@ -46,6 +46,7 @@ from backend.models import (
     Attachment,
     Activity
 )
+from backend.models.cronograma import CronogramaEvento, CategoriaEvento, PeriodoEvento
 
 # Set target metadata for autogenerate
 target_metadata = Base.metadata
