@@ -64,12 +64,16 @@ localPort = 42531
 externalPort = 6800
 
 [[ports]]
+localPort = 44065
+externalPort = 8000
+
+[[ports]]
 localPort = 44981
 externalPort = 3003
 
 [nix]
 channel = "stable-25_05"
-packages = ["cargo", "freetype", "glibcLocales", "libiconv", "libxcrypt", "rustc"]
+packages = ["cargo", "file", "freetype", "glibcLocales", "libiconv", "libxcrypt", "rustc"]
 
 [userenv]
 

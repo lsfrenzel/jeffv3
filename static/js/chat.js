@@ -14,6 +14,9 @@ let typingTimeout = null;
 let pollingInterval = null;
 let heartbeatInterval = null;
 
+let anexoAtual = null;
+let uploadEmProgresso = false;
+
 const EMOJIS_POPULARES = [
     '😀', '😂', '🥰', '😍', '🤩', '😎', '🤔', '😅',
     '👍', '👏', '🙌', '💪', '🎉', '🔥', '❤️', '💯',
@@ -323,9 +326,41 @@ function renderizarMensagem(msg, index) {
         `;
     }
     
-    let conteudoHtml = msg.deletada 
-        ? '<span class="italic text-gray-500">Mensagem apagada</span>' 
-        : formatarConteudo(msg.conteudo);
+    let anexoHtml = '';
+    if (msg.anexo_url && !msg.deletada) {
+        if (msg.tipo === 'imagem') {
+            anexoHtml = `
+                <div class="mb-2">
+                    <img src="${msg.anexo_url}" alt="${msg.anexo_nome || 'Imagem'}" 
+                         class="max-w-full max-h-64 rounded-xl cursor-pointer hover:opacity-90 transition"
+                         onclick="abrirImagemModal('${msg.anexo_url}')">
+                </div>
+            `;
+        } else {
+            const icone = getIconeArquivoPorNome(msg.anexo_nome || 'arquivo');
+            const tamanho = msg.anexo_tamanho ? formatarTamanhoArquivo(msg.anexo_tamanho) : '';
+            anexoHtml = `
+                <a href="${msg.anexo_url}" target="_blank" download="${msg.anexo_nome}"
+                   class="flex items-center gap-3 p-3 bg-black/20 rounded-xl mb-2 hover:bg-black/30 transition group">
+                    <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                        <i class="${icone} text-lg"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-white text-sm font-medium truncate">${msg.anexo_nome || 'Arquivo'}</p>
+                        <p class="text-gray-400 text-xs">${tamanho}</p>
+                    </div>
+                    <i class="fas fa-download text-gray-400 group-hover:text-white transition"></i>
+                </a>
+            `;
+        }
+    }
+    
+    let conteudoHtml = '';
+    if (msg.deletada) {
+        conteudoHtml = '<span class="italic text-gray-500">Mensagem apagada</span>';
+    } else if (msg.conteudo && msg.conteudo !== msg.anexo_nome) {
+        conteudoHtml = formatarConteudo(msg.conteudo);
+    }
     
     let reacoesHtml = '';
     if (msg.reacoes && Object.keys(msg.reacoes).length > 0) {
@@ -352,7 +387,8 @@ function renderizarMensagem(msg, index) {
                 <div class="${ehMinhaMsg ? 'bg-gradient-to-br from-blue-600 to-blue-700' : 'bg-dark-card border border-dark-border/50'} 
                             rounded-2xl ${ehMinhaMsg ? 'rounded-br-md' : 'rounded-bl-md'} p-3 shadow-lg">
                     ${respostaHtml}
-                    <p class="text-white whitespace-pre-wrap break-words">${conteudoHtml}</p>
+                    ${anexoHtml}
+                    ${conteudoHtml ? `<p class="text-white whitespace-pre-wrap break-words">${conteudoHtml}</p>` : ''}
                     ${reacoesHtml}
                     <div class="flex items-center justify-end gap-2 mt-1.5">
                         ${editadoLabel}
@@ -392,10 +428,18 @@ async function enviarMensagem() {
         return;
     }
     
+    if (uploadEmProgresso) {
+        alert('Aguarde o upload do arquivo terminar');
+        return;
+    }
+    
     const input = document.getElementById('inputMensagem');
     const conteudo = input.value.trim();
     
-    if (!conteudo) return;
+    if (!conteudo && !anexoAtual) {
+        alert('Digite uma mensagem ou anexe um arquivo');
+        return;
+    }
     
     const btnEnviar = document.getElementById('btnEnviar');
     btnEnviar.disabled = true;
@@ -404,12 +448,18 @@ async function enviarMensagem() {
     try {
         const payload = {
             destinatario_id: conversaAtual.id,
-            conteudo: conteudo,
-            tipo: 'texto'
+            conteudo: conteudo || (anexoAtual ? anexoAtual.nome : ''),
+            tipo: anexoAtual ? anexoAtual.tipo : 'texto'
         };
         
         if (respostaParaId) {
             payload.resposta_para_id = respostaParaId;
+        }
+        
+        if (anexoAtual) {
+            payload.anexo_url = anexoAtual.url;
+            payload.anexo_nome = anexoAtual.nome;
+            payload.anexo_tamanho = anexoAtual.tamanho;
         }
         
         await apiRequest('/api/mensagens/', {
@@ -421,6 +471,7 @@ async function enviarMensagem() {
         input.value = '';
         input.style.height = 'auto';
         cancelarResposta();
+        cancelarAnexo();
         
         await abrirConversa(conversaAtual.id);
         
@@ -763,7 +814,166 @@ function abrirInfoConversa() {
 }
 
 function anexarArquivo() {
-    alert('Funcionalidade de anexos em desenvolvimento');
+    const input = document.getElementById('inputArquivo');
+    input.click();
+}
+
+async function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+        alert('Arquivo muito grande. Maximo permitido: 10MB');
+        event.target.value = '';
+        return;
+    }
+    
+    const allowedTypes = [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/plain', 'text/csv'
+    ];
+    
+    if (!allowedTypes.includes(file.type)) {
+        alert('Tipo de arquivo nao permitido. Envie imagens, PDF, Word, Excel ou arquivos de texto.');
+        event.target.value = '';
+        return;
+    }
+    
+    mostrarPreviewAnexo(file);
+    
+    await uploadArquivo(file);
+}
+
+function mostrarPreviewAnexo(file) {
+    const container = document.getElementById('anexoPreviewContainer');
+    const previewIcon = document.getElementById('anexoPreviewIcon');
+    const previewImagem = document.getElementById('anexoPreviewImagem');
+    const previewNome = document.getElementById('anexoPreviewNome');
+    const previewTamanho = document.getElementById('anexoPreviewTamanho');
+    
+    previewNome.textContent = file.name;
+    previewTamanho.textContent = formatarTamanhoArquivo(file.size);
+    
+    if (file.type.startsWith('image/')) {
+        previewIcon.classList.add('hidden');
+        previewImagem.classList.remove('hidden');
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            previewImagem.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        previewImagem.classList.add('hidden');
+        previewIcon.classList.remove('hidden');
+        
+        const iconElement = previewIcon.querySelector('i');
+        iconElement.className = 'text-xl ' + getIconeArquivo(file.type);
+    }
+    
+    container.classList.remove('hidden');
+}
+
+function getIconeArquivo(mimeType) {
+    if (mimeType.startsWith('image/')) return 'fas fa-image text-green-400';
+    if (mimeType === 'application/pdf') return 'fas fa-file-pdf text-red-400';
+    if (mimeType.includes('word')) return 'fas fa-file-word text-blue-400';
+    if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return 'fas fa-file-excel text-green-400';
+    if (mimeType.includes('text')) return 'fas fa-file-alt text-gray-400';
+    return 'fas fa-file text-blue-400';
+}
+
+function formatarTamanhoArquivo(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+async function uploadArquivo(file) {
+    uploadEmProgresso = true;
+    document.getElementById('anexoUploadProgress').classList.remove('hidden');
+    
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/mensagens/upload', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Erro ao fazer upload');
+        }
+        
+        anexoAtual = await response.json();
+        console.log('Upload concluido:', anexoAtual);
+        
+    } catch (error) {
+        console.error('Erro no upload:', error);
+        alert('Erro ao enviar arquivo: ' + error.message);
+        cancelarAnexo();
+    } finally {
+        uploadEmProgresso = false;
+        document.getElementById('anexoUploadProgress').classList.add('hidden');
+    }
+}
+
+function cancelarAnexo() {
+    anexoAtual = null;
+    uploadEmProgresso = false;
+    document.getElementById('anexoPreviewContainer').classList.add('hidden');
+    document.getElementById('inputArquivo').value = '';
+    document.getElementById('anexoPreviewImagem').src = '';
+}
+
+function getIconeArquivoPorNome(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    const icons = {
+        'pdf': 'fas fa-file-pdf text-red-400',
+        'doc': 'fas fa-file-word text-blue-400',
+        'docx': 'fas fa-file-word text-blue-400',
+        'xls': 'fas fa-file-excel text-green-400',
+        'xlsx': 'fas fa-file-excel text-green-400',
+        'txt': 'fas fa-file-alt text-gray-400',
+        'csv': 'fas fa-file-csv text-green-400',
+        'jpg': 'fas fa-image text-purple-400',
+        'jpeg': 'fas fa-image text-purple-400',
+        'png': 'fas fa-image text-purple-400',
+        'gif': 'fas fa-image text-purple-400',
+        'webp': 'fas fa-image text-purple-400'
+    };
+    return icons[ext] || 'fas fa-file text-blue-400';
+}
+
+function abrirImagemModal(url) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-4 cursor-pointer';
+    modal.onclick = () => modal.remove();
+    modal.innerHTML = `
+        <div class="relative max-w-full max-h-full">
+            <img src="${url}" class="max-w-full max-h-[90vh] rounded-lg shadow-2xl" onclick="event.stopPropagation()">
+            <button class="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition" onclick="this.parentElement.parentElement.remove()">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <a href="${url}" target="_blank" download class="absolute bottom-4 right-4 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 flex items-center gap-2 text-white transition" onclick="event.stopPropagation()">
+                <i class="fas fa-download"></i>
+                Baixar
+            </a>
+        </div>
+    `;
+    document.body.appendChild(modal);
 }
 
 document.getElementById('inputMensagem')?.addEventListener('keydown', (e) => {

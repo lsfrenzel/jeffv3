@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_, and_, func, desc
 from typing import List, Optional
@@ -13,8 +13,23 @@ from backend.schemas.mensagens import (
     BuscaMensagens
 )
 from backend.auth.security import obter_usuario_atual
+from backend.utils.storage import save_upload_file, format_file_size
 
 router = APIRouter(prefix="/api/mensagens", tags=["Mensagens"])
+
+@router.post("/upload")
+async def upload_arquivo(
+    file: UploadFile = File(...),
+    usuario: Usuario = Depends(obter_usuario_atual)
+):
+    try:
+        resultado = await save_upload_file(file)
+        resultado["tamanho_formatado"] = format_file_size(resultado["tamanho"])
+        return resultado
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao fazer upload: {str(e)}")
 
 def atualizar_status_usuario(db: Session, usuario_id: int, online: bool = True):
     status = db.query(StatusUsuario).filter(StatusUsuario.usuario_id == usuario_id).first()
