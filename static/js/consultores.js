@@ -1,10 +1,9 @@
 checkAuth();
+atualizarSidebar();
 
 const usuario = getUsuario();
-document.getElementById('userInfo').textContent = `${usuario.nome} (${usuario.tipo})`;
 
 if (usuario.tipo === 'admin') {
-    document.getElementById('adminLink').classList.remove('hidden');
     document.getElementById('btnNovoConsultor').classList.remove('hidden');
 }
 

@@ -239,9 +239,8 @@ document.getElementById('editUserForm').addEventListener('submit', async (e) => 
 });
 
 window.addEventListener('DOMContentLoaded', () => {
-    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-    if (usuario.nome) {
-        document.getElementById('userInfo').textContent = `${usuario.nome} (${usuario.tipo})`;
+    if (typeof atualizarSidebar !== 'undefined') {
+        atualizarSidebar();
     }
     carregarUsuarios();
 });

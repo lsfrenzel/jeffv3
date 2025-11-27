@@ -1,14 +1,7 @@
 checkAuth();
+atualizarSidebar();
 
 const usuario = getUsuario();
-document.getElementById('userInfo').textContent = `${usuario.nome} (${usuario.tipo})`;
-
-if (usuario.tipo === 'admin') {
-    const adminLink = document.getElementById('adminLink');
-    if (adminLink) {
-        adminLink.classList.remove('hidden');
-    }
-}
 
 async function carregarDashboard() {
     try {

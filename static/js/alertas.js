@@ -1,7 +1,5 @@
 checkAuth();
-
-const usuario = getUsuario();
-document.getElementById('userInfo').textContent = `${usuario.nome} (${usuario.tipo})`;
+atualizarSidebar();
 
 async function carregarAlertas() {
     try {

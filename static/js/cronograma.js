@@ -14,12 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
         checkAuth();
     }
     
-    // Obter usuário
-    if (typeof getUsuario !== 'undefined') {
-        const usuario = getUsuario();
-        if (usuario && document.getElementById('userInfo')) {
-            document.getElementById('userInfo').textContent = `${usuario.nome} (${usuario.tipo})`;
-        }
+    // Atualizar sidebar com foto e nome do usuário
+    if (typeof atualizarSidebar !== 'undefined') {
+        atualizarSidebar();
     }
     
     // Carregar dados iniciais

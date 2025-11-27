@@ -1,7 +1,5 @@
 checkAuth();
-
-const usuario = getUsuario();
-document.getElementById('userInfo').textContent = `${usuario.nome} (${usuario.tipo})`;
+atualizarSidebar();
 
 const empresaId = window.location.pathname.split('/').pop();
 

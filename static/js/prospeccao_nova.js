@@ -1,7 +1,7 @@
 checkAuth();
+atualizarSidebar();
 
 const usuario = getUsuario();
-document.getElementById('userInfo').textContent = `${usuario.nome} (${usuario.tipo})`;
 
 let todasProspeccoes = [];
 let visualizacaoAtual = 'cards';
@@ -462,3 +462,38 @@ document.getElementById('novaProspeccaoForm').addEventListener('submit', async (
 });
 
 carregarProspeccoes();
+
+async function verificarParametrosURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const empresaId = urlParams.get('empresa_id');
+    const consultorIdParam = urlParams.get('consultor_id');
+    
+    if (empresaId) {
+        try {
+            const response = await apiRequest(`/api/empresas/${empresaId}`);
+            if (response.ok) {
+                const empresa = await response.json();
+                empresaIdInput.value = empresa.id;
+                empresaSearchInput.value = `${empresa.empresa} - ${empresa.municipio || 'N/A'}`;
+                empresaSelecionada = { id: empresa.id, nome: empresa.empresa, municipio: empresa.municipio };
+            }
+        } catch (error) {
+            console.error('Erro ao carregar empresa dos parâmetros:', error);
+        }
+    }
+    
+    if (consultorIdParam && usuario.tipo === 'admin') {
+        await carregarConsultores();
+        const select = document.getElementById('consultor_id');
+        if (select) {
+            select.value = consultorIdParam;
+        }
+    }
+    
+    if (empresaId || consultorIdParam) {
+        showNovaProspeccaoModal();
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+}
+
+verificarParametrosURL();

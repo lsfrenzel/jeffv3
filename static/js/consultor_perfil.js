@@ -1,11 +1,5 @@
 checkAuth();
-
-const usuario = getUsuario();
-document.getElementById('userInfo').textContent = `${usuario.nome} (${usuario.tipo})`;
-
-if (usuario.tipo === 'admin') {
-    document.getElementById('adminLink').classList.remove('hidden');
-}
+atualizarSidebar();
 
 let perfilAtual = null;
 let empresasDisponiveis = [];
@@ -265,8 +259,52 @@ async function salvarAcoes() {
     empresasSelecionadas = [];
 }
 
-function visualizarEmpresasAtribuidas() {
-    window.location.href = '/empresas';
+async function visualizarEmpresasAtribuidas() {
+    document.getElementById('modalVerEmpresas').classList.remove('hidden');
+    await carregarListaEmpresasAtribuidas();
+}
+
+function fecharModalVerEmpresas() {
+    document.getElementById('modalVerEmpresas').classList.add('hidden');
+}
+
+async function carregarListaEmpresasAtribuidas() {
+    try {
+        const response = await apiRequest(`/api/atribuicoes/consultor/${consultorId}`);
+        const atribuicoes = await response.json();
+        
+        const container = document.getElementById('listaEmpresasAtribuidas');
+        
+        if (!atribuicoes || atribuicoes.length === 0) {
+            container.innerHTML = '<p class="text-gray-400 text-center py-4">Nenhuma empresa atribuída a este consultor</p>';
+            return;
+        }
+        
+        container.innerHTML = atribuicoes
+            .filter(atrib => atrib.empresa)
+            .map(atrib => `
+                <div class="bg-dark-card p-4 rounded-lg hover:bg-dark-hover cursor-pointer transition" onclick="window.location.href='/empresa/${atrib.empresa.id}'">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-white font-medium">${atrib.empresa.empresa || 'Empresa sem nome'}</p>
+                            <p class="text-gray-400 text-sm">${atrib.empresa.cnpj || 'Sem CNPJ'} - ${atrib.empresa.municipio || 'N/A'}, ${atrib.empresa.estado || 'N/A'}</p>
+                        </div>
+                        <div class="text-blue-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        
+        if (container.innerHTML === '') {
+            container.innerHTML = '<p class="text-gray-400 text-center py-4">Nenhuma empresa atribuída a este consultor</p>';
+        }
+    } catch (error) {
+        console.error('Erro ao carregar empresas atribuídas:', error);
+        document.getElementById('listaEmpresasAtribuidas').innerHTML = '<p class="text-red-400 text-center py-4">Erro ao carregar empresas</p>';
+    }
 }
 
 function abrirModalEditarPerfil() {

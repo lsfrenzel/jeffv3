@@ -1,7 +1,7 @@
 checkAuth();
+atualizarSidebar();
 
 const usuario = getUsuario();
-document.getElementById('userInfo').textContent = `${usuario.nome} (${usuario.tipo})`;
 
 let conversaAtual = null;
 let conversas = [];
