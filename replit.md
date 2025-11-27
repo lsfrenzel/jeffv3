@@ -118,15 +118,32 @@ The project is structured with clear separation of concerns: `backend/` for API 
 
 ## Deployment
 
-### Railway
-O sistema está completamente preparado para deploy no Railway:
--   **Migrações automáticas** via Alembic executadas a cada deploy
--   **PostgreSQL** provido automaticamente pelo Railway
--   **Configuração zero**: Apenas conectar repositório GitHub e adicionar banco de dados
--   **Seeding automático**: Usuários padrão e dados iniciais criados na primeira execução
--   **Health check otimizado**: Endpoints `/health` e `/healthz` independentes do banco de dados
--   **Configuração corrigida em Nov 27, 2025**: 
-    -   railway.toml com healthcheckTimeout=120 e startCommand explícito
-    -   nixpacks.toml com pacote `file` (libmagic) para python-magic
-    -   start.sh não bloqueia mais se DATABASE_URL não estiver definida
--   Veja `RAILWAY_DEPLOY.md` para instruções detalhadas
+### Railway (Docker-based - Nov 27, 2025)
+O sistema usa **Dockerfile** para deploy determinístico no Railway:
+
+**Arquitetura de Deploy:**
+-   **Dockerfile**: Imagem Python 3.11-slim com Gunicorn + Uvicorn workers
+-   **docker-entrypoint.sh**: Script de inicialização robusto que:
+    -   Verifica DATABASE_URL (falha se não configurada)
+    -   Aguarda banco de dados estar pronto (30 tentativas)
+    -   Executa migrações Alembic antes de iniciar
+    -   Roda seeding uma vez antes dos workers
+    -   Define SKIP_STARTUP_SEED para evitar duplicação
+
+**Health Check:**
+-   Endpoint `/health` independente do banco de dados
+-   Resposta rápida para evitar timeout do Railway
+-   HEALTHCHECK nativo do Docker configurado
+
+**Configuração Railway:**
+-   `railway.toml` usa builder DOCKERFILE
+-   `healthcheckTimeout=120` para permitir startup
+-   Gunicorn com 2 workers Uvicorn
+
+**Para fazer deploy:**
+1. Conecte o repositório GitHub ao Railway
+2. Adicione PostgreSQL ao projeto
+3. Configure a variável DATABASE_URL (automático se usar addon)
+4. Deploy automático a cada push
+
+Veja `RAILWAY_DEPLOY.md` para instruções detalhadas
