@@ -66,21 +66,30 @@ with engine.connect() as conn:
         WHERE table_name = 'alembic_version'
     \"\"\"))
     if not result.fetchone():
-        # Check if tables exist (database was created with create_all)
+        # Check required tables exist (database was created with create_all)
         result = conn.execute(text(\"\"\"
-            SELECT table_name FROM information_schema.tables 
-            WHERE table_name = 'empresas'
+            SELECT COUNT(*) FROM information_schema.tables 
+            WHERE table_name IN ('empresas', 'usuarios', 'prospeccoes', 'agendamentos')
         \"\"\"))
-        if result.fetchone():
-            print('Database was created without migrations. Stamping to f80b2b33a570...')
+        table_count = result.scalar()
+        
+        if table_count >= 4:
+            print(f'Database has {table_count} core tables without Alembic tracking.')
+            print('Stamping to f80b2b33a570 (last revision before contact field migration)...')
             # Tables exist but no alembic tracking - stamp to version before new migration
             import subprocess
             subprocess.run(['python', '-m', 'alembic', 'stamp', 'f80b2b33a570'], check=True)
             print('Alembic stamped successfully!')
+            print('NOTE: If migration issues occur, verify schema matches expected state.')
+        elif table_count > 0:
+            print(f'WARNING: Partial database detected ({table_count} tables). Manual review needed.')
+            print('Attempting fresh migration...')
         else:
-            print('Fresh database - migrations will create tables')
+            print('Fresh database - migrations will create tables from scratch.')
     else:
-        print('Alembic version table exists - normal migration')
+        result = conn.execute(text('SELECT version_num FROM alembic_version'))
+        version = result.scalar()
+        print(f'Alembic version table exists (current: {version}) - normal migration flow')
 "
 
 # Now run the actual migrations
