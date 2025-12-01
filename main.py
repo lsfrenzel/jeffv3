@@ -12,37 +12,81 @@ from backend.models.prospeccoes import gerar_codigo_prospeccao
 
 app = FastAPI(title="Núcleo 1.03", version="1.0.0")
 
-def adicionar_coluna_codigo_se_necessario():
-    """Adiciona a coluna 'codigo' à tabela prospeccoes se não existir"""
+def adicionar_colunas_faltantes_prospeccoes():
+    """Adiciona colunas faltantes à tabela prospeccoes se não existirem"""
     from sqlalchemy import text
     
     if engine is None:
         return
     
+    colunas_necessarias = {
+        'codigo': 'VARCHAR(50)',
+        'data_atualizacao': 'TIMESTAMP',
+        'porte': 'VARCHAR(50)',
+        'lr': 'VARCHAR(50)',
+        'id_externo': 'VARCHAR(100)',
+        'cfr': 'VARCHAR(50)',
+        'tipo_producao': 'VARCHAR(200)',
+        'data_prospeccao': 'DATE',
+        'follow_up': 'DATE',
+        'nome_contato': 'VARCHAR(200)',
+        'cargo': 'VARCHAR(200)',
+        'celular': 'VARCHAR(50)',
+        'telefone': 'VARCHAR(50)',
+        'telefone_contato': 'VARCHAR(50)',
+        'email_contato': 'VARCHAR(200)',
+        'cargo_contato': 'VARCHAR(200)',
+        'cnpj': 'VARCHAR(50)',
+        'status_prospeccao': 'VARCHAR(100)',
+        'responsavel': 'VARCHAR(200)',
+        'opcoes': 'TEXT',
+        'retorno': 'TEXT',
+        'observacoes_prospeccao': 'TEXT',
+        'interesse_treinamento': 'BOOLEAN DEFAULT FALSE',
+        'interesse_consultoria': 'BOOLEAN DEFAULT FALSE',
+        'interesse_certificacao': 'BOOLEAN DEFAULT FALSE',
+        'interesse_eventos': 'BOOLEAN DEFAULT FALSE',
+        'interesse_produtos': 'BOOLEAN DEFAULT FALSE',
+        'interesse_seguranca': 'BOOLEAN DEFAULT FALSE',
+        'interesse_meio_ambiente': 'BOOLEAN DEFAULT FALSE',
+        'outros_interesses': 'TEXT',
+        'potencial_negocio': 'VARCHAR(50)',
+        'status_follow_up': 'VARCHAR(100)',
+        'proxima_prospeccao_data': 'DATE',
+    }
+    
     with engine.connect() as conn:
         result = conn.execute(text("""
             SELECT column_name 
             FROM information_schema.columns 
-            WHERE table_name = 'prospeccoes' AND column_name = 'codigo'
+            WHERE table_name = 'prospeccoes'
         """))
-        coluna_existe = result.fetchone() is not None
+        colunas_existentes = {row[0] for row in result.fetchall()}
         
-        if not coluna_existe:
-            print("🔄 Adicionando coluna 'codigo' à tabela prospeccoes...")
-            conn.execute(text("""
-                ALTER TABLE prospeccoes 
-                ADD COLUMN codigo VARCHAR(50)
-            """))
-            conn.commit()
-            print("✅ Coluna 'codigo' adicionada com sucesso")
-            
+        for coluna, tipo in colunas_necessarias.items():
+            if coluna not in colunas_existentes:
+                print(f"🔄 Adicionando coluna '{coluna}' à tabela prospeccoes...")
+                try:
+                    conn.execute(text(f"""
+                        ALTER TABLE prospeccoes 
+                        ADD COLUMN {coluna} {tipo}
+                    """))
+                    conn.commit()
+                    print(f"✅ Coluna '{coluna}' adicionada com sucesso")
+                except Exception as e:
+                    print(f"⚠️ Erro ao adicionar coluna '{coluna}': {e}")
+        
+        if 'codigo' not in colunas_existentes:
             print("🔄 Criando índice único para coluna 'codigo'...")
-            conn.execute(text("""
-                CREATE UNIQUE INDEX IF NOT EXISTS ix_prospeccoes_codigo 
-                ON prospeccoes (codigo) WHERE codigo IS NOT NULL
-            """))
-            conn.commit()
-            print("✅ Índice criado com sucesso")
+            try:
+                conn.execute(text("""
+                    CREATE UNIQUE INDEX IF NOT EXISTS ix_prospeccoes_codigo 
+                    ON prospeccoes (codigo) WHERE codigo IS NOT NULL
+                """))
+                conn.commit()
+                print("✅ Índice criado com sucesso")
+            except Exception as e:
+                print(f"⚠️ Erro ao criar índice: {e}")
 
 def atualizar_prospeccoes_sem_codigo(db):
     """Atualiza prospecções que não possuem código único"""
@@ -103,9 +147,9 @@ async def startup_event():
         print(f"⚠️ Erro ao verificar tabelas: {e}")
     
     try:
-        adicionar_coluna_codigo_se_necessario()
+        adicionar_colunas_faltantes_prospeccoes()
     except Exception as e:
-        print(f"⚠️ Erro ao adicionar coluna codigo: {e}")
+        print(f"⚠️ Erro ao adicionar colunas faltantes: {e}")
     
     db = SessionLocal()
     try:
