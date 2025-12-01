@@ -60,3 +60,8 @@ The project enforces separation of concerns (`backend/`, `templates/`, `static/`
     -   BrasilAPI
     -   publica.cnpj.ws
 -   **Avatar Generation**: ui-avatars.com
+
+## Recent Changes (December 2025)
+-   Fixed 403 Forbidden error on `/api/consultores/{id}` endpoint - now allows admins and all user types to view profiles, not just consultors
+-   Fixed 307 redirect issues by ensuring JavaScript API calls use trailing slashes to match FastAPI routes
+-   Configured PostgreSQL database with seed data (admin user, consultores, empresas, pipeline stages, cronograma events)
