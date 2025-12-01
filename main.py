@@ -7,6 +7,7 @@ from backend.database import SessionLocal, Base, engine
 from backend.models import Usuario, Empresa, Prospeccao, Agendamento, AtribuicaoEmpresa, Notificacao, Mensagem
 from backend.routers import auth, empresas, prospeccoes, agendamentos, admin, atribuicoes, consultores, dashboard, cnpj, notificacoes, mensagens, cronograma, pipeline
 from backend.utils.seed import criar_usuario_admin_padrao, criar_empresas_padrao, criar_consultores_padrao, criar_stages_padrao
+from backend.utils.seed_cronograma import seed_cronograma
 
 app = FastAPI(title="Núcleo 1.03", version="1.0.0")
 
@@ -71,6 +72,11 @@ async def startup_event():
             criar_stages_padrao(db)
         except Exception as e:
             print(f"⚠️ Erro ao criar stages (podem já existir): {e}")
+        
+        try:
+            seed_cronograma(db)
+        except Exception as e:
+            print(f"⚠️ Erro ao importar cronograma: {e}")
         
         print("✅ Seed de dados concluído")
     except Exception as e:
