@@ -102,23 +102,21 @@ def obter_ultimo_contato(
             detail="Empresa não encontrada"
         )
     
-    ultima_prospeccao = db.query(Prospeccao).filter(
-        Prospeccao.empresa_id == empresa_id
-    ).order_by(Prospeccao.data_criacao.desc()).first()
+    nome = empresa.nome_contato
+    cargo = empresa.cargo_contato
+    telefone = empresa.telefone_contato
+    email = empresa.email_contato
     
-    if not ultima_prospeccao:
-        return {
-            "tem_contato": False,
-            "nome_contato": None,
-            "cargo_contato": None,
-            "telefone_contato": None,
-            "email_contato": None
-        }
-    
-    nome = ultima_prospeccao.nome_contato
-    cargo = ultima_prospeccao.cargo_contato or ultima_prospeccao.cargo
-    telefone = ultima_prospeccao.telefone_contato or ultima_prospeccao.telefone or ultima_prospeccao.celular
-    email = ultima_prospeccao.email_contato
+    if not any([nome, cargo, telefone, email]):
+        ultima_prospeccao = db.query(Prospeccao).filter(
+            Prospeccao.empresa_id == empresa_id
+        ).order_by(Prospeccao.data_criacao.desc()).first()
+        
+        if ultima_prospeccao:
+            nome = nome or ultima_prospeccao.nome_contato
+            cargo = cargo or ultima_prospeccao.cargo_contato or ultima_prospeccao.cargo
+            telefone = telefone or ultima_prospeccao.telefone_contato or ultima_prospeccao.telefone or ultima_prospeccao.celular
+            email = email or ultima_prospeccao.email_contato
     
     tem_contato = bool(nome or cargo or telefone or email)
     

@@ -21,6 +21,10 @@ class EmpresaBase(BaseModel):
     tipo_empresa: Optional[str] = None
     numero_funcionarios: Optional[int] = None
     observacao: Optional[str] = None
+    nome_contato: Optional[str] = None
+    cargo_contato: Optional[str] = None
+    telefone_contato: Optional[str] = None
+    email_contato: Optional[str] = None
 
 class EmpresaCriar(EmpresaBase):
     pass
@@ -44,6 +48,10 @@ class EmpresaAtualizar(BaseModel):
     tipo_empresa: Optional[str] = None
     numero_funcionarios: Optional[int] = None
     observacao: Optional[str] = None
+    nome_contato: Optional[str] = None
+    cargo_contato: Optional[str] = None
+    telefone_contato: Optional[str] = None
+    email_contato: Optional[str] = None
 
 class EmpresaResposta(EmpresaBase):
     id: int

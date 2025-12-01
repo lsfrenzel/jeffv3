@@ -27,6 +27,11 @@ class Empresa(Base):
     data_atualizacao = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     numero_funcionarios = Column(Integer)
     observacao = Column(Text)
+    
+    nome_contato = Column(String(200))
+    cargo_contato = Column(String(200))
+    telefone_contato = Column(String(50))
+    email_contato = Column(String(200))
 
     prospeccoes = relationship("Prospeccao", back_populates="empresa")
     atribuicoes = relationship("AtribuicaoEmpresa", back_populates="empresa")

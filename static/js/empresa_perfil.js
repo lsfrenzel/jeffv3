@@ -28,6 +28,19 @@ async function carregarEmpresaPerfil() {
                 <div class="col-span-2"><span class="text-gray-400">Endereço:</span> <span class="text-white">${empresa.endereco || '-'}</span></div>
                 ${empresa.observacao ? `<div class="col-span-2"><span class="text-gray-400">Observação:</span> <p class="text-white mt-2">${empresa.observacao}</p></div>` : ''}
             </div>
+            
+            <div class="mt-6 pt-4 border-t border-dark-border/50">
+                <h4 class="text-base font-semibold text-white mb-3 flex items-center gap-2">
+                    <i class="fas fa-user-tie text-emerald-400"></i>
+                    Dados do Contato
+                </h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><span class="text-gray-400">Nome:</span> <span class="text-white">${empresa.nome_contato || '-'}</span></div>
+                    <div><span class="text-gray-400">Cargo:</span> <span class="text-white">${empresa.cargo_contato || '-'}</span></div>
+                    <div><span class="text-gray-400">Telefone:</span> <span class="text-white">${empresa.telefone_contato || '-'}</span></div>
+                    <div><span class="text-gray-400">E-mail:</span> <span class="text-white">${empresa.email_contato || '-'}</span></div>
+                </div>
+            </div>
         `;
         
         if (prospeccoes.length === 0) {

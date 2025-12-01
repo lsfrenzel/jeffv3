@@ -149,7 +149,11 @@ document.getElementById('novaEmpresaForm').addEventListener('submit', async (e) 
         municipio: document.getElementById('municipio').value || null,
         estado: document.getElementById('estado').value || null,
         numero_funcionarios: document.getElementById('numero_funcionarios').value ? parseInt(document.getElementById('numero_funcionarios').value) : null,
-        observacao: document.getElementById('observacao').value || null
+        observacao: document.getElementById('observacao').value || null,
+        nome_contato: document.getElementById('nome_contato').value || null,
+        cargo_contato: document.getElementById('cargo_contato').value || null,
+        telefone_contato: document.getElementById('telefone_contato').value || null,
+        email_contato: document.getElementById('email_contato').value || null
     };
     
     try {
@@ -163,7 +167,7 @@ document.getElementById('novaEmpresaForm').addEventListener('submit', async (e) 
             const empresaId = resultado.id || resultado.empresa_id;
             
             if (empresaId) {
-                alert('Empresa cadastrada com sucesso! Redirecionando para adicionar informações de contato...');
+                alert('Empresa cadastrada com sucesso!');
                 hideNovaEmpresaModal();
                 window.location.href = `/empresa/${empresaId}`;
             } else {
