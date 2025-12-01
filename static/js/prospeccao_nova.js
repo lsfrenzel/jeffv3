@@ -120,7 +120,7 @@ function mostrarProspeccoesLista(prospeccoes) {
     const tbody = document.getElementById('listaProspeccoesTable');
     
     if (prospeccoes.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-gray-400">Nenhuma prospecção encontrada</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="px-2 py-4 text-center text-gray-400 text-xs">Nenhuma prospecção encontrada</td></tr>';
         return;
     }
     
@@ -134,20 +134,28 @@ function mostrarProspeccoesLista(prospeccoes) {
         const empresaEstado = prosp.empresa?.estado || prosp.estado || 'N/A';
         const consultorNome = prosp.consultor?.nome || prosp.consultor_nome || 'N/A';
         
+        const observacoes = prosp.observacoes || '';
+        const obsLength = observacoes.length;
+        const obsFontClass = obsLength > 100 ? 'text-[10px]' : 'text-xs';
+        const obsText = observacoes || '-';
+        
         return `
-            <tr class="hover:bg-dark-hover transition">
-                <td class="px-6 py-4">
-                    <div class="text-white font-medium">${empresaNome}</div>
-                    <div class="text-gray-400 text-sm">${empresaMunicipio} - ${empresaEstado}</div>
+            <tr class="hover:bg-dark-hover/50 transition border-b border-gray-700/30">
+                <td class="px-2 py-1.5 align-top">
+                    <div class="text-white text-xs font-medium truncate" title="${empresaNome}">${empresaNome}</div>
+                    <div class="text-gray-500 text-[10px] truncate">${empresaMunicipio}-${empresaEstado}</div>
                 </td>
-                <td class="px-6 py-4 text-white">${consultorNome}</td>
-                <td class="px-6 py-4 text-white">${prosp.data_ligacao ? new Date(prosp.data_ligacao).toLocaleDateString('pt-BR') : 'N/A'}</td>
-                <td class="px-6 py-4 ${resultadoClass} font-semibold">${prosp.resultado || 'N/A'}</td>
-                <td class="px-6 py-4 text-white">${prosp.status_follow_up || 'N/A'}</td>
-                <td class="px-6 py-4 text-white">${prosp.potencial_negocio || 'N/A'}</td>
-                <td class="px-6 py-4">
-                    <button onclick="exportarPDF(${prosp.id})" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition">
-                        📄 PDF
+                <td class="px-2 py-1.5 text-gray-300 text-xs truncate align-top" title="${consultorNome}">${consultorNome}</td>
+                <td class="px-2 py-1.5 text-gray-300 text-xs align-top whitespace-nowrap">${prosp.data_ligacao ? new Date(prosp.data_ligacao).toLocaleDateString('pt-BR') : '-'}</td>
+                <td class="px-2 py-1.5 ${resultadoClass} text-xs font-medium align-top">${prosp.resultado || '-'}</td>
+                <td class="px-2 py-1.5 text-gray-300 text-xs align-top">${prosp.status_follow_up || '-'}</td>
+                <td class="px-2 py-1.5 text-gray-300 text-xs align-top">${prosp.potencial_negocio || '-'}</td>
+                <td class="px-2 py-1.5 align-top">
+                    <div class="${obsFontClass} text-gray-400 leading-tight max-h-16 overflow-y-auto break-words" title="${obsText}">${obsText}</div>
+                </td>
+                <td class="px-2 py-1.5 align-top">
+                    <button onclick="exportarPDF(${prosp.id})" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-[10px] transition whitespace-nowrap">
+                        PDF
                     </button>
                 </td>
             </tr>
