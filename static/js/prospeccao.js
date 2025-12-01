@@ -8,10 +8,10 @@ let consultoresCache = [];
 
 async function carregarProspeccoes() {
     try {
-        const response = await apiRequest('/api/prospeccoes');
+        const response = await apiRequest('/api/prospeccoes/');
         const prospeccoes = await response.json();
         
-        const empresasResponse = await apiRequest('/api/empresas');
+        const empresasResponse = await apiRequest('/api/empresas/');
         empresasCache = await empresasResponse.json();
         
         const tbody = document.getElementById('tabelaProspeccoes');
@@ -44,7 +44,7 @@ async function showNovaProspeccaoModal() {
     document.getElementById('novaProspeccaoModal').classList.remove('hidden');
     
     if (empresasCache.length === 0) {
-        const response = await apiRequest('/api/empresas');
+        const response = await apiRequest('/api/empresas/');
         empresasCache = await response.json();
     }
     
@@ -53,7 +53,7 @@ async function showNovaProspeccaoModal() {
         empresasCache.map(e => `<option value="${e.id}">${e.empresa}</option>`).join('');
     
     if (usuario.tipo === 'admin') {
-        const response = await apiRequest('/api/empresas');
+        const response = await apiRequest('/api/empresas/');
         document.getElementById('consultor_id').innerHTML = '<option value="">Selecione um consultor</option>';
     } else {
         document.getElementById('consultorDiv').style.display = 'none';
