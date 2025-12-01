@@ -80,14 +80,13 @@ def obter_consultor_perfil(
     usuario: Usuario = Depends(obter_usuario_atual)
 ):
     consultor = db.query(Usuario).filter(
-        Usuario.id == consultor_id,
-        Usuario.tipo == TipoUsuario.consultor
+        Usuario.id == consultor_id
     ).first()
     
     if not consultor:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Consultor não encontrado"
+            detail="Usuário não encontrado"
         )
     
     prospeccoes = db.query(Prospeccao).filter(
