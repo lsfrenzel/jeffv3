@@ -138,16 +138,36 @@ function renderizarGraficoEmpresas(data) {
     const labels = Object.keys(data).slice(0, 10);
     const valores = Object.values(data).slice(0, 10);
     
+    const gradientColors = [
+        { bg: 'rgba(59, 130, 246, 0.8)', border: 'rgba(59, 130, 246, 1)' },
+        { bg: 'rgba(139, 92, 246, 0.8)', border: 'rgba(139, 92, 246, 1)' },
+        { bg: 'rgba(16, 185, 129, 0.8)', border: 'rgba(16, 185, 129, 1)' },
+        { bg: 'rgba(245, 158, 11, 0.8)', border: 'rgba(245, 158, 11, 1)' },
+        { bg: 'rgba(239, 68, 68, 0.8)', border: 'rgba(239, 68, 68, 1)' },
+        { bg: 'rgba(6, 182, 212, 0.8)', border: 'rgba(6, 182, 212, 1)' },
+        { bg: 'rgba(236, 72, 153, 0.8)', border: 'rgba(236, 72, 153, 1)' },
+        { bg: 'rgba(34, 197, 94, 0.8)', border: 'rgba(34, 197, 94, 1)' },
+        { bg: 'rgba(168, 85, 247, 0.8)', border: 'rgba(168, 85, 247, 1)' },
+        { bg: 'rgba(251, 146, 60, 0.8)', border: 'rgba(251, 146, 60, 1)' }
+    ];
+    
+    const backgroundColors = valores.map((_, i) => gradientColors[i % gradientColors.length].bg);
+    const borderColors = valores.map((_, i) => gradientColors[i % gradientColors.length].border);
+    
+    const maxValor = Math.max(...valores);
+    
     graficoEmpresasInstance = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
             datasets: [{
-                label: 'Empresas por Consultor (Top 10)',
+                label: 'Quantidade de Empresas',
                 data: valores,
-                backgroundColor: 'rgba(168, 85, 247, 0.5)',
-                borderColor: 'rgba(168, 85, 247, 1)',
-                borderWidth: 1
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
+                borderWidth: 2,
+                borderRadius: 8,
+                borderSkipped: false
             }]
         },
         options: {
@@ -156,18 +176,63 @@ function renderizarGraficoEmpresas(data) {
             indexAxis: 'y',
             plugins: {
                 legend: {
-                    labels: { color: '#fff' }
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                    titleColor: '#fff',
+                    bodyColor: '#9ca3af',
+                    borderColor: 'rgba(59, 130, 246, 0.5)',
+                    borderWidth: 1,
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            const valor = context.raw;
+                            const percentual = maxValor > 0 ? ((valor / maxValor) * 100).toFixed(0) : 0;
+                            return `${valor} empresa${valor !== 1 ? 's' : ''} (${percentual}% do líder)`;
+                        }
+                    }
                 }
             },
             scales: {
                 x: {
                     beginAtZero: true,
-                    ticks: { color: '#9ca3af' },
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    ticks: { 
+                        color: '#9ca3af',
+                        font: { size: 12 },
+                        stepSize: 1
+                    },
+                    grid: { 
+                        color: 'rgba(255, 255, 255, 0.05)',
+                        drawBorder: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Quantidade de Empresas',
+                        color: '#6b7280',
+                        font: { size: 12, weight: 'bold' }
+                    }
                 },
                 y: {
-                    ticks: { color: '#9ca3af' },
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    ticks: { 
+                        color: '#e5e7eb',
+                        font: { size: 13, weight: '500' },
+                        padding: 10
+                    },
+                    grid: { 
+                        display: false
+                    }
+                }
+            },
+            animation: {
+                duration: 1000,
+                easing: 'easeOutQuart'
+            },
+            layout: {
+                padding: {
+                    right: 20
                 }
             }
         }
