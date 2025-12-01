@@ -4,6 +4,7 @@ let categorias = [];
 let mesAtual = new Date().getMonth();
 let anoAtual = new Date().getFullYear();
 let dataSelecionada = null;
+let visualizacaoMobile = 'calendario';
 
 const CATEGORIA_CORES = {
     'C': { nome: 'Consultoria', cor: '#22c55e' },
@@ -65,10 +66,198 @@ async function carregarDados() {
         
         await carregarEventos();
         renderizarCalendario();
+        renderizarCalendarioMobile();
         atualizarResumo();
         renderizarLegendaConsultores();
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
+    }
+}
+
+function toggleFiltros() {
+    const container = document.getElementById('filtrosContainer');
+    if (container) {
+        container.classList.toggle('hidden');
+        container.classList.toggle('lg:block');
+    }
+}
+
+function setVisualizacao(tipo) {
+    visualizacaoMobile = tipo;
+    
+    const btnCalendario = document.getElementById('btnVisualizacaoCalendario');
+    const btnLista = document.getElementById('btnVisualizacaoLista');
+    const calendarioMobile = document.getElementById('calendarioMobile');
+    const listaMobile = document.getElementById('listaEventosMobile');
+    
+    if (tipo === 'calendario') {
+        btnCalendario.classList.add('bg-blue-500/20', 'text-blue-400');
+        btnCalendario.classList.remove('text-gray-400');
+        btnLista.classList.remove('bg-blue-500/20', 'text-blue-400');
+        btnLista.classList.add('text-gray-400');
+        calendarioMobile.classList.remove('hidden');
+        listaMobile.classList.add('hidden');
+    } else {
+        btnLista.classList.add('bg-blue-500/20', 'text-blue-400');
+        btnLista.classList.remove('text-gray-400');
+        btnCalendario.classList.remove('bg-blue-500/20', 'text-blue-400');
+        btnCalendario.classList.add('text-gray-400');
+        calendarioMobile.classList.add('hidden');
+        listaMobile.classList.remove('hidden');
+        renderizarListaEventosMobile();
+    }
+}
+
+function renderizarListaEventosMobile() {
+    const container = document.getElementById('listaEventosMobile');
+    if (!container) return;
+    
+    const eventosPorData = {};
+    eventos.forEach(e => {
+        if (!eventosPorData[e.data]) {
+            eventosPorData[e.data] = [];
+        }
+        eventosPorData[e.data].push(e);
+    });
+    
+    const datasOrdenadas = Object.keys(eventosPorData).sort();
+    
+    if (datasOrdenadas.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8">
+                <i class="fas fa-calendar-times text-3xl text-gray-600 mb-3"></i>
+                <p class="text-gray-400 text-sm">Nenhum evento neste mes</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    
+    datasOrdenadas.forEach(dataStr => {
+        const dataObj = new Date(dataStr + 'T12:00:00');
+        const dia = dataObj.getDate();
+        const diaSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'][dataObj.getDay()];
+        const eventosData = eventosPorData[dataStr];
+        
+        html += `
+            <div class="bg-dark-card/30 rounded-xl overflow-hidden">
+                <div class="flex items-center gap-3 px-3 py-2 bg-dark-card/50 border-b border-dark-border/30">
+                    <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex flex-col items-center justify-center">
+                        <span class="text-blue-400 text-xs font-medium">${diaSemana}</span>
+                        <span class="text-white text-sm font-bold leading-none">${dia}</span>
+                    </div>
+                    <span class="text-gray-300 text-sm font-medium">${eventosData.length} evento${eventosData.length > 1 ? 's' : ''}</span>
+                </div>
+                <div class="p-2 space-y-1.5">
+        `;
+        
+        eventosData.forEach(evento => {
+            const catCor = CATEGORIA_CORES[evento.categoria]?.cor || '#6b7280';
+            const consultorCor = getConsultorCor(evento.consultor_id);
+            const iniciais = getIniciais(evento.consultor_nome);
+            const titulo = evento.sigla_empresa || evento.categoria_nome;
+            
+            html += `
+                <div class="flex items-center gap-2 p-2 rounded-lg bg-dark-bg/50 active:bg-dark-bg" onclick="editarEvento(${evento.id})">
+                    <div class="w-7 h-7 rounded-md flex items-center justify-center text-white text-[10px] font-bold"
+                         style="background-color: ${consultorCor};">
+                        ${iniciais}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full flex-shrink-0" style="background-color: ${catCor};"></span>
+                            <span class="text-white text-xs font-medium truncate">${titulo}</span>
+                        </div>
+                        <span class="text-gray-500 text-[10px]">${getPrimeiroNome(evento.consultor_nome)}</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-600 text-xs"></i>
+                </div>
+            `;
+        });
+        
+        html += '</div></div>';
+    });
+    
+    container.innerHTML = html;
+}
+
+function renderizarCalendarioMobile() {
+    const container = document.getElementById('diasCalendarioMobile');
+    if (!container) return;
+    
+    const primeiroDia = new Date(anoAtual, mesAtual, 1);
+    const ultimoDia = new Date(anoAtual, mesAtual + 1, 0);
+    const diasNoMes = ultimoDia.getDate();
+    const diaSemanaInicio = primeiroDia.getDay();
+    
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    
+    let html = '';
+    
+    for (let i = 0; i < diaSemanaInicio; i++) {
+        html += '<div class="aspect-square bg-dark-bg/20 rounded"></div>';
+    }
+    
+    for (let dia = 1; dia <= diasNoMes; dia++) {
+        const dataAtual = new Date(anoAtual, mesAtual, dia);
+        const dataStr = dataAtual.toISOString().split('T')[0];
+        
+        const eventosDoDia = eventos.filter(e => e.data === dataStr);
+        const qtdEventos = eventosDoDia.length;
+        
+        const isHoje = dataAtual.getTime() === hoje.getTime();
+        const isDomingo = dataAtual.getDay() === 0;
+        const isSabado = dataAtual.getDay() === 6;
+        
+        let classesDia = 'aspect-square rounded p-0.5 flex flex-col items-center justify-start transition active:scale-95 ';
+        
+        if (isHoje) {
+            classesDia += 'bg-blue-900/50 ring-1 ring-blue-500 ';
+        } else if (isDomingo) {
+            classesDia += 'bg-red-900/20 ';
+        } else if (isSabado) {
+            classesDia += 'bg-blue-900/20 ';
+        } else {
+            classesDia += 'bg-dark-bg/40 ';
+        }
+        
+        let classeDia = 'text-[10px] font-bold ';
+        if (isHoje) classeDia += 'text-blue-400';
+        else if (isDomingo) classeDia += 'text-red-400';
+        else if (isSabado) classeDia += 'text-blue-300';
+        else classeDia += 'text-gray-300';
+        
+        html += `<div class="${classesDia}" onclick="abrirDetalhesDia('${dataStr}', ${dia})">`;
+        html += `<span class="${classeDia}">${dia}</span>`;
+        
+        if (qtdEventos > 0) {
+            const coresEventos = [...new Set(eventosDoDia.slice(0, 3).map(e => getConsultorCor(e.consultor_id)))];
+            
+            html += '<div class="flex gap-0.5 mt-0.5 flex-wrap justify-center">';
+            coresEventos.forEach(cor => {
+                html += `<span class="w-1.5 h-1.5 rounded-full" style="background-color: ${cor};"></span>`;
+            });
+            html += '</div>';
+            
+            if (qtdEventos > 3) {
+                html += `<span class="text-[8px] text-gray-500">+${qtdEventos - 3}</span>`;
+            }
+        }
+        
+        html += '</div>';
+    }
+    
+    const celulasRestantes = (7 - ((diaSemanaInicio + diasNoMes) % 7)) % 7;
+    for (let i = 0; i < celulasRestantes; i++) {
+        html += '<div class="aspect-square bg-dark-bg/20 rounded"></div>';
+    }
+    
+    container.innerHTML = html;
+    
+    if (visualizacaoMobile === 'lista') {
+        renderizarListaEventosMobile();
     }
 }
 
@@ -83,14 +272,14 @@ function renderizarLegendaConsultores() {
         const primeiroNome = getPrimeiroNome(c.nome);
         
         html += `
-            <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-dark-card/50 hover:bg-dark-card transition cursor-pointer border border-transparent hover:border-dark-border/50"
+            <div class="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-dark-card/50 hover:bg-dark-card active:bg-dark-card transition cursor-pointer border border-transparent hover:border-dark-border/50"
                  onclick="filtrarPorConsultor(${c.id})"
                  title="${c.nome}">
-                <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm"
+                <div class="w-5 h-5 sm:w-7 sm:h-7 rounded-md sm:rounded-lg flex items-center justify-center text-white text-[9px] sm:text-xs font-bold shadow-sm"
                      style="background: linear-gradient(135deg, ${cor}, ${cor}cc);">
                     ${iniciais}
                 </div>
-                <span class="text-gray-300 text-sm font-medium">${primeiroNome}</span>
+                <span class="text-gray-300 text-[11px] sm:text-sm font-medium">${primeiroNome}</span>
             </div>
         `;
     });
@@ -305,11 +494,17 @@ function abrirDetalhesDia(dataStr, dia) {
     dataSelecionada = dataStr;
     
     const dataObj = new Date(dataStr + 'T12:00:00');
-    const diaSemana = ['Domingo', 'Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado'][dataObj.getDay()];
+    const diaSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'][dataObj.getDay()];
+    const diaSemanaFull = ['Domingo', 'Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado'][dataObj.getDay()];
+    
+    const isMobile = window.innerWidth < 640;
+    const tituloData = isMobile ? 
+        `${diaSemana}, ${dia}/${mesAtual + 1}` : 
+        `${diaSemanaFull}, ${dia} de ${MESES[mesAtual]}`;
     
     document.getElementById('modalDetalhesTitulo').innerHTML = `
-        <i class="fas fa-calendar-day text-blue-400"></i>
-        ${diaSemana}, ${dia} de ${MESES[mesAtual]} de ${anoAtual}
+        <i class="fas fa-calendar-day text-blue-400 text-sm"></i>
+        <span class="truncate">${tituloData}</span>
     `;
     
     const eventosDoDia = eventos.filter(e => e.data === dataStr);
@@ -328,6 +523,7 @@ function abrirDetalhesDia(dataStr, dia) {
         `;
     } else {
         let html = '';
+        const isMobile = window.innerWidth < 640;
         
         const eventosPorConsultor = {};
         eventosDoDia.forEach(e => {
@@ -345,25 +541,24 @@ function abrirDetalhesDia(dataStr, dia) {
         Object.values(eventosPorConsultor).forEach(consultor => {
             const consultorCor = getConsultorCor(consultor.id);
             const iniciais = getIniciais(consultor.nome);
+            const nomeExibir = isMobile ? getPrimeiroNome(consultor.nome) : consultor.nome;
             
             html += `
-                <div class="bg-dark-card/50 rounded-xl overflow-hidden border border-dark-border/30">
-                    <div class="flex items-center gap-3 p-4 border-b border-dark-border/30" style="background: linear-gradient(135deg, ${consultorCor}15, transparent);">
-                        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-lg"
+                <div class="bg-dark-card/50 rounded-lg sm:rounded-xl overflow-hidden border border-dark-border/30">
+                    <div class="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-4 border-b border-dark-border/30" style="background: linear-gradient(135deg, ${consultorCor}15, transparent);">
+                        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center text-white text-sm sm:text-lg font-bold shadow-lg flex-shrink-0"
                              style="background: linear-gradient(135deg, ${consultorCor}, ${consultorCor}cc);">
                             ${iniciais}
                         </div>
-                        <div class="flex-1">
-                            <span class="text-white font-semibold text-lg">${consultor.nome}</span>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="px-2 py-0.5 rounded-full text-xs font-medium" 
-                                      style="background-color: ${consultorCor}30; color: ${consultorCor};">
-                                    ${consultor.eventos.length} evento${consultor.eventos.length > 1 ? 's' : ''}
-                                </span>
-                            </div>
+                        <div class="flex-1 min-w-0">
+                            <span class="text-white font-semibold text-sm sm:text-lg truncate block">${nomeExibir}</span>
+                            <span class="px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium inline-block mt-0.5" 
+                                  style="background-color: ${consultorCor}30; color: ${consultorCor};">
+                                ${consultor.eventos.length} evento${consultor.eventos.length > 1 ? 's' : ''}
+                            </span>
                         </div>
                     </div>
-                    <div class="p-3 space-y-2">
+                    <div class="p-2 sm:p-3 space-y-1.5 sm:space-y-2">
             `;
             
             consultor.eventos.forEach(evento => {
@@ -371,33 +566,36 @@ function abrirDetalhesDia(dataStr, dia) {
                 const titulo = evento.sigla_empresa ? 
                     `${evento.categoria}-${evento.sigla_empresa}` : 
                     evento.titulo || evento.categoria_nome;
-                const periodo = evento.periodo === 'M' ? 'Manha' : evento.periodo === 'T' ? 'Tarde' : 'Dia todo';
+                const periodo = evento.periodo === 'M' ? 'M' : evento.periodo === 'T' ? 'T' : 'D';
+                const periodoFull = evento.periodo === 'M' ? 'Manha' : evento.periodo === 'T' ? 'Tarde' : 'Dia todo';
                 const periodoIcon = evento.periodo === 'M' ? 'sun' : evento.periodo === 'T' ? 'cloud-sun' : 'calendar-day';
                 
                 html += `
-                    <div class="flex items-center justify-between p-3 rounded-xl bg-dark-bg/70 hover:bg-dark-bg transition group border border-transparent hover:border-dark-border/50">
-                        <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md" 
+                    <div class="flex items-center justify-between p-2 sm:p-3 rounded-lg sm:rounded-xl bg-dark-bg/70 active:bg-dark-bg sm:hover:bg-dark-bg transition group border border-transparent sm:hover:border-dark-border/50">
+                        <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                            <div class="w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center text-white font-bold text-xs sm:text-sm shadow-md flex-shrink-0" 
                                  style="background: linear-gradient(135deg, ${catCor}, ${catCor}cc);">
                                 ${evento.categoria}
                             </div>
-                            <div>
-                                <p class="text-white font-medium">${titulo}</p>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <span class="text-gray-400 text-xs">${evento.categoria_nome}</span>
-                                    <span class="text-gray-600">|</span>
-                                    <span class="text-gray-400 text-xs flex items-center gap-1">
-                                        <i class="fas fa-${periodoIcon} text-[10px]"></i> ${periodo}
+                            <div class="min-w-0 flex-1">
+                                <p class="text-white font-medium text-xs sm:text-base truncate">${titulo}</p>
+                                <div class="flex items-center gap-1.5 sm:gap-2 mt-0.5">
+                                    <span class="text-gray-400 text-[10px] sm:text-xs hidden sm:inline">${evento.categoria_nome}</span>
+                                    <span class="text-gray-600 hidden sm:inline">|</span>
+                                    <span class="text-gray-400 text-[10px] sm:text-xs flex items-center gap-1">
+                                        <i class="fas fa-${periodoIcon} text-[8px] sm:text-[10px]"></i> 
+                                        <span class="sm:hidden">${periodo}</span>
+                                        <span class="hidden sm:inline">${periodoFull}</span>
                                     </span>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
-                            <button onclick="editarEvento(${evento.id})" class="w-9 h-9 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 flex items-center justify-center transition">
-                                <i class="fas fa-edit text-sm"></i>
+                        <div class="flex items-center gap-1.5 sm:gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition flex-shrink-0">
+                            <button onclick="editarEvento(${evento.id})" class="w-7 h-7 sm:w-9 sm:h-9 rounded-md sm:rounded-lg bg-blue-500/20 hover:bg-blue-500/30 active:bg-blue-500/40 text-blue-400 flex items-center justify-center transition">
+                                <i class="fas fa-edit text-[10px] sm:text-sm"></i>
                             </button>
-                            <button onclick="confirmarExclusao(${evento.id})" class="w-9 h-9 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 flex items-center justify-center transition">
-                                <i class="fas fa-trash text-sm"></i>
+                            <button onclick="confirmarExclusao(${evento.id})" class="w-7 h-7 sm:w-9 sm:h-9 rounded-md sm:rounded-lg bg-red-500/20 hover:bg-red-500/30 active:bg-red-500/40 text-red-400 flex items-center justify-center transition">
+                                <i class="fas fa-trash text-[10px] sm:text-sm"></i>
                             </button>
                         </div>
                     </div>
@@ -582,6 +780,7 @@ function mesAnterior() {
     document.getElementById('filtroMesAno').value = `${anoAtual}-${String(mesAtual + 1).padStart(2, '0')}`;
     carregarEventos().then(() => {
         renderizarCalendario();
+        renderizarCalendarioMobile();
         atualizarResumo();
     });
 }
@@ -595,6 +794,7 @@ function proximoMes() {
     document.getElementById('filtroMesAno').value = `${anoAtual}-${String(mesAtual + 1).padStart(2, '0')}`;
     carregarEventos().then(() => {
         renderizarCalendario();
+        renderizarCalendarioMobile();
         atualizarResumo();
     });
 }
@@ -606,6 +806,7 @@ function irParaHoje() {
     document.getElementById('filtroMesAno').value = `${anoAtual}-${String(mesAtual + 1).padStart(2, '0')}`;
     carregarEventos().then(() => {
         renderizarCalendario();
+        renderizarCalendarioMobile();
         atualizarResumo();
     });
 }
@@ -620,7 +821,13 @@ async function aplicarFiltros() {
     
     await carregarEventos();
     renderizarCalendario();
+    renderizarCalendarioMobile();
     atualizarResumo();
+    
+    const filtrosContainer = document.getElementById('filtrosContainer');
+    if (filtrosContainer && window.innerWidth < 1024) {
+        filtrosContainer.classList.add('hidden');
+    }
 }
 
 function limparFiltros() {
