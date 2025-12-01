@@ -30,8 +30,17 @@ The backend uses FastAPI, PostgreSQL, and SQLAlchemy. Authentication is handled 
 -   **Cronograma Geral (General Schedule)**: Complete calendar event management with CRUD operations. Features:
     - Monthly calendar view with color-coded categories
     - Categories: C-Consultoria (green), K-Kick-off (yellow), F-Reuniao Final (blue), M-Mentoria (red), T-Diagnostico (orange), P-Programado (cyan), O-Outros (gray)
-    - 4,854 events imported from Excel spreadsheet
-    - 9 consultants: Andre Aoki, Fernando Figueredo, Leandro Silva, Lucas Azimovas, Marcello Figueiredo, Matheus Fernando, Ramon Silvati, Rafael Paula, Ricardo Ciuccio
+    - 4,959 events imported from Excel spreadsheet (CRONOGRAMA 2.0)
+    - 9 consultants imported with events:
+      - André Shiguemitsu Aoki (485 eventos)
+      - Fernando Luiz de Figueredo (472 eventos)
+      - Leandro Silva (489 eventos)
+      - Lucas Azimovas (683 eventos)
+      - Marcello Figueiredo (711 eventos)
+      - Matheus Fernando (393 eventos)
+      - Rafael Paula dos Santos (269 eventos)
+      - Ramon Silvati (677 eventos)
+      - Ricardo Ciuccio (780 eventos)
     - Filtering by consultant, category, and month
     - Create, edit, and delete events via modals
     - Morning (M) and Afternoon (T) periods
