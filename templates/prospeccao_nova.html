@@ -89,19 +89,20 @@
                         <table class="w-full table-fixed border-collapse" id="tabelaProspeccoesCompacta">
                             <thead class="bg-dark-card">
                                 <tr>
-                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[15%]">Empresa</th>
+                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[10%]">Código</th>
+                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[12%]">Empresa</th>
                                     <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[10%]">Consultor</th>
-                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[8%]">Data</th>
-                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[10%]">Resultado</th>
-                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[10%]">Status</th>
-                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[8%]">Potencial</th>
-                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[30%]">Observações</th>
-                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[9%]">Ações</th>
+                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[7%]">Data</th>
+                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[9%]">Resultado</th>
+                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[9%]">Status</th>
+                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[7%]">Potencial</th>
+                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[24%]">Observações</th>
+                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[12%]">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="listaProspeccoesTable" class="divide-y divide-gray-700/50">
                                 <tr>
-                                    <td colspan="8" class="px-2 py-4 text-center text-gray-400 text-xs">Carregando...</td>
+                                    <td colspan="9" class="px-2 py-4 text-center text-gray-400 text-xs">Carregando...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -235,6 +236,135 @@
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+<div id="editarProspeccaoModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center px-4 z-50 overflow-y-auto">
+    <div class="max-w-4xl w-full bg-dark-sidebar p-8 rounded-lg shadow-2xl my-8 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-2xl font-bold text-white">Editar Prospecção</h2>
+                <p class="text-blue-400 text-sm mt-1" id="editCodigoDisplay"></p>
+            </div>
+            <button onclick="verHistorico()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+                <i class="fas fa-history"></i> Ver Histórico
+            </button>
+        </div>
+        <form id="editarProspeccaoForm" class="space-y-6">
+            <input type="hidden" id="edit_prospeccao_id">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Empresa</label>
+                    <input type="text" id="edit_empresa_nome" readonly class="w-full px-4 py-2 bg-dark-card text-gray-400 rounded-lg cursor-not-allowed">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Consultor</label>
+                    <input type="text" id="edit_consultor_nome" readonly class="w-full px-4 py-2 bg-dark-card text-gray-400 rounded-lg cursor-not-allowed">
+                </div>
+            </div>
+            
+            <div class="bg-dark-card p-6 rounded-lg">
+                <h3 class="text-lg font-semibold text-white mb-4">Dados do Contato</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Nome do Contato</label>
+                        <input type="text" id="edit_nome_contato" class="w-full px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Cargo</label>
+                        <input type="text" id="edit_cargo_contato" class="w-full px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Telefone</label>
+                        <input type="tel" id="edit_telefone_contato" class="w-full px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">E-mail</label>
+                        <input type="email" id="edit_email_contato" class="w-full px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Data da Ligação</label>
+                    <input type="date" id="edit_data_ligacao" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Hora da Ligação</label>
+                    <input type="time" id="edit_hora_ligacao" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Resultado</label>
+                <select id="edit_resultado" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Selecione...</option>
+                    <option value="Interesse">Interesse</option>
+                    <option value="Sem interesse">Sem interesse</option>
+                    <option value="Retornar depois">Retornar depois</option>
+                    <option value="Não atendeu">Não atendeu</option>
+                    <option value="Número inválido">Número inválido</option>
+                </select>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Potencial de Negócio</label>
+                    <select id="edit_potencial_negocio" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Selecione...</option>
+                        <option value="Baixo">Baixo</option>
+                        <option value="Médio">Médio</option>
+                        <option value="Alto">Alto</option>
+                        <option value="Muito Alto">Muito Alto</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Status de Follow-up</label>
+                    <select id="edit_status_follow_up" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Selecione...</option>
+                        <option value="Aguardando retorno">Aguardando retorno</option>
+                        <option value="Em negociação">Em negociação</option>
+                        <option value="Enviar proposta">Enviar proposta</option>
+                        <option value="Proposta enviada">Proposta enviada</option>
+                        <option value="Fechado">Fechado</option>
+                        <option value="Perdido">Perdido</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Observações</label>
+                <textarea id="edit_observacoes" rows="3" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            
+            <div class="flex space-x-3">
+                <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition">
+                    Salvar Alterações
+                </button>
+                <button type="button" onclick="hideEditarProspeccaoModal()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="historicoModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center px-4 z-50 overflow-y-auto">
+    <div class="max-w-3xl w-full bg-dark-sidebar p-8 rounded-lg shadow-2xl my-8 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-2xl font-bold text-white">Histórico de Alterações</h2>
+                <p class="text-blue-400 text-sm mt-1" id="historicoCodigoDisplay"></p>
+            </div>
+            <button onclick="hideHistoricoModal()" class="text-gray-400 hover:text-white">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+        </div>
+        <div id="historicoContent" class="space-y-4">
+            <div class="text-center py-8 text-gray-400">Carregando histórico...</div>
+        </div>
     </div>
 </div>
 {% endblock %}

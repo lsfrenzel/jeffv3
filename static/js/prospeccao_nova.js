@@ -116,11 +116,14 @@ async function carregarConsultoresParaFiltro() {
     }
 }
 
+let prospeccaoEditandoId = null;
+let prospeccaoEditandoCodigo = null;
+
 function mostrarProspeccoesLista(prospeccoes) {
     const tbody = document.getElementById('listaProspeccoesTable');
     
     if (prospeccoes.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="px-2 py-4 text-center text-gray-400 text-xs">Nenhuma prospecção encontrada</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="px-2 py-4 text-center text-gray-400 text-xs">Nenhuma prospecção encontrada</td></tr>';
         return;
     }
     
@@ -133,6 +136,7 @@ function mostrarProspeccoesLista(prospeccoes) {
         const empresaMunicipio = prosp.empresa?.municipio || prosp.municipio || 'N/A';
         const empresaEstado = prosp.empresa?.estado || prosp.estado || 'N/A';
         const consultorNome = prosp.consultor?.nome || prosp.consultor_nome || 'N/A';
+        const codigo = prosp.codigo || '-';
         
         const observacoes = prosp.observacoes || '';
         const obsLength = observacoes.length;
@@ -141,6 +145,9 @@ function mostrarProspeccoesLista(prospeccoes) {
         
         return `
             <tr class="hover:bg-dark-hover/50 transition border-b border-gray-700/30">
+                <td class="px-2 py-1.5 align-top">
+                    <div class="text-blue-400 text-[10px] font-mono truncate cursor-pointer hover:text-blue-300" onclick="abrirEditarProspeccao(${prosp.id})" title="${codigo}">${codigo}</div>
+                </td>
                 <td class="px-2 py-1.5 align-top">
                     <div class="text-white text-xs font-medium truncate" title="${empresaNome}">${empresaNome}</div>
                     <div class="text-gray-500 text-[10px] truncate">${empresaMunicipio}-${empresaEstado}</div>
@@ -154,13 +161,186 @@ function mostrarProspeccoesLista(prospeccoes) {
                     <div class="${obsFontClass} text-gray-400 leading-tight max-h-16 overflow-y-auto break-words" title="${obsText}">${obsText}</div>
                 </td>
                 <td class="px-2 py-1.5 align-top">
-                    <button onclick="exportarPDF(${prosp.id})" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-[10px] transition whitespace-nowrap">
-                        PDF
-                    </button>
+                    <div class="flex gap-1">
+                        <button onclick="abrirEditarProspeccao(${prosp.id})" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded text-[10px] transition" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="abrirHistorico(${prosp.id}, '${codigo}')" class="bg-purple-600 hover:bg-purple-700 text-white px-2 py-0.5 rounded text-[10px] transition" title="Histórico">
+                            <i class="fas fa-history"></i>
+                        </button>
+                        <button onclick="exportarPDF(${prosp.id})" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-[10px] transition" title="PDF">
+                            <i class="fas fa-file-pdf"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
     }).join('');
+}
+
+async function abrirEditarProspeccao(prospeccaoId) {
+    try {
+        const response = await apiRequest(`/api/prospeccoes/${prospeccaoId}`);
+        const prosp = await response.json();
+        
+        prospeccaoEditandoId = prosp.id;
+        prospeccaoEditandoCodigo = prosp.codigo;
+        
+        document.getElementById('edit_prospeccao_id').value = prosp.id;
+        document.getElementById('editCodigoDisplay').textContent = `Código: ${prosp.codigo}`;
+        document.getElementById('edit_empresa_nome').value = prosp.empresa?.empresa || '';
+        document.getElementById('edit_consultor_nome').value = prosp.consultor?.nome || '';
+        document.getElementById('edit_nome_contato').value = prosp.nome_contato || '';
+        document.getElementById('edit_cargo_contato').value = prosp.cargo_contato || '';
+        document.getElementById('edit_telefone_contato').value = prosp.telefone_contato || '';
+        document.getElementById('edit_email_contato').value = prosp.email_contato || '';
+        document.getElementById('edit_data_ligacao').value = prosp.data_ligacao || '';
+        document.getElementById('edit_hora_ligacao').value = prosp.hora_ligacao || '';
+        document.getElementById('edit_resultado').value = prosp.resultado || '';
+        document.getElementById('edit_potencial_negocio').value = prosp.potencial_negocio || '';
+        document.getElementById('edit_status_follow_up').value = prosp.status_follow_up || '';
+        document.getElementById('edit_observacoes').value = prosp.observacoes || '';
+        
+        document.getElementById('editarProspeccaoModal').classList.remove('hidden');
+    } catch (error) {
+        console.error('Erro ao carregar prospecção:', error);
+        alert('Erro ao carregar prospecção para edição');
+    }
+}
+
+function hideEditarProspeccaoModal() {
+    document.getElementById('editarProspeccaoModal').classList.add('hidden');
+    document.getElementById('editarProspeccaoForm').reset();
+    prospeccaoEditandoId = null;
+    prospeccaoEditandoCodigo = null;
+}
+
+document.getElementById('editarProspeccaoForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    if (!prospeccaoEditandoId) {
+        alert('Erro: ID da prospecção não encontrado');
+        return;
+    }
+    
+    const dados = {
+        nome_contato: document.getElementById('edit_nome_contato').value || null,
+        cargo_contato: document.getElementById('edit_cargo_contato').value || null,
+        telefone_contato: document.getElementById('edit_telefone_contato').value || null,
+        email_contato: document.getElementById('edit_email_contato').value || null,
+        data_ligacao: document.getElementById('edit_data_ligacao').value || null,
+        hora_ligacao: document.getElementById('edit_hora_ligacao').value || null,
+        resultado: document.getElementById('edit_resultado').value || null,
+        potencial_negocio: document.getElementById('edit_potencial_negocio').value || null,
+        status_follow_up: document.getElementById('edit_status_follow_up').value || null,
+        observacoes: document.getElementById('edit_observacoes').value || null
+    };
+    
+    try {
+        const response = await apiRequest(`/api/prospeccoes/${prospeccaoEditandoId}`, {
+            method: 'PUT',
+            body: JSON.stringify(dados)
+        });
+        
+        if (!response.ok) throw new Error('Erro ao atualizar prospecção');
+        
+        alert('Prospecção atualizada com sucesso! As alterações foram salvas no histórico.');
+        hideEditarProspeccaoModal();
+        carregarProspeccoes();
+    } catch (error) {
+        console.error('Erro ao atualizar prospecção:', error);
+        alert('Erro ao atualizar prospecção');
+    }
+});
+
+function verHistorico() {
+    if (prospeccaoEditandoId && prospeccaoEditandoCodigo) {
+        abrirHistorico(prospeccaoEditandoId, prospeccaoEditandoCodigo);
+    }
+}
+
+async function abrirHistorico(prospeccaoId, codigo) {
+    document.getElementById('historicoCodigoDisplay').textContent = `Código: ${codigo}`;
+    document.getElementById('historicoContent').innerHTML = '<div class="text-center py-8 text-gray-400">Carregando histórico...</div>';
+    document.getElementById('historicoModal').classList.remove('hidden');
+    
+    try {
+        const response = await apiRequest(`/api/prospeccoes/${prospeccaoId}/historico`);
+        const historico = await response.json();
+        
+        if (historico.length === 0) {
+            document.getElementById('historicoContent').innerHTML = '<div class="text-center py-8 text-gray-400">Nenhuma alteração registrada ainda.</div>';
+            return;
+        }
+        
+        const html = historico.map(h => {
+            const data = new Date(h.data_alteracao).toLocaleString('pt-BR');
+            const usuarioNome = h.usuario?.nome || 'Usuário desconhecido';
+            
+            let tipoIcon = '';
+            let tipoBg = '';
+            switch(h.tipo_alteracao) {
+                case 'criacao':
+                    tipoIcon = '<i class="fas fa-plus-circle text-green-400"></i>';
+                    tipoBg = 'border-l-green-500';
+                    break;
+                case 'edicao':
+                    tipoIcon = '<i class="fas fa-edit text-blue-400"></i>';
+                    tipoBg = 'border-l-blue-500';
+                    break;
+                case 'agendamento':
+                    tipoIcon = '<i class="fas fa-calendar text-yellow-400"></i>';
+                    tipoBg = 'border-l-yellow-500';
+                    break;
+                default:
+                    tipoIcon = '<i class="fas fa-info-circle text-gray-400"></i>';
+                    tipoBg = 'border-l-gray-500';
+            }
+            
+            let detalhes = '';
+            if (h.campo_alterado) {
+                detalhes = `
+                    <div class="mt-2 text-sm">
+                        <span class="text-gray-400">Campo:</span> <span class="text-white">${h.campo_alterado}</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mt-2 text-xs">
+                        <div class="bg-red-900/20 p-2 rounded">
+                            <span class="text-red-400">Anterior:</span>
+                            <div class="text-gray-300 mt-1">${h.valor_anterior || '-'}</div>
+                        </div>
+                        <div class="bg-green-900/20 p-2 rounded">
+                            <span class="text-green-400">Novo:</span>
+                            <div class="text-gray-300 mt-1">${h.valor_novo || '-'}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="bg-dark-card p-4 rounded-lg border-l-4 ${tipoBg}">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center gap-2">
+                            ${tipoIcon}
+                            <span class="text-white font-medium capitalize">${h.tipo_alteracao}</span>
+                        </div>
+                        <span class="text-gray-500 text-xs">${data}</span>
+                    </div>
+                    <div class="text-gray-400 text-sm mt-1">por ${usuarioNome}</div>
+                    ${h.descricao ? `<div class="text-gray-300 text-sm mt-2">${h.descricao}</div>` : ''}
+                    ${detalhes}
+                </div>
+            `;
+        }).join('');
+        
+        document.getElementById('historicoContent').innerHTML = html;
+    } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+        document.getElementById('historicoContent').innerHTML = '<div class="text-center py-8 text-red-400">Erro ao carregar histórico</div>';
+    }
+}
+
+function hideHistoricoModal() {
+    document.getElementById('historicoModal').classList.add('hidden');
 }
 
 function mostrarProspeccoesCards(prospeccoes) {
