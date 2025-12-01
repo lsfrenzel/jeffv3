@@ -4,7 +4,7 @@ atualizarSidebar();
 const usuario = getUsuario();
 
 let todasProspeccoes = [];
-let visualizacaoAtual = 'cards';
+let visualizacaoAtual = 'lista';
 
 document.getElementById('agendar_proxima').addEventListener('change', function() {
     const opcoes = document.getElementById('agendamentoOptions');

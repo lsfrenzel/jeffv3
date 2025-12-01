@@ -27,10 +27,10 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                     <h3 class="text-base sm:text-lg font-semibold text-white">Filtros e Visualização</h3>
                     <div class="flex gap-2 w-full sm:w-auto">
-                        <button onclick="toggleVisualizacao('cards')" id="btnCards" class="flex-1 sm:flex-initial bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-xl transition hover:bg-blue-700 text-sm sm:text-base">
+                        <button onclick="toggleVisualizacao('cards')" id="btnCards" class="flex-1 sm:flex-initial bg-gray-600 text-white px-3 sm:px-4 py-2 rounded-xl transition hover:bg-gray-700 text-sm sm:text-base">
                             <i class="fas fa-th-large mr-1"></i> Cards
                         </button>
-                        <button onclick="toggleVisualizacao('lista')" id="btnLista" class="flex-1 sm:flex-initial bg-gray-600 text-white px-3 sm:px-4 py-2 rounded-xl transition hover:bg-gray-700 text-sm sm:text-base">
+                        <button onclick="toggleVisualizacao('lista')" id="btnLista" class="flex-1 sm:flex-initial bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-xl transition hover:bg-blue-700 text-sm sm:text-base">
                             <i class="fas fa-list mr-1"></i> Lista
                         </button>
                     </div>
@@ -79,11 +79,11 @@
                 </div>
             </div>
             
-            <div id="viewCards" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+            <div id="viewCards" class="hidden grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 <div class="col-span-full text-center py-8 text-gray-400">Carregando prospecções...</div>
             </div>
             
-            <div id="viewLista" class="hidden">
+            <div id="viewLista" class="">
                 <div class="bg-dark-sidebar rounded-lg shadow-lg overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full table-fixed border-collapse" id="tabelaProspeccoesCompacta">
