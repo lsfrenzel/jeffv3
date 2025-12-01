@@ -12,18 +12,56 @@ from backend.models.prospeccoes import gerar_codigo_prospeccao
 
 app = FastAPI(title="Núcleo 1.03", version="1.0.0")
 
+def adicionar_coluna_codigo_se_necessario():
+    """Adiciona a coluna 'codigo' à tabela prospeccoes se não existir"""
+    from sqlalchemy import text
+    
+    if engine is None:
+        return
+    
+    with engine.connect() as conn:
+        result = conn.execute(text("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'prospeccoes' AND column_name = 'codigo'
+        """))
+        coluna_existe = result.fetchone() is not None
+        
+        if not coluna_existe:
+            print("🔄 Adicionando coluna 'codigo' à tabela prospeccoes...")
+            conn.execute(text("""
+                ALTER TABLE prospeccoes 
+                ADD COLUMN codigo VARCHAR(50)
+            """))
+            conn.commit()
+            print("✅ Coluna 'codigo' adicionada com sucesso")
+            
+            print("🔄 Criando índice único para coluna 'codigo'...")
+            conn.execute(text("""
+                CREATE UNIQUE INDEX IF NOT EXISTS ix_prospeccoes_codigo 
+                ON prospeccoes (codigo) WHERE codigo IS NOT NULL
+            """))
+            conn.commit()
+            print("✅ Índice criado com sucesso")
+
 def atualizar_prospeccoes_sem_codigo(db):
     """Atualiza prospecções que não possuem código único"""
-    prospeccoes_sem_codigo = db.query(Prospeccao).filter(
-        (Prospeccao.codigo == None) | (Prospeccao.codigo == "")
-    ).all()
+    from sqlalchemy import text
     
-    if prospeccoes_sem_codigo:
-        print(f"🔄 Atualizando {len(prospeccoes_sem_codigo)} prospecções sem código...")
-        for p in prospeccoes_sem_codigo:
-            p.codigo = gerar_codigo_prospeccao()
+    result = db.execute(text("""
+        SELECT id FROM prospeccoes WHERE codigo IS NULL OR codigo = ''
+    """))
+    ids_sem_codigo = [row[0] for row in result.fetchall()]
+    
+    if ids_sem_codigo:
+        print(f"🔄 Atualizando {len(ids_sem_codigo)} prospecções sem código...")
+        for pid in ids_sem_codigo:
+            novo_codigo = gerar_codigo_prospeccao()
+            db.execute(text("""
+                UPDATE prospeccoes SET codigo = :codigo WHERE id = :id
+            """), {"codigo": novo_codigo, "id": pid})
         db.commit()
-        print(f"✅ {len(prospeccoes_sem_codigo)} prospecções atualizadas com código único")
+        print(f"✅ {len(ids_sem_codigo)} prospecções atualizadas com código único")
 
 @app.get("/health")
 async def health_check():
@@ -63,6 +101,11 @@ async def startup_event():
         print("✅ Tabelas verificadas/criadas")
     except Exception as e:
         print(f"⚠️ Erro ao verificar tabelas: {e}")
+    
+    try:
+        adicionar_coluna_codigo_se_necessario()
+    except Exception as e:
+        print(f"⚠️ Erro ao adicionar coluna codigo: {e}")
     
     db = SessionLocal()
     try:
