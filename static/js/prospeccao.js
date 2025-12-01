@@ -20,7 +20,8 @@ async function carregarProspeccoes() {
             console.error('Erro ao carregar empresas:', empresasResponse?.status);
             return;
         }
-        empresasCache = await empresasResponse.json();
+        const empresasData = await empresasResponse.json();
+        empresasCache = empresasData.items || [];
         
         const tbody = document.getElementById('tabelaProspeccoes');
         
@@ -53,7 +54,8 @@ async function showNovaProspeccaoModal() {
     
     if (empresasCache.length === 0) {
         const response = await apiRequest('/api/empresas/');
-        empresasCache = await response.json();
+        const data = await response.json();
+        empresasCache = data.items || [];
     }
     
     const selectEmpresa = document.getElementById('empresa_id');
