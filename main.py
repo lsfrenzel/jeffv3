@@ -78,10 +78,12 @@ async def startup_event():
         except Exception as e:
             print(f"⚠️ Erro ao popular pipeline: {e}")
         
-        try:
-            seed_cronograma(db)
-        except Exception as e:
-            print(f"⚠️ Erro ao importar cronograma: {e}")
+        # Cronograma seed disabled during startup (too slow)
+        # You can import cronograma manually via the UI if needed
+        # try:
+        #     seed_cronograma(db)
+        # except Exception as e:
+        #     print(f"⚠️ Erro ao importar cronograma: {e}")
         
         print("✅ Seed de dados concluído")
     except Exception as e:
