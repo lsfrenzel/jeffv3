@@ -3,6 +3,10 @@ atualizarSidebar();
 
 const usuario = getUsuario();
 
+let graficoProspeccoesInstance = null;
+let graficoAgendamentosInstance = null;
+let graficoEmpresasInstance = null;
+
 async function carregarDashboard() {
     try {
         const statsRes = await apiRequest('/api/dashboard/stats');
@@ -41,10 +45,14 @@ function renderizarGraficoProspeccoes(data) {
     const ctx = document.getElementById('graficoProspeccoes');
     if (!ctx) return;
     
+    if (graficoProspeccoesInstance) {
+        graficoProspeccoesInstance.destroy();
+    }
+    
     const labels = Object.keys(data);
     const valores = Object.values(data);
     
-    new Chart(ctx, {
+    graficoProspeccoesInstance = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
@@ -83,7 +91,11 @@ function renderizarGraficoAgendamentos(data) {
     const ctx = document.getElementById('graficoAgendamentos');
     if (!ctx) return;
     
-    new Chart(ctx, {
+    if (graficoAgendamentosInstance) {
+        graficoAgendamentosInstance.destroy();
+    }
+    
+    graficoAgendamentosInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: ['Vencidos', 'Hoje', 'Futuros'],
@@ -119,10 +131,14 @@ function renderizarGraficoEmpresas(data) {
     const ctx = document.getElementById('graficoEmpresas');
     if (!ctx) return;
     
+    if (graficoEmpresasInstance) {
+        graficoEmpresasInstance.destroy();
+    }
+    
     const labels = Object.keys(data).slice(0, 10);
     const valores = Object.values(data).slice(0, 10);
     
-    new Chart(ctx, {
+    graficoEmpresasInstance = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
