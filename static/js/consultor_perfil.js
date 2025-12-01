@@ -22,6 +22,20 @@ configurarAcoesRapidas();
 async function carregarPerfilConsultor() {
     try {
         const response = await apiRequest(`/api/consultores/${consultorId}`);
+        if (!response) {
+            document.getElementById('perfilConsultor').innerHTML = 
+                '<p class="text-red-400">Sessão expirada. Faça login novamente.</p>';
+            return;
+        }
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Erro na API:', response.status, errorText);
+            document.getElementById('perfilConsultor').innerHTML = 
+                `<p class="text-red-400">Erro ao carregar perfil (${response.status})</p>`;
+            return;
+        }
+        
         const data = await response.json();
         
         perfilAtual = data.perfil;

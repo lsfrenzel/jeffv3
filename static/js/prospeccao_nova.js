@@ -87,13 +87,25 @@ function renderizarProspeccoes(prospeccoes) {
 async function carregarProspeccoes() {
     try {
         const response = await apiRequest('/api/prospeccoes/');
+        if (!response) {
+            document.getElementById('viewCards').innerHTML = '<div class="col-span-full text-center py-8 text-red-400">Sessão expirada. Faça login novamente.</div>';
+            return;
+        }
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Erro na API:', response.status, errorText);
+            document.getElementById('viewCards').innerHTML = `<div class="col-span-full text-center py-8 text-red-400">Erro ao carregar prospecções (${response.status})</div>`;
+            return;
+        }
+        
         todasProspeccoes = await response.json();
         
         await carregarConsultoresParaFiltro();
         renderizarProspeccoes(todasProspeccoes);
     } catch (error) {
         console.error('Erro ao carregar prospecções:', error);
-        document.getElementById('viewCards').innerHTML = '<div class="col-span-full text-center py-8 text-red-400">Erro ao carregar prospecções</div>';
+        document.getElementById('viewCards').innerHTML = '<div class="col-span-full text-center py-8 text-red-400">Erro ao carregar prospecções. Verifique sua conexão.</div>';
     }
 }
 

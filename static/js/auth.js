@@ -68,17 +68,27 @@ async function apiRequest(url, options = {}) {
         headers['Authorization'] = `Bearer ${token}`;
     }
     
-    const response = await fetch(url, {
-        ...options,
-        headers
-    });
-    
-    if (response.status === 401) {
-        logout();
-        return;
+    try {
+        const response = await fetch(url, {
+            ...options,
+            headers
+        });
+        
+        if (response.status === 401) {
+            console.error('Erro 401: Token inválido ou expirado');
+            logout();
+            return null;
+        }
+        
+        if (!response.ok) {
+            console.error(`Erro HTTP ${response.status} em ${url}`);
+        }
+        
+        return response;
+    } catch (error) {
+        console.error('Erro de rede em apiRequest:', error);
+        throw error;
     }
-    
-    return response;
 }
 
 function checkAuth() {

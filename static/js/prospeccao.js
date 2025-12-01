@@ -9,9 +9,17 @@ let consultoresCache = [];
 async function carregarProspeccoes() {
     try {
         const response = await apiRequest('/api/prospeccoes/');
+        if (!response || !response.ok) {
+            console.error('Erro ao carregar prospecções:', response?.status);
+            return;
+        }
         const prospeccoes = await response.json();
         
         const empresasResponse = await apiRequest('/api/empresas/');
+        if (!empresasResponse || !empresasResponse.ok) {
+            console.error('Erro ao carregar empresas:', empresasResponse?.status);
+            return;
+        }
         empresasCache = await empresasResponse.json();
         
         const tbody = document.getElementById('tabelaProspeccoes');
