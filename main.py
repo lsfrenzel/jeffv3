@@ -12,6 +12,74 @@ from backend.models.prospeccoes import gerar_codigo_prospeccao
 
 app = FastAPI(title="Núcleo 1.03", version="1.0.0")
 
+def adicionar_colunas_faltantes_empresas():
+    """Adiciona colunas faltantes à tabela empresas se não existirem"""
+    from sqlalchemy import text
+    
+    if engine is None:
+        return
+    
+    colunas_necessarias = {
+        'nome_contato': 'VARCHAR(200)',
+        'cargo_contato': 'VARCHAR(200)',
+        'telefone_contato': 'VARCHAR(50)',
+        'email_contato': 'VARCHAR(200)',
+    }
+    
+    with engine.connect() as conn:
+        result = conn.execute(text("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'empresas'
+        """))
+        colunas_existentes = {row[0] for row in result.fetchall()}
+        
+        for coluna, tipo in colunas_necessarias.items():
+            if coluna not in colunas_existentes:
+                print(f"🔄 Adicionando coluna '{coluna}' à tabela empresas...")
+                try:
+                    conn.execute(text(f"""
+                        ALTER TABLE empresas 
+                        ADD COLUMN {coluna} {tipo}
+                    """))
+                    conn.commit()
+                    print(f"✅ Coluna '{coluna}' adicionada com sucesso à empresas")
+                except Exception as e:
+                    print(f"⚠️ Erro ao adicionar coluna '{coluna}' à empresas: {e}")
+
+def criar_tabela_prospeccoes_historico():
+    """Cria a tabela prospeccoes_historico se não existir"""
+    from sqlalchemy import text
+    
+    if engine is None:
+        return
+    
+    with engine.connect() as conn:
+        result = conn.execute(text("""
+            SELECT table_name FROM information_schema.tables 
+            WHERE table_name = 'prospeccoes_historico'
+        """))
+        if not result.fetchone():
+            print("🔄 Criando tabela prospeccoes_historico...")
+            try:
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS prospeccoes_historico (
+                        id SERIAL PRIMARY KEY,
+                        prospeccao_id INTEGER NOT NULL REFERENCES prospeccoes(id),
+                        usuario_id INTEGER NOT NULL REFERENCES usuarios(id),
+                        data_alteracao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        tipo_alteracao VARCHAR(50) NOT NULL,
+                        campo_alterado VARCHAR(100),
+                        valor_anterior TEXT,
+                        valor_novo TEXT,
+                        descricao TEXT
+                    )
+                """))
+                conn.commit()
+                print("✅ Tabela prospeccoes_historico criada com sucesso")
+            except Exception as e:
+                print(f"⚠️ Erro ao criar tabela prospeccoes_historico: {e}")
+
 def adicionar_colunas_faltantes_prospeccoes():
     """Adiciona colunas faltantes à tabela prospeccoes se não existirem"""
     from sqlalchemy import text
@@ -147,9 +215,19 @@ async def startup_event():
         print(f"⚠️ Erro ao verificar tabelas: {e}")
     
     try:
+        adicionar_colunas_faltantes_empresas()
+    except Exception as e:
+        print(f"⚠️ Erro ao adicionar colunas faltantes em empresas: {e}")
+    
+    try:
         adicionar_colunas_faltantes_prospeccoes()
     except Exception as e:
-        print(f"⚠️ Erro ao adicionar colunas faltantes: {e}")
+        print(f"⚠️ Erro ao adicionar colunas faltantes em prospeccoes: {e}")
+    
+    try:
+        criar_tabela_prospeccoes_historico()
+    except Exception as e:
+        print(f"⚠️ Erro ao criar tabela prospeccoes_historico: {e}")
     
     db = SessionLocal()
     try:
