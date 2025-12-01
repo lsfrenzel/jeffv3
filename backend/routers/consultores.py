@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from typing import List
 from backend.database import get_db
@@ -89,7 +89,10 @@ def obter_consultor_perfil(
             detail="Usuário não encontrado"
         )
     
-    prospeccoes = db.query(Prospeccao).filter(
+    prospeccoes = db.query(Prospeccao).options(
+        joinedload(Prospeccao.empresa),
+        joinedload(Prospeccao.consultor)
+    ).filter(
         Prospeccao.consultor_id == consultor_id
     ).order_by(Prospeccao.data_criacao.desc()).all()
     
