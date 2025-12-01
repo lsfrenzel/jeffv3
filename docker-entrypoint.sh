@@ -50,6 +50,40 @@ fi
 # Run Alembic migrations - MUST succeed
 echo ""
 echo "Running database migrations..."
+
+# Check if alembic_version table exists, if not stamp to latest known version before new columns
+python -c "
+from sqlalchemy import create_engine, text
+import os
+
+database_url = os.environ['DATABASE_URL']
+engine = create_engine(database_url)
+
+with engine.connect() as conn:
+    # Check if alembic_version table exists
+    result = conn.execute(text(\"\"\"
+        SELECT table_name FROM information_schema.tables 
+        WHERE table_name = 'alembic_version'
+    \"\"\"))
+    if not result.fetchone():
+        # Check if tables exist (database was created with create_all)
+        result = conn.execute(text(\"\"\"
+            SELECT table_name FROM information_schema.tables 
+            WHERE table_name = 'empresas'
+        \"\"\"))
+        if result.fetchone():
+            print('Database was created without migrations. Stamping to f80b2b33a570...')
+            # Tables exist but no alembic tracking - stamp to version before new migration
+            import subprocess
+            subprocess.run(['python', '-m', 'alembic', 'stamp', 'f80b2b33a570'], check=True)
+            print('Alembic stamped successfully!')
+        else:
+            print('Fresh database - migrations will create tables')
+    else:
+        print('Alembic version table exists - normal migration')
+"
+
+# Now run the actual migrations
 python -m alembic upgrade head
 if [ $? -ne 0 ]; then
     echo "ERROR: Database migrations failed!"
