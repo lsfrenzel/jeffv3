@@ -98,6 +98,62 @@ function checkAuth() {
     }
 }
 
+async function atualizarBadgeMensagens() {
+    const token = getToken();
+    if (!token) return;
+    
+    try {
+        const response = await fetch('/api/mensagens/nao-lidas/contagem', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const count = data.count || 0;
+            
+            const chatBadge = document.getElementById('chatBadge');
+            const chatBadgeDot = document.getElementById('chatBadgeDot');
+            
+            if (count > 0) {
+                if (chatBadge) {
+                    chatBadge.textContent = count > 99 ? '99+' : count;
+                    chatBadge.classList.remove('hidden');
+                }
+                if (chatBadgeDot) {
+                    chatBadgeDot.classList.remove('hidden');
+                }
+            } else {
+                if (chatBadge) {
+                    chatBadge.classList.add('hidden');
+                }
+                if (chatBadgeDot) {
+                    chatBadgeDot.classList.add('hidden');
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao verificar mensagens nao lidas:', error);
+    }
+}
+
+function iniciarVerificacaoMensagens() {
+    if (window.location.pathname === '/') return;
+    
+    atualizarBadgeMensagens();
+    
+    setInterval(atualizarBadgeMensagens, 30000);
+}
+
 if (window.location.pathname !== '/' && !getToken()) {
     window.location.href = '/';
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (getToken()) {
+        atualizarSidebar();
+        iniciarVerificacaoMensagens();
+    }
+});
