@@ -8,8 +8,22 @@ from backend.models import Usuario, Empresa, Prospeccao, Agendamento, Atribuicao
 from backend.routers import auth, empresas, prospeccoes, agendamentos, admin, atribuicoes, consultores, dashboard, cnpj, notificacoes, mensagens, cronograma, pipeline
 from backend.utils.seed import criar_usuario_admin_padrao, criar_empresas_padrao, criar_consultores_padrao, criar_stages_padrao, popular_pipeline
 from backend.utils.seed_cronograma import seed_cronograma
+from backend.models.prospeccoes import gerar_codigo_prospeccao
 
 app = FastAPI(title="Núcleo 1.03", version="1.0.0")
+
+def atualizar_prospeccoes_sem_codigo(db):
+    """Atualiza prospecções que não possuem código único"""
+    prospeccoes_sem_codigo = db.query(Prospeccao).filter(
+        (Prospeccao.codigo == None) | (Prospeccao.codigo == "")
+    ).all()
+    
+    if prospeccoes_sem_codigo:
+        print(f"🔄 Atualizando {len(prospeccoes_sem_codigo)} prospecções sem código...")
+        for p in prospeccoes_sem_codigo:
+            p.codigo = gerar_codigo_prospeccao()
+        db.commit()
+        print(f"✅ {len(prospeccoes_sem_codigo)} prospecções atualizadas com código único")
 
 @app.get("/health")
 async def health_check():
@@ -77,6 +91,11 @@ async def startup_event():
             popular_pipeline(db)
         except Exception as e:
             print(f"⚠️ Erro ao popular pipeline: {e}")
+        
+        try:
+            atualizar_prospeccoes_sem_codigo(db)
+        except Exception as e:
+            print(f"⚠️ Erro ao atualizar prospecções sem código: {e}")
         
         # Cronograma seed disabled during startup (too slow)
         # You can import cronograma manually via the UI if needed

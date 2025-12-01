@@ -124,7 +124,7 @@ class ProspeccaoHistoricoResposta(BaseModel):
 
 class ProspeccaoResposta(ProspeccaoBase):
     id: int
-    codigo: str
+    codigo: Optional[str] = None
     data_criacao: datetime
     data_atualizacao: Optional[datetime] = None
     empresa: Optional[EmpresaResumo] = None
