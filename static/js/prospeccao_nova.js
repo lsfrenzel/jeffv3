@@ -534,11 +534,55 @@ empresaSearchInput.addEventListener('focus', function() {
     }
 });
 
-function selecionarEmpresa(id, nome, municipio) {
+async function selecionarEmpresa(id, nome, municipio) {
     empresaSelecionada = { id, nome, municipio };
     empresaSearchInput.value = `${nome} - ${municipio || 'N/A'}`;
     empresaIdInput.value = id;
     empresaAutocomplete.classList.add('hidden');
+    
+    await preencherDadosContato(id);
+}
+
+async function preencherDadosContato(empresaId) {
+    try {
+        const response = await apiRequest(`/api/empresas/${empresaId}/ultimo-contato`);
+        if (!response || !response.ok) return;
+        
+        const dados = await response.json();
+        
+        if (dados.tem_contato) {
+            const nomeContatoInput = document.getElementById('nome_contato');
+            const cargoContatoInput = document.getElementById('cargo_contato');
+            const telefoneContatoInput = document.getElementById('telefone_contato');
+            const emailContatoInput = document.getElementById('email_contato');
+            
+            if (dados.nome_contato && nomeContatoInput && !nomeContatoInput.value) {
+                nomeContatoInput.value = dados.nome_contato;
+            }
+            if (dados.cargo_contato && cargoContatoInput && !cargoContatoInput.value) {
+                cargoContatoInput.value = dados.cargo_contato;
+            }
+            if (dados.telefone_contato && telefoneContatoInput && !telefoneContatoInput.value) {
+                telefoneContatoInput.value = dados.telefone_contato;
+            }
+            if (dados.email_contato && emailContatoInput && !emailContatoInput.value) {
+                emailContatoInput.value = dados.email_contato;
+            }
+            
+            const dadosPreenchidos = [
+                dados.nome_contato ? 'Nome' : null,
+                dados.cargo_contato ? 'Cargo' : null,
+                dados.telefone_contato ? 'Telefone' : null,
+                dados.email_contato ? 'E-mail' : null
+            ].filter(Boolean);
+            
+            if (dadosPreenchidos.length > 0) {
+                console.log(`Dados do contato preenchidos automaticamente: ${dadosPreenchidos.join(', ')}`);
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao buscar dados do contato:', error);
+    }
 }
 
 function showNovaProspeccaoModal() {
