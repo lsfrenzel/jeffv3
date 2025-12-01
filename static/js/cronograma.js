@@ -15,8 +15,29 @@ const CATEGORIA_CORES = {
     'O': { nome: 'Outros', cor: '#6b7280' }
 };
 
+const CONSULTOR_CORES = [
+    '#8B5CF6', '#EC4899', '#06B6D4', '#10B981', '#F59E0B',
+    '#EF4444', '#6366F1', '#84CC16', '#F97316', '#14B8A6'
+];
+
 const MESES = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho', 
                'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+function getConsultorCor(consultorId) {
+    return CONSULTOR_CORES[consultorId % CONSULTOR_CORES.length];
+}
+
+function getIniciais(nome) {
+    if (!nome) return '??';
+    const partes = nome.split(' ').filter(p => p.length > 0);
+    if (partes.length === 1) return partes[0].substring(0, 2).toUpperCase();
+    return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
+}
+
+function getPrimeiroNome(nome) {
+    if (!nome) return 'Consultor';
+    return nome.split(' ')[0];
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof checkAuth !== 'undefined') {
@@ -45,9 +66,41 @@ async function carregarDados() {
         await carregarEventos();
         renderizarCalendario();
         atualizarResumo();
+        renderizarLegendaConsultores();
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
     }
+}
+
+function renderizarLegendaConsultores() {
+    const container = document.getElementById('legendaConsultores');
+    if (!container || consultores.length === 0) return;
+    
+    let html = '';
+    consultores.forEach(c => {
+        const cor = getConsultorCor(c.id);
+        const iniciais = getIniciais(c.nome);
+        const primeiroNome = getPrimeiroNome(c.nome);
+        
+        html += `
+            <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-dark-card/50 hover:bg-dark-card transition cursor-pointer border border-transparent hover:border-dark-border/50"
+                 onclick="filtrarPorConsultor(${c.id})"
+                 title="${c.nome}">
+                <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm"
+                     style="background: linear-gradient(135deg, ${cor}, ${cor}cc);">
+                    ${iniciais}
+                </div>
+                <span class="text-gray-300 text-sm font-medium">${primeiroNome}</span>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function filtrarPorConsultor(consultorId) {
+    document.getElementById('filtroConsultor').value = consultorId;
+    aplicarFiltros();
 }
 
 async function carregarConsultores() {
@@ -177,25 +230,32 @@ function renderizarCalendario() {
         html += `<div class="${classeDia}">${dia}</div>`;
         
         if (eventosDoDia.length > 0) {
-            html += '<div class="space-y-1">';
+            html += '<div class="space-y-1.5">';
             
-            eventosDoDia.slice(0, 4).forEach(evento => {
-                const cor = CATEGORIA_CORES[evento.categoria]?.cor || '#6b7280';
-                const titulo = evento.sigla_empresa ? 
-                    `${evento.categoria}-${evento.sigla_empresa}` : 
-                    evento.titulo || evento.categoria_nome;
+            eventosDoDia.slice(0, 3).forEach(evento => {
+                const catCor = CATEGORIA_CORES[evento.categoria]?.cor || '#6b7280';
+                const consultorCor = getConsultorCor(evento.consultor_id);
+                const iniciais = getIniciais(evento.consultor_nome);
+                const primeiroNome = getPrimeiroNome(evento.consultor_nome);
+                const titulo = evento.sigla_empresa || evento.categoria;
                 
                 html += `
-                    <div class="text-xs px-2 py-1 rounded truncate text-white font-medium" 
-                         style="background-color: ${cor};"
-                         title="${evento.consultor_nome}: ${titulo}">
-                        ${titulo.substring(0, 12)}${titulo.length > 12 ? '...' : ''}
+                    <div class="evento-card group relative flex items-center gap-1 p-1 rounded-lg bg-dark-bg/80 hover:bg-dark-bg border border-dark-border/30 hover:border-dark-border transition-all cursor-pointer"
+                         title="${evento.consultor_nome}: ${evento.categoria}-${evento.sigla_empresa || evento.categoria_nome}">
+                        <div class="flex-shrink-0 w-5 h-5 rounded-md flex items-center justify-center text-white text-[9px] font-bold shadow-sm"
+                             style="background-color: ${consultorCor};">
+                            ${iniciais}
+                        </div>
+                        <div class="flex-1 min-w-0 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background-color: ${catCor};"></span>
+                            <span class="text-[10px] text-gray-200 truncate">${primeiroNome}</span>
+                        </div>
                     </div>
                 `;
             });
             
-            if (eventosDoDia.length > 4) {
-                html += `<div class="text-xs text-gray-400 text-center">+${eventosDoDia.length - 4} mais</div>`;
+            if (eventosDoDia.length > 3) {
+                html += `<div class="text-[10px] text-blue-400 text-center font-medium hover:text-blue-300 cursor-pointer">+${eventosDoDia.length - 3} mais</div>`;
             }
             
             html += '</div>';
@@ -271,46 +331,72 @@ function abrirDetalhesDia(dataStr, dia) {
         
         const eventosPorConsultor = {};
         eventosDoDia.forEach(e => {
-            if (!eventosPorConsultor[e.consultor_nome]) {
-                eventosPorConsultor[e.consultor_nome] = [];
+            const key = e.consultor_id || 0;
+            if (!eventosPorConsultor[key]) {
+                eventosPorConsultor[key] = {
+                    nome: e.consultor_nome,
+                    id: e.consultor_id,
+                    eventos: []
+                };
             }
-            eventosPorConsultor[e.consultor_nome].push(e);
+            eventosPorConsultor[key].eventos.push(e);
         });
         
-        Object.entries(eventosPorConsultor).forEach(([consultor, evts]) => {
+        Object.values(eventosPorConsultor).forEach(consultor => {
+            const consultorCor = getConsultorCor(consultor.id);
+            const iniciais = getIniciais(consultor.nome);
+            
             html += `
-                <div class="bg-dark-card/50 rounded-xl p-4">
-                    <div class="flex items-center gap-2 mb-3">
-                        <i class="fas fa-user-tie text-blue-400"></i>
-                        <span class="text-white font-medium">${consultor}</span>
-                        <span class="text-gray-500 text-sm">(${evts.length} evento${evts.length > 1 ? 's' : ''})</span>
+                <div class="bg-dark-card/50 rounded-xl overflow-hidden border border-dark-border/30">
+                    <div class="flex items-center gap-3 p-4 border-b border-dark-border/30" style="background: linear-gradient(135deg, ${consultorCor}15, transparent);">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-lg"
+                             style="background: linear-gradient(135deg, ${consultorCor}, ${consultorCor}cc);">
+                            ${iniciais}
+                        </div>
+                        <div class="flex-1">
+                            <span class="text-white font-semibold text-lg">${consultor.nome}</span>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-medium" 
+                                      style="background-color: ${consultorCor}30; color: ${consultorCor};">
+                                    ${consultor.eventos.length} evento${consultor.eventos.length > 1 ? 's' : ''}
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="space-y-2">
+                    <div class="p-3 space-y-2">
             `;
             
-            evts.forEach(evento => {
-                const cor = CATEGORIA_CORES[evento.categoria]?.cor || '#6b7280';
+            consultor.eventos.forEach(evento => {
+                const catCor = CATEGORIA_CORES[evento.categoria]?.cor || '#6b7280';
                 const titulo = evento.sigla_empresa ? 
                     `${evento.categoria}-${evento.sigla_empresa}` : 
                     evento.titulo || evento.categoria_nome;
                 const periodo = evento.periodo === 'M' ? 'Manha' : evento.periodo === 'T' ? 'Tarde' : 'Dia todo';
+                const periodoIcon = evento.periodo === 'M' ? 'sun' : evento.periodo === 'T' ? 'cloud-sun' : 'calendar-day';
                 
                 html += `
-                    <div class="flex items-center justify-between p-3 rounded-lg bg-dark-bg/50 hover:bg-dark-bg transition group">
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-dark-bg/70 hover:bg-dark-bg transition group border border-transparent hover:border-dark-border/50">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold" style="background-color: ${cor};">
+                            <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md" 
+                                 style="background: linear-gradient(135deg, ${catCor}, ${catCor}cc);">
                                 ${evento.categoria}
                             </div>
                             <div>
                                 <p class="text-white font-medium">${titulo}</p>
-                                <p class="text-gray-500 text-xs">${evento.categoria_nome} - ${periodo}</p>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-gray-400 text-xs">${evento.categoria_nome}</span>
+                                    <span class="text-gray-600">|</span>
+                                    <span class="text-gray-400 text-xs flex items-center gap-1">
+                                        <i class="fas fa-${periodoIcon} text-[10px]"></i> ${periodo}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
-                            <button onclick="editarEvento(${evento.id})" class="w-8 h-8 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 flex items-center justify-center transition">
+                            <button onclick="editarEvento(${evento.id})" class="w-9 h-9 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 flex items-center justify-center transition">
                                 <i class="fas fa-edit text-sm"></i>
                             </button>
-                            <button onclick="confirmarExclusao(${evento.id})" class="w-8 h-8 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 flex items-center justify-center transition">
+                            <button onclick="confirmarExclusao(${evento.id})" class="w-9 h-9 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 flex items-center justify-center transition">
                                 <i class="fas fa-trash text-sm"></i>
                             </button>
                         </div>

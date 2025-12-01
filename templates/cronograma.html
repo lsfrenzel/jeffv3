@@ -97,45 +97,54 @@
                 </div>
             </div>
 
+            <div class="glass-effect rounded-2xl p-4 sm:p-6 border border-dark-border/50 animate-slide-up" style="animation-delay: 0.1s;">
+                <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <i class="fas fa-users text-blue-400"></i>
+                    Consultores
+                </h3>
+                <div id="legendaConsultores" class="flex flex-wrap gap-2">
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                <div class="glass-effect rounded-2xl p-6 border border-dark-border/50 animate-slide-up" style="animation-delay: 0.1s;">
+                <div class="glass-effect rounded-2xl p-6 border border-dark-border/50 animate-slide-up" style="animation-delay: 0.2s;">
                     <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                         <i class="fas fa-palette text-pink-400"></i>
                         Legenda de Categorias
                     </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="legendaCategorias">
-                        <div class="flex items-center gap-3 p-3 rounded-xl bg-dark-card/50 hover:bg-dark-card transition cursor-pointer" onclick="filtrarPorCategoria('C')">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style="background-color: #22c55e;">C</div>
-                            <span class="text-gray-300 text-sm">Consultoria</span>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="legendaCategorias">
+                        <div class="flex items-center gap-2 p-2 rounded-lg bg-dark-card/50 hover:bg-dark-card transition cursor-pointer" onclick="filtrarPorCategoria('C')">
+                            <div class="w-6 h-6 rounded-md flex items-center justify-center text-white font-bold text-xs" style="background-color: #22c55e;">C</div>
+                            <span class="text-gray-300 text-xs">Consultoria</span>
                         </div>
-                        <div class="flex items-center gap-3 p-3 rounded-xl bg-dark-card/50 hover:bg-dark-card transition cursor-pointer" onclick="filtrarPorCategoria('K')">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style="background-color: #eab308;">K</div>
-                            <span class="text-gray-300 text-sm">Kick-off</span>
+                        <div class="flex items-center gap-2 p-2 rounded-lg bg-dark-card/50 hover:bg-dark-card transition cursor-pointer" onclick="filtrarPorCategoria('K')">
+                            <div class="w-6 h-6 rounded-md flex items-center justify-center text-white font-bold text-xs" style="background-color: #eab308;">K</div>
+                            <span class="text-gray-300 text-xs">Kick-off</span>
                         </div>
-                        <div class="flex items-center gap-3 p-3 rounded-xl bg-dark-card/50 hover:bg-dark-card transition cursor-pointer" onclick="filtrarPorCategoria('F')">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style="background-color: #3b82f6;">F</div>
-                            <span class="text-gray-300 text-sm">Reuniao Final</span>
+                        <div class="flex items-center gap-2 p-2 rounded-lg bg-dark-card/50 hover:bg-dark-card transition cursor-pointer" onclick="filtrarPorCategoria('F')">
+                            <div class="w-6 h-6 rounded-md flex items-center justify-center text-white font-bold text-xs" style="background-color: #3b82f6;">F</div>
+                            <span class="text-gray-300 text-xs">Reuniao Final</span>
                         </div>
-                        <div class="flex items-center gap-3 p-3 rounded-xl bg-dark-card/50 hover:bg-dark-card transition cursor-pointer" onclick="filtrarPorCategoria('M')">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style="background-color: #ef4444;">M</div>
-                            <span class="text-gray-300 text-sm">Mentoria</span>
+                        <div class="flex items-center gap-2 p-2 rounded-lg bg-dark-card/50 hover:bg-dark-card transition cursor-pointer" onclick="filtrarPorCategoria('M')">
+                            <div class="w-6 h-6 rounded-md flex items-center justify-center text-white font-bold text-xs" style="background-color: #ef4444;">M</div>
+                            <span class="text-gray-300 text-xs">Mentoria</span>
                         </div>
-                        <div class="flex items-center gap-3 p-3 rounded-xl bg-dark-card/50 hover:bg-dark-card transition cursor-pointer" onclick="filtrarPorCategoria('T')">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style="background-color: #f97316;">T</div>
-                            <span class="text-gray-300 text-sm">T0 - Diagnostico</span>
+                        <div class="flex items-center gap-2 p-2 rounded-lg bg-dark-card/50 hover:bg-dark-card transition cursor-pointer" onclick="filtrarPorCategoria('T')">
+                            <div class="w-6 h-6 rounded-md flex items-center justify-center text-white font-bold text-xs" style="background-color: #f97316;">T</div>
+                            <span class="text-gray-300 text-xs">Diagnostico</span>
                         </div>
-                        <div class="flex items-center gap-3 p-3 rounded-xl bg-dark-card/50 hover:bg-dark-card transition cursor-pointer" onclick="filtrarPorCategoria('P')">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style="background-color: #06b6d4;">P</div>
-                            <span class="text-gray-300 text-sm">Programado</span>
+                        <div class="flex items-center gap-2 p-2 rounded-lg bg-dark-card/50 hover:bg-dark-card transition cursor-pointer" onclick="filtrarPorCategoria('P')">
+                            <div class="w-6 h-6 rounded-md flex items-center justify-center text-white font-bold text-xs" style="background-color: #06b6d4;">P</div>
+                            <span class="text-gray-300 text-xs">Programado</span>
                         </div>
-                        <div class="flex items-center gap-3 p-3 rounded-xl bg-dark-card/50 hover:bg-dark-card transition cursor-pointer col-span-1 sm:col-span-2" onclick="filtrarPorCategoria('O')">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style="background-color: #6b7280;">O</div>
-                            <span class="text-gray-300 text-sm">Outros</span>
+                        <div class="flex items-center gap-2 p-2 rounded-lg bg-dark-card/50 hover:bg-dark-card transition cursor-pointer col-span-2" onclick="filtrarPorCategoria('O')">
+                            <div class="w-6 h-6 rounded-md flex items-center justify-center text-white font-bold text-xs" style="background-color: #6b7280;">O</div>
+                            <span class="text-gray-300 text-xs">Outros</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="glass-effect rounded-2xl p-6 border border-dark-border/50 animate-slide-up" style="animation-delay: 0.2s;">
+                <div class="glass-effect rounded-2xl p-6 border border-dark-border/50 animate-slide-up" style="animation-delay: 0.3s;">
                     <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                         <i class="fas fa-chart-pie text-purple-400"></i>
                         Resumo do Mes
