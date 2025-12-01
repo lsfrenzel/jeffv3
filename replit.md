@@ -66,5 +66,6 @@ The project enforces separation of concerns (`backend/`, `templates/`, `static/`
 -   Fixed 307 redirect issues by ensuring JavaScript API calls use trailing slashes to match FastAPI routes
 -   Configured PostgreSQL database with seed data (admin user, consultores, empresas, pipeline stages, cronograma events)
 -   **Fixed 500 errors on consultant profile and prospection endpoints** - Made `codigo` field optional in `ProspeccaoResposta` schema to handle legacy prospections without unique codes
+-   **Added automatic database migration** - Startup now automatically adds the `codigo` column to the prospeccoes table if it doesn't exist (for Railway/production databases)
 -   **Added automatic codigo generation** - Startup function now automatically generates unique codes for any existing prospections that don't have one (format: PROSP-YYYYMMDD-XXXX)
 -   Disabled slow cronograma seed during startup for faster server boot time
