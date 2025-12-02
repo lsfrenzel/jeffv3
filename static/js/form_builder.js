@@ -487,8 +487,13 @@ function updatePreview() {
 
 function togglePreview() {
     const preview = document.getElementById('previewSection');
-    preview.classList.toggle('hidden');
-    preview.classList.toggle('lg:block');
+    if (preview.classList.contains('hidden')) {
+        preview.classList.remove('hidden');
+        preview.classList.add('lg:block');
+    } else {
+        preview.classList.add('hidden');
+        preview.classList.remove('lg:block');
+    }
 }
 
 function updateSteps() {

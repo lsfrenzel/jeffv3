@@ -10,7 +10,7 @@
         <header class="sticky top-0 z-10 glass-effect border-b border-dark-border/50 px-4 sm:px-8 py-4">
             <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
-                    <button onclick="toggleMobileSidebar()" class="mobile-menu-btn w-10 h-10 rounded-xl bg-dark-card hover:bg-dark-hover flex items-center justify-center text-gray-400 hover:text-white transition">
+                    <button onclick="toggleMobileSidebar()" class="lg:hidden w-10 h-10 rounded-xl bg-dark-card hover:bg-dark-hover flex items-center justify-center text-gray-400 hover:text-white transition">
                         <i class="fas fa-bars"></i>
                     </button>
                     <div>
@@ -368,8 +368,8 @@
 
 <div id="modalVerFormulario" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="fecharModal('modalVerFormulario')"></div>
-    <div class="absolute inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-2xl sm:max-h-[85vh] overflow-hidden">
-        <div class="modal-modern h-full sm:h-auto flex flex-col">
+    <div class="absolute inset-4 sm:inset-8 lg:inset-16 overflow-hidden">
+        <div class="modal-modern h-full flex flex-col">
             <div class="flex items-center justify-between px-6 py-4 border-b border-dark-border/50">
                 <h3 class="text-lg font-semibold text-white flex items-center gap-3">
                     <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">

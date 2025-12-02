@@ -90,7 +90,8 @@ async function carregarEmpresas() {
             if (select) {
                 select.innerHTML = '<option value="">Selecione uma empresa</option>';
                 empresas.forEach(emp => {
-                    select.innerHTML += `<option value="${emp.id}">${emp.razao_social}</option>`;
+                    const nomeEmpresa = emp.empresa || emp.razao_social || 'Empresa sem nome';
+                    select.innerHTML += `<option value="${emp.id}">${nomeEmpresa}</option>`;
                 });
             }
         }
