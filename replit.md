@@ -56,6 +56,16 @@ The backend uses FastAPI, PostgreSQL, and SQLAlchemy. Authentication is handled 
     - Admin statistics dashboard with response rates and averages per question
     - Link management for companies with email tracking
     - View individual responses with detailed breakdown
+    - **Gamified Interactive Form Experience** (client-facing):
+      - Modern dark theme with gradient backgrounds and particle animations
+      - Single-question navigation flow (one question at a time)
+      - Progress bar showing completion percentage
+      - Points/scoring system (points vary by answer value for scale questions, flat points for text)
+      - Visual feedback: toast notifications, confetti animations, motivational messages
+      - Completion screen with trophy, stats (points, answers, time), and medals (Bronze 50+, Silver 100+, Gold 150+)
+      - Keyboard navigation support (Arrow keys, Enter)
+      - Mobile-responsive design
+      - Required question validation with error highlighting
 
 ### System Design Choices
 The project enforces separation of concerns (`backend/`, `templates/`, `static/`). Security measures include JWT authentication, password hashing, XSS protection, and environment variables for sensitive configurations. The system is fully mobile-responsive across all pages.
