@@ -69,3 +69,6 @@ The project enforces separation of concerns (`backend/`, `templates/`, `static/`
 -   **Added automatic database migration** - Startup now automatically adds the `codigo` column to the prospeccoes table if it doesn't exist (for Railway/production databases)
 -   **Added automatic codigo generation** - Startup function now automatically generates unique codes for any existing prospections that don't have one (format: PROSP-YYYYMMDD-XXXX)
 -   Disabled slow cronograma seed during startup for faster server boot time
+-   **Mobile Responsiveness Improvements** - Enhanced prospeccao_nova.html with horizontal scroll for tables, responsive padding, and hidden columns on mobile
+-   **Auto-fill Date/Time Feature** - Added auto-fill for "Data e hora da ligação" fields with current timestamp as default suggestion
+-   **Date/Time Preservation in Editing** - Implemented timezone-safe string slicing to preserve original date/time values when editing prospections, with current timestamp fallback for empty fields
