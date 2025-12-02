@@ -89,26 +89,64 @@ function renderizarProspeccoes(prospeccoes) {
 
 async function carregarProspeccoes() {
     try {
+        console.log('Carregando prospecções...');
         const response = await apiRequest('/api/prospeccoes/');
+        
         if (!response) {
-            document.getElementById('viewCards').innerHTML = '<div class="col-span-full text-center py-8 text-red-400">Sessão expirada. Faça login novamente.</div>';
+            console.error('Resposta nula - sessão expirada');
+            const errorMsg = `
+                <div class="col-span-full text-center py-12">
+                    <div class="text-red-400 mb-4">
+                        <i class="fas fa-exclamation-circle text-4xl"></i>
+                    </div>
+                    <p class="text-lg font-medium text-red-400 mb-2">Sessão expirada</p>
+                    <p class="text-slate-400 text-sm mb-4">Faça login novamente para continuar</p>
+                    <a href="/" class="btn-primary text-white px-4 py-2 rounded-lg inline-block">Fazer Login</a>
+                </div>`;
+            document.getElementById('viewCards').innerHTML = errorMsg;
+            document.getElementById('listaProspeccoesTable').innerHTML = `<tr><td colspan="9" class="px-4 py-8 text-center">${errorMsg}</td></tr>`;
             return;
         }
         
         if (!response.ok) {
             const errorText = await response.text();
             console.error('Erro na API:', response.status, errorText);
-            document.getElementById('viewCards').innerHTML = `<div class="col-span-full text-center py-8 text-red-400">Erro ao carregar prospecções (${response.status})</div>`;
+            const errorMsg = `
+                <div class="col-span-full text-center py-12">
+                    <div class="text-red-400 mb-4">
+                        <i class="fas fa-server text-4xl"></i>
+                    </div>
+                    <p class="text-lg font-medium text-red-400 mb-2">Erro ao carregar prospecções</p>
+                    <p class="text-slate-400 text-sm mb-4">Código: ${response.status}</p>
+                    <button onclick="carregarProspeccoes()" class="btn-primary text-white px-4 py-2 rounded-lg">
+                        <i class="fas fa-sync-alt mr-2"></i>Tentar novamente
+                    </button>
+                </div>`;
+            document.getElementById('viewCards').innerHTML = errorMsg;
+            document.getElementById('listaProspeccoesTable').innerHTML = `<tr><td colspan="9" class="px-4 py-8 text-center">${errorMsg}</td></tr>`;
             return;
         }
         
         todasProspeccoes = await response.json();
+        console.log('Prospecções carregadas:', todasProspeccoes.length);
         
         await carregarConsultoresParaFiltro();
         renderizarProspeccoes(todasProspeccoes);
     } catch (error) {
         console.error('Erro ao carregar prospecções:', error);
-        document.getElementById('viewCards').innerHTML = '<div class="col-span-full text-center py-8 text-red-400">Erro ao carregar prospecções. Verifique sua conexão.</div>';
+        const errorMsg = `
+            <div class="col-span-full text-center py-12">
+                <div class="text-red-400 mb-4">
+                    <i class="fas fa-wifi text-4xl"></i>
+                </div>
+                <p class="text-lg font-medium text-red-400 mb-2">Erro de conexão</p>
+                <p class="text-slate-400 text-sm mb-4">Verifique sua conexão e tente novamente</p>
+                <button onclick="carregarProspeccoes()" class="btn-primary text-white px-4 py-2 rounded-lg">
+                    <i class="fas fa-sync-alt mr-2"></i>Tentar novamente
+                </button>
+            </div>`;
+        document.getElementById('viewCards').innerHTML = errorMsg;
+        document.getElementById('listaProspeccoesTable').innerHTML = `<tr><td colspan="9" class="px-4 py-8 text-center">${errorMsg}</td></tr>`;
     }
 }
 
@@ -179,9 +217,13 @@ function mostrarProspeccoesLista(prospeccoes) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="9" class="px-4 py-12 text-center">
-                    <div class="text-slate-500">
-                        <i class="fas fa-inbox text-4xl mb-3"></i>
-                        <p class="text-sm">Nenhuma prospecção encontrada</p>
+                    <div class="text-slate-400">
+                        <i class="fas fa-phone-slash text-5xl mb-4 opacity-50"></i>
+                        <p class="text-lg font-medium mb-2">Nenhuma prospecção encontrada</p>
+                        <p class="text-sm text-slate-500 mb-4">Clique no botão acima para registrar uma nova ligação</p>
+                        <button onclick="showNovaProspeccaoModal()" class="btn-primary text-white px-5 py-2.5 rounded-lg inline-flex items-center gap-2">
+                            <i class="fas fa-plus"></i> Nova Prospecção
+                        </button>
                     </div>
                 </td>
             </tr>`;
@@ -432,9 +474,13 @@ function mostrarProspeccoesCards(prospeccoes) {
     if (prospeccoes.length === 0) {
         container.innerHTML = `
             <div class="col-span-full text-center py-12">
-                <div class="text-slate-500">
-                    <i class="fas fa-inbox text-4xl mb-3"></i>
-                    <p class="text-sm">Nenhuma prospecção encontrada</p>
+                <div class="text-slate-400">
+                    <i class="fas fa-phone-slash text-5xl mb-4 opacity-50"></i>
+                    <p class="text-lg font-medium mb-2">Nenhuma prospecção encontrada</p>
+                    <p class="text-sm text-slate-500 mb-4">Clique no botão acima para registrar uma nova ligação</p>
+                    <button onclick="showNovaProspeccaoModal()" class="btn-primary text-white px-5 py-2.5 rounded-lg inline-flex items-center gap-2">
+                        <i class="fas fa-plus"></i> Nova Prospecção
+                    </button>
                 </div>
             </div>`;
         return;
