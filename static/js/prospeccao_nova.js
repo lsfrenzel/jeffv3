@@ -3,6 +3,12 @@ atualizarSidebar();
 
 const usuario = getUsuario();
 
+if (!usuario) {
+    console.error('Usuário não encontrado no localStorage - redirecionando para login');
+    window.location.href = '/';
+    throw new Error('Usuário não autenticado - interrompendo execução');
+}
+
 let todasProspeccoes = [];
 let visualizacaoAtual = 'lista';
 
@@ -157,17 +163,23 @@ async function carregarProspeccoes() {
 async function carregarConsultoresParaFiltro() {
     try {
         const response = await apiRequest('/api/admin/usuarios');
+        if (!response || !response.ok) {
+            console.log('Usuário não é admin - filtro de consultores desabilitado');
+            return;
+        }
         const usuarios = await response.json();
         
         const consultores = usuarios.filter(u => u.tipo === 'consultor' || u.tipo === 'admin');
         const select = document.getElementById('filtroConsultor');
-        select.innerHTML = '<option value="">Todos</option>';
-        consultores.forEach(consultor => {
-            const option = document.createElement('option');
-            option.value = consultor.id;
-            option.textContent = consultor.nome;
-            select.appendChild(option);
-        });
+        if (select) {
+            select.innerHTML = '<option value="">Todos</option>';
+            consultores.forEach(consultor => {
+                const option = document.createElement('option');
+                option.value = consultor.id;
+                option.textContent = consultor.nome;
+                select.appendChild(option);
+            });
+        }
     } catch (error) {
         console.error('Erro ao carregar consultores:', error);
     }
@@ -733,6 +745,12 @@ function getCurrentDateTimeForInputs() {
 }
 
 function showNovaProspeccaoModal() {
+    if (!usuario) {
+        alert('Sessão expirada. Faça login novamente.');
+        window.location.href = '/';
+        return;
+    }
+    
     if (usuario.tipo === 'admin') {
         carregarConsultores();
     } else {
@@ -763,17 +781,23 @@ function hideNovaProspeccaoModal() {
 async function carregarConsultores() {
     try {
         const response = await apiRequest('/api/admin/usuarios');
+        if (!response || !response.ok) {
+            console.error('Erro ao carregar consultores - resposta inválida');
+            return;
+        }
         const usuarios = await response.json();
         
         const consultores = usuarios.filter(u => u.tipo === 'consultor' || u.tipo === 'admin');
         const select = document.getElementById('consultor_id');
-        select.innerHTML = '<option value="">Selecione um consultor...</option>';
-        consultores.forEach(consultor => {
-            const option = document.createElement('option');
-            option.value = consultor.id;
-            option.textContent = consultor.nome;
-            select.appendChild(option);
-        });
+        if (select) {
+            select.innerHTML = '<option value="">Selecione um consultor...</option>';
+            consultores.forEach(consultor => {
+                const option = document.createElement('option');
+                option.value = consultor.id;
+                option.textContent = consultor.nome;
+                select.appendChild(option);
+            });
+        }
     } catch (error) {
         console.error('Erro ao carregar consultores:', error);
     }
@@ -783,6 +807,12 @@ const novaProspeccaoForm = document.getElementById('novaProspeccaoForm');
 if (novaProspeccaoForm) {
     novaProspeccaoForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
+        if (!usuario) {
+            alert('Sessão expirada. Faça login novamente.');
+            window.location.href = '/';
+            return;
+        }
         
         const empresaIdValue = document.getElementById('empresa_id')?.value;
         if (!empresaIdValue || isNaN(parseInt(empresaIdValue))) {
@@ -881,7 +911,7 @@ async function verificarParametrosURL() {
         }
     }
     
-    if (consultorIdParam && usuario.tipo === 'admin') {
+    if (consultorIdParam && usuario && usuario.tipo === 'admin') {
         await carregarConsultores();
         const select = document.getElementById('consultor_id');
         if (select) {
