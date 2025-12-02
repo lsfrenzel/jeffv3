@@ -11,42 +11,66 @@ async function carregarProspeccoes() {
         const response = await apiRequest('/api/prospeccoes/');
         if (!response || !response.ok) {
             console.error('Erro ao carregar prospecções:', response?.status);
+            document.getElementById('tabelaProspeccoes').innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-red-400">Erro ao carregar prospecções. Tente fazer login novamente.</td></tr>';
             return;
         }
         const prospeccoes = await response.json();
         
         const empresasResponse = await apiRequest('/api/empresas/');
-        if (!empresasResponse || !empresasResponse.ok) {
-            console.error('Erro ao carregar empresas:', empresasResponse?.status);
-            return;
+        if (empresasResponse && empresasResponse.ok) {
+            const empresasData = await empresasResponse.json();
+            empresasCache = empresasData.items || [];
         }
-        const empresasData = await empresasResponse.json();
-        empresasCache = empresasData.items || [];
         
         const tbody = document.getElementById('tabelaProspeccoes');
         
-        if (prospeccoes.length === 0) {
+        if (!prospeccoes || prospeccoes.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">Nenhuma prospecção encontrada</td></tr>';
             return;
         }
         
         tbody.innerHTML = prospeccoes.map(p => {
-            const empresa = empresasCache.find(e => e.id === p.empresa_id);
+            const empresaNome = p.empresa ? p.empresa.empresa : (empresasCache.find(e => e.id === p.empresa_id)?.empresa || 'N/A');
+            const consultorNome = p.consultor ? p.consultor.nome : `Consultor ${p.consultor_id}`;
             return `
-                <tr class="hover:bg-dark-hover">
+                <tr class="hover:bg-dark-hover transition-colors">
                     <td class="px-6 py-4 text-gray-300">${p.data_ligacao ? new Date(p.data_ligacao).toLocaleDateString('pt-BR') : '-'}</td>
-                    <td class="px-6 py-4 text-gray-300">${empresa ? empresa.empresa : 'N/A'}</td>
-                    <td class="px-6 py-4 text-gray-300">Consultor ${p.consultor_id}</td>
-                    <td class="px-6 py-4 text-gray-300">${p.resultado || '-'}</td>
+                    <td class="px-6 py-4 text-gray-300">${empresaNome}</td>
+                    <td class="px-6 py-4 text-gray-300">${consultorNome}</td>
                     <td class="px-6 py-4">
-                        <button onclick="criarAgendamento(${p.id})" class="text-blue-400 hover:text-blue-300">Agendar</button>
+                        <span class="px-3 py-1 rounded-full text-xs font-medium ${getResultadoClass(p.resultado)}">${p.resultado || '-'}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex gap-2">
+                            <button onclick="verDetalhes(${p.id})" class="text-blue-400 hover:text-blue-300 text-sm" title="Ver detalhes">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="criarAgendamento(${p.id})" class="text-green-400 hover:text-green-300 text-sm" title="Agendar retorno">
+                                <i class="fas fa-calendar-plus"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
         }).join('');
     } catch (error) {
         console.error('Erro ao carregar prospecções:', error);
+        document.getElementById('tabelaProspeccoes').innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-red-400">Erro ao carregar dados. Verifique sua conexão.</td></tr>';
     }
+}
+
+function getResultadoClass(resultado) {
+    if (!resultado) return 'bg-gray-600 text-gray-200';
+    const lower = resultado.toLowerCase();
+    if (lower.includes('interessado') || lower.includes('proposta')) return 'bg-green-600/30 text-green-400';
+    if (lower.includes('agend') || lower.includes('reunião')) return 'bg-blue-600/30 text-blue-400';
+    if (lower.includes('retorno') || lower.includes('aguard')) return 'bg-yellow-600/30 text-yellow-400';
+    if (lower.includes('contato')) return 'bg-purple-600/30 text-purple-400';
+    return 'bg-gray-600/30 text-gray-300';
+}
+
+function verDetalhes(prospeccaoId) {
+    window.location.href = `/empresa_perfil?prospeccao_id=${prospeccaoId}`;
 }
 
 async function showNovaProspeccaoModal() {

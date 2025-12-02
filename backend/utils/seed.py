@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
-from backend.models import Usuario, TipoUsuario, Stage
+from backend.models import Usuario, TipoUsuario, Stage, Prospeccao
 from backend.models.empresas import Empresa
 from backend.models.pipeline import CompanyPipeline, CompanyStageHistory, Note
 from backend.auth.security import obter_hash_senha
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date, time
 import os
 
 def criar_usuario_admin_padrao(db: Session):
@@ -318,3 +318,119 @@ def popular_pipeline(db: Session):
     
     db.commit()
     print(f"✓ Pipeline populado com 5 empresas, histórico e notas")
+
+def criar_prospeccoes_padrao(db: Session):
+    """Cria prospecções de teste para as empresas existentes"""
+    prospeccao_existente = db.query(Prospeccao).first()
+    
+    if prospeccao_existente:
+        print(f"✓ Prospecções já existem no banco")
+        return
+    
+    petrobras = db.query(Empresa).filter(Empresa.cnpj == "33000167000101").first()
+    vale = db.query(Empresa).filter(Empresa.cnpj == "33592510000154").first()
+    bb = db.query(Empresa).filter(Empresa.cnpj == "00000000000191").first()
+    bradesco = db.query(Empresa).filter(Empresa.cnpj == "60746948000112").first()
+    ambev = db.query(Empresa).filter(Empresa.cnpj == "07526557000100").first()
+    
+    gabriel = db.query(Usuario).filter(Usuario.email == "gabriel@nucleo.com").first()
+    lucas = db.query(Usuario).filter(Usuario.email == "lucas@nucleo.com").first()
+    admin = db.query(Usuario).filter(Usuario.email == "admin@admin.com").first()
+    
+    if not all([petrobras, vale, bb, bradesco, ambev]):
+        print("⚠ Empresas não encontradas para criar prospecções")
+        return
+    
+    consultor_id = gabriel.id if gabriel else (lucas.id if lucas else (admin.id if admin else 1))
+    consultor2_id = lucas.id if lucas else consultor_id
+    
+    hoje = date.today()
+    
+    prospeccoes = [
+        Prospeccao(
+            empresa_id=petrobras.id,
+            consultor_id=consultor_id,
+            data_ligacao=hoje - timedelta(days=5),
+            hora_ligacao=time(10, 30),
+            resultado="Interessado em proposta",
+            observacoes="Cliente demonstrou interesse em soluções de TI. Agendar reunião presencial.",
+            nome_contato="Carlos Mendes",
+            cargo_contato="Gerente de TI",
+            telefone_contato="(21) 99999-1234",
+            email_contato="carlos.mendes@petrobras.com.br",
+            interesse_treinamento=True,
+            interesse_consultoria=True,
+            potencial_negocio="Alto",
+            status_prospeccao="Em andamento"
+        ),
+        Prospeccao(
+            empresa_id=vale.id,
+            consultor_id=consultor2_id,
+            data_ligacao=hoje - timedelta(days=3),
+            hora_ligacao=time(14, 0),
+            resultado="Agendar retorno",
+            observacoes="Responsável em reunião. Ligar novamente amanhã às 15h.",
+            nome_contato="Maria Santos",
+            cargo_contato="Diretora de RH",
+            telefone_contato="(21) 98888-5678",
+            email_contato="maria.santos@vale.com",
+            interesse_treinamento=True,
+            interesse_eventos=True,
+            potencial_negocio="Médio",
+            status_prospeccao="Aguardando retorno"
+        ),
+        Prospeccao(
+            empresa_id=bb.id,
+            consultor_id=consultor_id,
+            data_ligacao=hoje - timedelta(days=10),
+            hora_ligacao=time(9, 0),
+            resultado="Proposta enviada",
+            observacoes="Proposta comercial enviada por email. Aguardando aprovação interna.",
+            nome_contato="João Silva",
+            cargo_contato="Superintendente",
+            telefone_contato="(61) 97777-9012",
+            email_contato="joao.silva@bb.com.br",
+            interesse_consultoria=True,
+            interesse_certificacao=True,
+            potencial_negocio="Alto",
+            status_prospeccao="Proposta enviada"
+        ),
+        Prospeccao(
+            empresa_id=bradesco.id,
+            consultor_id=consultor2_id,
+            data_ligacao=hoje - timedelta(days=2),
+            hora_ligacao=time(11, 30),
+            resultado="Primeiro contato",
+            observacoes="Primeiro contato realizado. Cliente solicitou mais informações por email.",
+            nome_contato="Ana Ferreira",
+            cargo_contato="Coordenadora",
+            telefone_contato="(11) 96666-3456",
+            email_contato="ana.ferreira@bradesco.com.br",
+            interesse_treinamento=True,
+            potencial_negocio="Médio",
+            status_prospeccao="Em prospecção"
+        ),
+        Prospeccao(
+            empresa_id=ambev.id,
+            consultor_id=consultor_id,
+            data_ligacao=hoje - timedelta(days=7),
+            hora_ligacao=time(16, 0),
+            resultado="Reunião agendada",
+            observacoes="Cliente interessado em consultoria. Reunião agendada para próxima semana.",
+            nome_contato="Pedro Almeida",
+            cargo_contato="Diretor de Operações",
+            telefone_contato="(11) 95555-7890",
+            email_contato="pedro.almeida@ambev.com.br",
+            interesse_consultoria=True,
+            interesse_seguranca=True,
+            interesse_meio_ambiente=True,
+            potencial_negocio="Alto",
+            status_prospeccao="Reunião agendada"
+        )
+    ]
+    
+    for prosp in prospeccoes:
+        db.add(prosp)
+    
+    db.commit()
+    print(f"✓ {len(prospeccoes)} prospecções criadas")

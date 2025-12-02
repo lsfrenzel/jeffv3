@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.database import SessionLocal, Base, engine
 from backend.models import Usuario, Empresa, Prospeccao, Agendamento, AtribuicaoEmpresa, Notificacao, Mensagem
 from backend.routers import auth, empresas, prospeccoes, agendamentos, admin, atribuicoes, consultores, dashboard, cnpj, notificacoes, mensagens, cronograma, pipeline
-from backend.utils.seed import criar_usuario_admin_padrao, criar_empresas_padrao, criar_consultores_padrao, criar_stages_padrao, popular_pipeline
+from backend.utils.seed import criar_usuario_admin_padrao, criar_empresas_padrao, criar_consultores_padrao, criar_stages_padrao, popular_pipeline, criar_prospeccoes_padrao
 from backend.utils.seed_cronograma import seed_cronograma
 from backend.models.prospeccoes import gerar_codigo_prospeccao
 
@@ -256,6 +256,11 @@ async def startup_event():
             popular_pipeline(db)
         except Exception as e:
             print(f"⚠️ Erro ao popular pipeline: {e}")
+        
+        try:
+            criar_prospeccoes_padrao(db)
+        except Exception as e:
+            print(f"⚠️ Erro ao criar prospecções padrão: {e}")
         
         try:
             atualizar_prospeccoes_sem_codigo(db)
