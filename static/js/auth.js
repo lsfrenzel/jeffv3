@@ -2,6 +2,14 @@ function getToken() {
     return localStorage.getItem('token');
 }
 
+function getAuthHeaders() {
+    const token = getToken();
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+    };
+}
+
 function setToken(token) {
     localStorage.setItem('token', token);
 }
