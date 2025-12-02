@@ -3,14 +3,15 @@ atualizarSidebar();
 
 const usuario = getUsuario();
 
-if (!usuario) {
-    console.error('Usuário não encontrado no localStorage - redirecionando para login');
-    window.location.href = '/';
-    throw new Error('Usuário não autenticado - interrompendo execução');
-}
-
+// Variáveis globais
 let todasProspeccoes = [];
 let visualizacaoAtual = 'lista';
+
+// Verificação de autenticação - se não autenticado, para execução aqui
+if (!usuario) {
+    console.error('Usuário não encontrado no localStorage');
+    // Não faz nada mais - checkAuth já vai redirecionar
+}
 
 // Inicialização segura do evento agendar_proxima
 const agendarProximaEl = document.getElementById('agendar_proxima');
@@ -98,8 +99,10 @@ function renderizarProspeccoes(prospeccoes) {
 }
 
 async function carregarProspeccoes() {
+    console.log('=== INICIANDO carregarProspeccoes ===');
+    console.log('Usuario atual:', usuario);
     try {
-        console.log('Carregando prospecções...');
+        console.log('Fazendo requisição para /api/prospeccoes/...');
         const response = await apiRequest('/api/prospeccoes/');
         
         if (!response) {
@@ -139,9 +142,12 @@ async function carregarProspeccoes() {
         
         todasProspeccoes = await response.json();
         console.log('Prospecções carregadas:', todasProspeccoes.length);
+        console.log('Dados recebidos:', todasProspeccoes);
         
         await carregarConsultoresParaFiltro();
+        console.log('Chamando renderizarProspeccoes...');
         renderizarProspeccoes(todasProspeccoes);
+        console.log('=== carregarProspeccoes CONCLUÍDO ===');
     } catch (error) {
         console.error('Erro ao carregar prospecções:', error);
         const errorMsg = `
@@ -218,18 +224,39 @@ function getPotencialBadge(potencial) {
 }
 
 function updateStats(prospeccoes) {
-    document.getElementById('totalProspeccoes').textContent = prospeccoes.length;
-    document.getElementById('totalInteresse').textContent = prospeccoes.filter(p => p.resultado && p.resultado.includes('Interesse') && !p.resultado.includes('Sem')).length;
-    document.getElementById('totalRetornar').textContent = prospeccoes.filter(p => p.resultado && p.resultado.includes('Retornar')).length;
-    document.getElementById('totalNegociacao').textContent = prospeccoes.filter(p => p.status_follow_up && p.status_follow_up.includes('negociação')).length;
+    try {
+        const totalEl = document.getElementById('totalProspeccoes');
+        const interesseEl = document.getElementById('totalInteresse');
+        const retornarEl = document.getElementById('totalRetornar');
+        const negociacaoEl = document.getElementById('totalNegociacao');
+        
+        if (totalEl) totalEl.textContent = prospeccoes.length;
+        if (interesseEl) interesseEl.textContent = prospeccoes.filter(p => p.resultado && p.resultado.includes('Interesse') && !p.resultado.includes('Sem')).length;
+        if (retornarEl) retornarEl.textContent = prospeccoes.filter(p => p.resultado && p.resultado.includes('Retornar')).length;
+        if (negociacaoEl) negociacaoEl.textContent = prospeccoes.filter(p => p.status_follow_up && p.status_follow_up.includes('negociação')).length;
+    } catch (error) {
+        console.error('Erro ao atualizar estatísticas:', error);
+    }
 }
 
 function mostrarProspeccoesLista(prospeccoes) {
+    console.log('=== mostrarProspeccoesLista chamada ===');
+    console.log('Quantidade de prospecções:', prospeccoes ? prospeccoes.length : 'null/undefined');
+    
     const tbody = document.getElementById('listaProspeccoesTable');
+    if (!tbody) {
+        console.error('ERRO: Elemento listaProspeccoesTable não encontrado!');
+        return;
+    }
     
-    updateStats(prospeccoes);
+    try {
+        updateStats(prospeccoes);
+    } catch (e) {
+        console.error('Erro em updateStats:', e);
+    }
     
-    if (prospeccoes.length === 0) {
+    if (!prospeccoes || prospeccoes.length === 0) {
+        console.log('Nenhuma prospecção - exibindo mensagem vazia');
         tbody.innerHTML = `
             <tr>
                 <td colspan="9" class="px-4 py-12 text-center">
@@ -245,6 +272,8 @@ function mostrarProspeccoesLista(prospeccoes) {
             </tr>`;
         return;
     }
+    
+    console.log('Renderizando', prospeccoes.length, 'prospecções...');
     
     tbody.innerHTML = prospeccoes.map(prosp => {
         const empresaNome = prosp.empresa?.empresa || prosp.empresa_nome || 'N/A';
@@ -890,7 +919,29 @@ if (novaProspeccaoForm) {
     });
 }
 
-carregarProspeccoes();
+// Timeout de segurança - se demorar mais de 10 segundos, mostra erro
+const loadingTimeout = setTimeout(() => {
+    const tbody = document.getElementById('listaProspeccoesTable');
+    const viewCards = document.getElementById('viewCards');
+    if (tbody && tbody.innerHTML.includes('Carregando')) {
+        console.error('TIMEOUT: Carregamento demorou muito');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="px-4 py-8 text-center">
+                    <div class="text-amber-400">
+                        <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+                        <p class="text-lg font-medium mb-2">Carregamento lento</p>
+                        <p class="text-slate-400 text-sm mb-4">O carregamento está demorando. Tente recarregar a página.</p>
+                        <button onclick="location.reload()" class="btn-primary text-white px-4 py-2 rounded-lg">
+                            <i class="fas fa-sync-alt mr-2"></i>Recarregar
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+    }
+}, 10000);
+
+carregarProspeccoes().finally(() => clearTimeout(loadingTimeout));
 
 async function verificarParametrosURL() {
     const urlParams = new URLSearchParams(window.location.search);
