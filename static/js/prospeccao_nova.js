@@ -28,18 +28,21 @@ function toggleVisualizacao(modo) {
     const viewCards = document.getElementById('viewCards');
     const viewLista = document.getElementById('viewLista');
     
+    const activeClasses = ['bg-blue-600', 'text-white', 'border-blue-500'];
+    const inactiveClasses = ['bg-slate-700/50', 'text-slate-300', 'border-slate-600/50'];
+    
     if (modo === 'cards') {
-        btnCards.classList.remove('bg-gray-600');
-        btnCards.classList.add('bg-blue-600');
-        btnLista.classList.remove('bg-blue-600');
-        btnLista.classList.add('bg-gray-600');
+        inactiveClasses.forEach(c => btnCards.classList.remove(c));
+        activeClasses.forEach(c => btnCards.classList.add(c));
+        activeClasses.forEach(c => btnLista.classList.remove(c));
+        inactiveClasses.forEach(c => btnLista.classList.add(c));
         viewCards.classList.remove('hidden');
         viewLista.classList.add('hidden');
     } else {
-        btnLista.classList.remove('bg-gray-600');
-        btnLista.classList.add('bg-blue-600');
-        btnCards.classList.remove('bg-blue-600');
-        btnCards.classList.add('bg-gray-600');
+        inactiveClasses.forEach(c => btnLista.classList.remove(c));
+        activeClasses.forEach(c => btnLista.classList.add(c));
+        activeClasses.forEach(c => btnCards.classList.remove(c));
+        inactiveClasses.forEach(c => btnCards.classList.add(c));
         viewLista.classList.remove('hidden');
         viewCards.classList.add('hidden');
     }
@@ -131,56 +134,100 @@ async function carregarConsultoresParaFiltro() {
 let prospeccaoEditandoId = null;
 let prospeccaoEditandoCodigo = null;
 
+function getResultadoBadge(resultado) {
+    if (!resultado) return '<span class="badge badge-gray">-</span>';
+    if (resultado.includes('Interesse') && !resultado.includes('Sem')) return '<span class="badge badge-success">Interesse</span>';
+    if (resultado.includes('Sem interesse')) return '<span class="badge badge-danger">Sem interesse</span>';
+    if (resultado.includes('Retornar')) return '<span class="badge badge-warning">Retornar</span>';
+    if (resultado.includes('Não atendeu')) return '<span class="badge badge-gray">Não atendeu</span>';
+    if (resultado.includes('Número inválido')) return '<span class="badge badge-danger">Inválido</span>';
+    return `<span class="badge badge-info">${resultado}</span>`;
+}
+
+function getStatusBadge(status) {
+    if (!status) return '<span class="badge badge-gray">-</span>';
+    if (status.includes('Aguardando')) return '<span class="badge badge-warning">Aguardando</span>';
+    if (status.includes('negociação')) return '<span class="badge badge-purple">Negociação</span>';
+    if (status.includes('proposta') || status.includes('Proposta')) return '<span class="badge badge-info">Proposta</span>';
+    if (status.includes('Fechado')) return '<span class="badge badge-success">Fechado</span>';
+    if (status.includes('Perdido')) return '<span class="badge badge-danger">Perdido</span>';
+    return `<span class="badge badge-gray">${status}</span>`;
+}
+
+function getPotencialBadge(potencial) {
+    if (!potencial) return '<span class="text-slate-500 text-xs">-</span>';
+    if (potencial === 'Muito Alto') return '<span class="badge badge-success">Muito Alto</span>';
+    if (potencial === 'Alto') return '<span class="badge badge-cyan">Alto</span>';
+    if (potencial === 'Médio') return '<span class="badge badge-warning">Médio</span>';
+    if (potencial === 'Baixo') return '<span class="badge badge-gray">Baixo</span>';
+    return `<span class="badge badge-gray">${potencial}</span>`;
+}
+
+function updateStats(prospeccoes) {
+    document.getElementById('totalProspeccoes').textContent = prospeccoes.length;
+    document.getElementById('totalInteresse').textContent = prospeccoes.filter(p => p.resultado && p.resultado.includes('Interesse') && !p.resultado.includes('Sem')).length;
+    document.getElementById('totalRetornar').textContent = prospeccoes.filter(p => p.resultado && p.resultado.includes('Retornar')).length;
+    document.getElementById('totalNegociacao').textContent = prospeccoes.filter(p => p.status_follow_up && p.status_follow_up.includes('negociação')).length;
+}
+
 function mostrarProspeccoesLista(prospeccoes) {
     const tbody = document.getElementById('listaProspeccoesTable');
     
+    updateStats(prospeccoes);
+    
     if (prospeccoes.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="px-2 py-4 text-center text-gray-400 text-xs">Nenhuma prospecção encontrada</td></tr>';
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="px-4 py-12 text-center">
+                    <div class="text-slate-500">
+                        <i class="fas fa-inbox text-4xl mb-3"></i>
+                        <p class="text-sm">Nenhuma prospecção encontrada</p>
+                    </div>
+                </td>
+            </tr>`;
         return;
     }
     
     tbody.innerHTML = prospeccoes.map(prosp => {
-        const resultadoClass = prosp.resultado && prosp.resultado.includes('Interesse') ? 'text-green-400' : 
-                              prosp.resultado && prosp.resultado.includes('Sem interesse') ? 'text-red-400' : 
-                              'text-blue-400';
-        
         const empresaNome = prosp.empresa?.empresa || prosp.empresa_nome || 'N/A';
-        const empresaMunicipio = prosp.empresa?.municipio || prosp.municipio || 'N/A';
-        const empresaEstado = prosp.empresa?.estado || prosp.estado || 'N/A';
+        const empresaMunicipio = prosp.empresa?.municipio || prosp.municipio || '';
+        const empresaEstado = prosp.empresa?.estado || prosp.estado || '';
+        const localizacao = empresaMunicipio && empresaEstado ? `${empresaMunicipio}-${empresaEstado}` : '';
         const consultorNome = prosp.consultor?.nome || prosp.consultor_nome || 'N/A';
         const codigo = prosp.codigo || '-';
-        
-        const observacoes = prosp.observacoes || '';
-        const obsLength = observacoes.length;
-        const obsFontClass = obsLength > 100 ? 'text-[10px]' : 'text-xs';
-        const obsText = observacoes || '-';
+        const observacoes = prosp.observacoes || '-';
+        const obsPreview = observacoes.length > 60 ? observacoes.substring(0, 60) + '...' : observacoes;
         
         return `
-            <tr class="hover:bg-dark-hover/50 transition border-b border-gray-700/30">
-                <td class="px-1 sm:px-2 py-1.5 align-top">
-                    <div class="text-blue-400 text-[9px] sm:text-[10px] font-mono truncate cursor-pointer hover:text-blue-300" onclick="abrirEditarProspeccao(${prosp.id})" title="${codigo}">${codigo}</div>
+            <tr class="group">
+                <td class="px-4 py-3 align-middle">
+                    <button onclick="abrirEditarProspeccao(${prosp.id})" class="text-blue-400 hover:text-blue-300 text-xs font-mono transition-colors" title="Clique para editar">
+                        ${codigo}
+                    </button>
                 </td>
-                <td class="px-1 sm:px-2 py-1.5 align-top">
-                    <div class="text-white text-[10px] sm:text-xs font-medium truncate" title="${empresaNome}">${empresaNome}</div>
-                    <div class="text-gray-500 text-[9px] sm:text-[10px] truncate">${empresaMunicipio}-${empresaEstado}</div>
+                <td class="px-4 py-3 align-middle">
+                    <div class="text-slate-100 text-sm font-medium truncate max-w-[180px]" title="${empresaNome}">${empresaNome}</div>
+                    ${localizacao ? `<div class="text-slate-500 text-xs truncate">${localizacao}</div>` : ''}
                 </td>
-                <td class="px-1 sm:px-2 py-1.5 text-gray-300 text-[10px] sm:text-xs truncate align-top" title="${consultorNome}">${consultorNome}</td>
-                <td class="px-1 sm:px-2 py-1.5 text-gray-300 text-[10px] sm:text-xs align-top whitespace-nowrap">${prosp.data_ligacao ? new Date(prosp.data_ligacao).toLocaleDateString('pt-BR') : '-'}</td>
-                <td class="px-1 sm:px-2 py-1.5 ${resultadoClass} text-[10px] sm:text-xs font-medium align-top">${prosp.resultado || '-'}</td>
-                <td class="px-1 sm:px-2 py-1.5 text-gray-300 text-[10px] sm:text-xs align-top">${prosp.status_follow_up || '-'}</td>
-                <td class="px-1 sm:px-2 py-1.5 text-gray-300 text-[10px] sm:text-xs align-top">${prosp.potencial_negocio || '-'}</td>
-                <td class="px-1 sm:px-2 py-1.5 align-top hidden sm:table-cell">
-                    <div class="${obsFontClass} text-gray-400 leading-tight max-h-16 overflow-y-auto break-words" title="${obsText}">${obsText}</div>
+                <td class="px-4 py-3 text-slate-300 text-sm truncate align-middle max-w-[120px]" title="${consultorNome}">${consultorNome}</td>
+                <td class="px-4 py-3 text-slate-300 text-sm align-middle whitespace-nowrap">
+                    ${prosp.data_ligacao ? `<span class="text-slate-400">${prosp.data_ligacao.slice(0,10).split('-').reverse().join('/')}</span>` : '<span class="text-slate-600">-</span>'}
                 </td>
-                <td class="px-1 sm:px-2 py-1.5 align-top">
-                    <div class="flex gap-0.5 sm:gap-1">
-                        <button onclick="abrirEditarProspeccao(${prosp.id})" class="bg-blue-600 hover:bg-blue-700 text-white px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] transition" title="Editar">
+                <td class="px-4 py-3 align-middle">${getResultadoBadge(prosp.resultado)}</td>
+                <td class="px-4 py-3 align-middle">${getStatusBadge(prosp.status_follow_up)}</td>
+                <td class="px-4 py-3 align-middle">${getPotencialBadge(prosp.potencial_negocio)}</td>
+                <td class="px-4 py-3 align-middle hidden lg:table-cell">
+                    <div class="text-xs text-slate-400 leading-relaxed max-w-[200px] truncate" title="${observacoes}">${obsPreview}</div>
+                </td>
+                <td class="px-4 py-3 align-middle">
+                    <div class="flex items-center justify-center gap-1">
+                        <button onclick="abrirEditarProspeccao(${prosp.id})" class="btn-icon btn-icon-sm bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white transition-all" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button onclick="abrirHistorico(${prosp.id}, '${codigo}')" class="bg-purple-600 hover:bg-purple-700 text-white px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] transition" title="Histórico">
+                        <button onclick="abrirHistorico(${prosp.id}, '${codigo}')" class="btn-icon btn-icon-sm bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white transition-all" title="Histórico">
                             <i class="fas fa-history"></i>
                         </button>
-                        <button onclick="exportarPDF(${prosp.id})" class="bg-red-600 hover:bg-red-700 text-white px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] transition" title="PDF">
+                        <button onclick="exportarPDF(${prosp.id})" class="btn-icon btn-icon-sm bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white transition-all" title="PDF">
                             <i class="fas fa-file-pdf"></i>
                         </button>
                     </div>
@@ -369,75 +416,92 @@ function hideHistoricoModal() {
     document.getElementById('historicoModal').classList.add('hidden');
 }
 
+function getCardAccentClass(resultado) {
+    if (!resultado) return '';
+    if (resultado.includes('Interesse') && !resultado.includes('Sem')) return 'card-accent-green';
+    if (resultado.includes('Sem interesse')) return 'card-accent-red';
+    if (resultado.includes('Retornar')) return 'card-accent-yellow';
+    return 'card-accent-blue';
+}
+
 function mostrarProspeccoesCards(prospeccoes) {
     const container = document.getElementById('viewCards');
     
+    updateStats(prospeccoes);
+    
     if (prospeccoes.length === 0) {
-        container.innerHTML = '<div class="col-span-full text-center py-8 text-gray-400">Nenhuma prospecção encontrada</div>';
+        container.innerHTML = `
+            <div class="col-span-full text-center py-12">
+                <div class="text-slate-500">
+                    <i class="fas fa-inbox text-4xl mb-3"></i>
+                    <p class="text-sm">Nenhuma prospecção encontrada</p>
+                </div>
+            </div>`;
         return;
     }
     
     let html = '';
     prospeccoes.forEach(prosp => {
-        const interesses = [];
-        if (prosp.interesse_treinamento) interesses.push('📚 Treinamento');
-        if (prosp.interesse_consultoria) interesses.push('💼 Consultoria');
-        if (prosp.interesse_certificacao) interesses.push('🎓 Certificação');
-        if (prosp.interesse_eventos) interesses.push('🎪 Eventos');
-        if (prosp.interesse_produtos) interesses.push('📦 Produtos');
-        
-        const resultadoClass = prosp.resultado && prosp.resultado.includes('Interesse') ? 'bg-green-900/30 border-green-500' : 
-                              prosp.resultado && prosp.resultado.includes('Sem interesse') ? 'bg-red-900/30 border-red-500' : 
-                              'bg-blue-900/30 border-blue-500';
-        
         const empresaNome = prosp.empresa?.empresa || prosp.empresa_nome || 'N/A';
-        const empresaMunicipio = prosp.empresa?.municipio || prosp.municipio || 'N/A';
-        const empresaEstado = prosp.empresa?.estado || prosp.estado || 'N/A';
+        const empresaMunicipio = prosp.empresa?.municipio || prosp.municipio || '';
+        const empresaEstado = prosp.empresa?.estado || prosp.estado || '';
+        const localizacao = empresaMunicipio && empresaEstado ? `${empresaMunicipio} - ${empresaEstado}` : '';
         const consultorNome = prosp.consultor?.nome || prosp.consultor_nome || 'N/A';
+        const codigo = prosp.codigo || '-';
+        const accentClass = getCardAccentClass(prosp.resultado);
+        const obsPreview = prosp.observacoes ? (prosp.observacoes.length > 100 ? prosp.observacoes.substring(0, 100) + '...' : prosp.observacoes) : '';
         
         html += `
-            <div class="bg-dark-sidebar rounded-lg shadow-lg overflow-hidden border-l-4 ${resultadoClass} hover:shadow-xl transition">
-                <div class="p-6">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="text-xl font-bold text-white mb-1">${empresaNome}</h3>
-                            <p class="text-gray-400 text-sm">${empresaMunicipio} - ${empresaEstado}</p>
-                        </div>
-                        <button onclick="exportarPDF(${prosp.id})" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition">
-                            📄 PDF
+            <div class="card-modern ${accentClass} p-5">
+                <!-- Header -->
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-lg font-bold text-slate-100 truncate mb-1">${empresaNome}</h3>
+                        ${localizacao ? `<p class="text-slate-500 text-xs flex items-center gap-1"><i class="fas fa-map-marker-alt"></i> ${localizacao}</p>` : ''}
+                    </div>
+                    <span class="text-blue-400 text-xs font-mono bg-blue-500/10 px-2 py-1 rounded">${codigo}</span>
+                </div>
+                
+                <!-- Info Grid -->
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="bg-slate-800/30 rounded-lg p-3">
+                        <p class="text-slate-500 text-xs uppercase tracking-wide mb-1">Consultor</p>
+                        <p class="text-slate-200 text-sm font-medium truncate">${consultorNome}</p>
+                    </div>
+                    <div class="bg-slate-800/30 rounded-lg p-3">
+                        <p class="text-slate-500 text-xs uppercase tracking-wide mb-1">Data</p>
+                        <p class="text-slate-200 text-sm font-medium">${prosp.data_ligacao ? prosp.data_ligacao.slice(0,10).split('-').reverse().join('/') : '-'}</p>
+                    </div>
+                </div>
+                
+                <!-- Badges -->
+                <div class="flex flex-wrap gap-2 mb-4">
+                    ${getResultadoBadge(prosp.resultado)}
+                    ${getStatusBadge(prosp.status_follow_up)}
+                    ${getPotencialBadge(prosp.potencial_negocio)}
+                </div>
+                
+                <!-- Observações -->
+                ${obsPreview ? `
+                <div class="bg-slate-800/20 rounded-lg p-3 mb-4">
+                    <p class="text-slate-400 text-xs leading-relaxed">${obsPreview}</p>
+                </div>
+                ` : ''}
+                
+                <!-- Actions -->
+                <div class="flex items-center justify-between pt-3 border-t border-slate-700/50">
+                    <div class="flex gap-2">
+                        <button onclick="abrirEditarProspeccao(${prosp.id})" class="btn-icon bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white transition-all" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="abrirHistorico(${prosp.id}, '${codigo}')" class="btn-icon bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white transition-all" title="Histórico">
+                            <i class="fas fa-history"></i>
                         </button>
                     </div>
-                    
-                    <div class="space-y-2 mb-4">
-                        <div class="flex items-center text-sm">
-                            <span class="text-gray-400 w-24">Consultor:</span>
-                            <span class="text-white">${consultorNome}</span>
-                        </div>
-                        <div class="flex items-center text-sm">
-                            <span class="text-gray-400 w-24">Data:</span>
-                            <span class="text-white">${prosp.data_ligacao ? new Date(prosp.data_ligacao).toLocaleDateString('pt-BR') : 'N/A'}</span>
-                        </div>
-                        <div class="flex items-center text-sm">
-                            <span class="text-gray-400 w-24">Resultado:</span>
-                            <span class="text-white font-semibold">${prosp.resultado || 'N/A'}</span>
-                        </div>
-                    </div>
-                    
-                    ${interesses.length > 0 ? `
-                    <div class="bg-dark-card p-3 rounded mb-4">
-                        <p class="text-gray-400 text-xs mb-2">INTERESSES:</p>
-                        <div class="flex flex-wrap gap-2">
-                            ${interesses.map(i => `<span class="bg-blue-600 text-white text-xs px-2 py-1 rounded">${i}</span>`).join('')}
-                        </div>
-                    </div>
-                    ` : ''}
-                    
-                    ${prosp.observacoes ? `
-                    <div class="bg-dark-card p-3 rounded">
-                        <p class="text-gray-400 text-xs mb-1">OBSERVAÇÕES:</p>
-                        <p class="text-white text-sm">${prosp.observacoes}</p>
-                    </div>
-                    ` : ''}
+                    <button onclick="exportarPDF(${prosp.id})" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white text-xs font-medium transition-all">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>PDF</span>
+                    </button>
                 </div>
             </div>
         `;
