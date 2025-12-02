@@ -187,6 +187,9 @@ function renderizarFormularios() {
                     <button onclick="verEstatisticas(${form.id})" class="btn-icon bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400" title="Estatísticas">
                         <i class="fas fa-chart-bar text-xs"></i>
                     </button>
+                    <button onclick="exportarEstatisticasExcel(${form.id})" class="btn-icon bg-green-500/10 hover:bg-green-500/20 text-green-400" title="Exportar Excel">
+                        <i class="fas fa-file-excel text-xs"></i>
+                    </button>
                     <button onclick="excluirFormulario(${form.id})" class="btn-icon bg-red-500/10 hover:bg-red-500/20 text-red-400" title="Excluir">
                         <i class="fas fa-trash text-xs"></i>
                     </button>
@@ -650,6 +653,12 @@ async function verEstatisticas(formularioId) {
             document.getElementById('tituloRespostas').textContent = 'Estatísticas: ' + stats.titulo;
             
             let html = `
+                <div class="flex justify-end mb-4">
+                    <button onclick="exportarEstatisticasExcel(${formularioId})" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500/20 to-green-500/20 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30 transition-all duration-300 text-sm font-medium">
+                        <i class="fas fa-file-excel"></i>
+                        <span>Exportar Excel</span>
+                    </button>
+                </div>
                 <div class="grid grid-cols-3 gap-4 mb-6">
                     <div class="glass-effect rounded-xl p-4 border border-dark-border/50 text-center">
                         <p class="text-3xl font-bold text-blue-400">${stats.total_envios}</p>
@@ -708,6 +717,49 @@ async function verEstatisticas(formularioId) {
         }
     } catch (error) {
         console.error('Erro:', error);
+    }
+}
+
+async function exportarEstatisticasExcel(formularioId) {
+    try {
+        mostrarNotificacao('Gerando planilha...', 'info');
+        
+        const token = getToken();
+        const response = await fetch(`/api/formularios/${formularioId}/exportar-excel`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const blob = await response.blob();
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = 'estatisticas.xlsx';
+            
+            if (contentDisposition) {
+                const match = contentDisposition.match(/filename=(.+)/);
+                if (match) {
+                    filename = match[1].replace(/"/g, '');
+                }
+            }
+            
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+            
+            mostrarNotificacao('Planilha exportada com sucesso!', 'success');
+        } else {
+            const error = await response.json();
+            mostrarNotificacao(error.detail || 'Erro ao exportar', 'error');
+        }
+    } catch (error) {
+        console.error('Erro ao exportar:', error);
+        mostrarNotificacao('Erro ao exportar planilha', 'error');
     }
 }
 

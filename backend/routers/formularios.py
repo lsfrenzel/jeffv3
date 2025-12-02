@@ -1,9 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from typing import List, Optional
 from datetime import datetime
+from io import BytesIO
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
 from backend.database import get_db
 from backend.models.formularios import Formulario, Pergunta, OpcaoResposta, FormularioEnvio, Resposta
 from backend.models.empresas import Empresa
@@ -367,6 +371,192 @@ async def obter_estatisticas(
         total_respostas=total_respostas,
         taxa_resposta=round(taxa_resposta, 1),
         media_por_pergunta=media_por_pergunta
+    )
+
+@router.get("/{formulario_id}/exportar-excel")
+async def exportar_estatisticas_excel(
+    formulario_id: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user)
+):
+    """Exporta as estatísticas e respostas de um formulário para Excel"""
+    formulario = db.query(Formulario).options(
+        joinedload(Formulario.perguntas).joinedload(Pergunta.opcoes)
+    ).filter(Formulario.id == formulario_id).first()
+    
+    if not formulario:
+        raise HTTPException(status_code=404, detail="Formulário não encontrado")
+    
+    envios = db.query(FormularioEnvio).options(
+        joinedload(FormularioEnvio.empresa),
+        joinedload(FormularioEnvio.respostas)
+    ).filter(
+        FormularioEnvio.formulario_id == formulario_id,
+        FormularioEnvio.respondido == True
+    ).all()
+    
+    wb = Workbook()
+    
+    ws_resumo = wb.active
+    ws_resumo.title = "Resumo"
+    
+    header_fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF")
+    border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    
+    ws_resumo['A1'] = "Relatório de Estatísticas"
+    ws_resumo['A1'].font = Font(bold=True, size=16)
+    ws_resumo.merge_cells('A1:D1')
+    
+    ws_resumo['A3'] = "Formulário:"
+    ws_resumo['B3'] = formulario.titulo
+    ws_resumo['A4'] = "Data de Exportação:"
+    ws_resumo['B4'] = datetime.now().strftime("%d/%m/%Y %H:%M")
+    
+    total_envios = db.query(FormularioEnvio).filter(
+        FormularioEnvio.formulario_id == formulario_id
+    ).count()
+    total_respostas = len(envios)
+    taxa = (total_respostas / total_envios * 100) if total_envios > 0 else 0
+    
+    ws_resumo['A6'] = "Total de Envios:"
+    ws_resumo['B6'] = total_envios
+    ws_resumo['A7'] = "Total de Respostas:"
+    ws_resumo['B7'] = total_respostas
+    ws_resumo['A8'] = "Taxa de Resposta:"
+    ws_resumo['B8'] = f"{round(taxa, 1)}%"
+    
+    ws_resumo['A10'] = "Média por Pergunta"
+    ws_resumo['A10'].font = Font(bold=True, size=12)
+    
+    row = 11
+    headers = ["Pergunta", "Categoria", "Média", "Qtd Respostas"]
+    for col, header in enumerate(headers, 1):
+        cell = ws_resumo.cell(row=row, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.border = border
+        cell.alignment = Alignment(horizontal='center')
+    
+    row += 1
+    perguntas = sorted(formulario.perguntas, key=lambda p: p.ordem)
+    for pergunta in perguntas:
+        if pergunta.tipo == "escala":
+            media = db.query(func.avg(Resposta.valor_numerico)).filter(
+                Resposta.pergunta_id == pergunta.id,
+                Resposta.valor_numerico.isnot(None)
+            ).scalar()
+            qtd = db.query(Resposta).filter(
+                Resposta.pergunta_id == pergunta.id,
+                Resposta.valor_numerico.isnot(None)
+            ).count()
+            
+            ws_resumo.cell(row=row, column=1, value=pergunta.texto).border = border
+            ws_resumo.cell(row=row, column=2, value=pergunta.categoria or "-").border = border
+            ws_resumo.cell(row=row, column=3, value=round(float(media), 2) if media else 0).border = border
+            ws_resumo.cell(row=row, column=4, value=qtd).border = border
+            row += 1
+    
+    for col in range(1, 5):
+        ws_resumo.column_dimensions[get_column_letter(col)].width = 40 if col == 1 else 20
+    
+    ws_respostas = wb.create_sheet("Respostas Detalhadas")
+    
+    headers = ["Destinatário", "Email", "Empresa", "Data Resposta"]
+    for pergunta in perguntas:
+        headers.append(pergunta.texto[:50] + "..." if len(pergunta.texto) > 50 else pergunta.texto)
+    
+    for col, header in enumerate(headers, 1):
+        cell = ws_respostas.cell(row=1, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.border = border
+        cell.alignment = Alignment(horizontal='center', wrap_text=True)
+    
+    row = 2
+    for envio in envios:
+        ws_respostas.cell(row=row, column=1, value=envio.nome_destinatario or "Anônimo").border = border
+        ws_respostas.cell(row=row, column=2, value=envio.email_destinatario or "-").border = border
+        ws_respostas.cell(row=row, column=3, value=envio.empresa.razao_social if envio.empresa else "-").border = border
+        ws_respostas.cell(row=row, column=4, value=envio.data_resposta.strftime("%d/%m/%Y %H:%M") if envio.data_resposta else "-").border = border
+        
+        respostas_dict = {r.pergunta_id: r for r in envio.respostas}
+        col = 5
+        for pergunta in perguntas:
+            resposta = respostas_dict.get(pergunta.id)
+            if resposta:
+                if resposta.valor_numerico is not None:
+                    valor = resposta.valor_numerico
+                elif resposta.valor_texto:
+                    valor = resposta.valor_texto
+                else:
+                    valor = "-"
+            else:
+                valor = "-"
+            ws_respostas.cell(row=row, column=col, value=valor).border = border
+            col += 1
+        row += 1
+    
+    for col in range(1, len(headers) + 1):
+        ws_respostas.column_dimensions[get_column_letter(col)].width = 20
+    
+    ws_respostas.row_dimensions[1].height = 40
+    
+    ws_dist = wb.create_sheet("Distribuição Respostas")
+    
+    row = 1
+    for pergunta in perguntas:
+        if pergunta.tipo == "escala":
+            ws_dist.cell(row=row, column=1, value=pergunta.texto).font = Font(bold=True)
+            ws_dist.merge_cells(start_row=row, start_column=1, end_row=row, end_column=6)
+            row += 1
+            
+            headers = ["Valor", "Descrição", "Quantidade", "Percentual"]
+            for col, header in enumerate(headers, 1):
+                cell = ws_dist.cell(row=row, column=col, value=header)
+                cell.fill = header_fill
+                cell.font = header_font
+                cell.border = border
+            row += 1
+            
+            total_respostas_pergunta = db.query(Resposta).filter(
+                Resposta.pergunta_id == pergunta.id,
+                Resposta.valor_numerico.isnot(None)
+            ).count()
+            
+            for opcao in sorted(pergunta.opcoes, key=lambda o: o.valor or 0):
+                count = db.query(Resposta).filter(
+                    Resposta.pergunta_id == pergunta.id,
+                    Resposta.valor_numerico == opcao.valor
+                ).count()
+                pct = (count / total_respostas_pergunta * 100) if total_respostas_pergunta > 0 else 0
+                
+                ws_dist.cell(row=row, column=1, value=opcao.valor).border = border
+                ws_dist.cell(row=row, column=2, value=opcao.texto).border = border
+                ws_dist.cell(row=row, column=3, value=count).border = border
+                ws_dist.cell(row=row, column=4, value=f"{round(pct, 1)}%").border = border
+                row += 1
+            
+            row += 1
+    
+    for col in [1, 2, 3, 4]:
+        ws_dist.column_dimensions[get_column_letter(col)].width = 25 if col == 2 else 15
+    
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    filename = f"estatisticas_{formulario.titulo.replace(' ', '_')[:30]}_{datetime.now().strftime('%Y%m%d')}.xlsx"
+    
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
 @router.post("/seed-lideranca")
