@@ -76,3 +76,8 @@ The project enforces separation of concerns (`backend/`, `templates/`, `static/`
 -   **Fixed JavaScript null pointer errors** - Added null checks for DOM elements before adding event listeners in prospeccao_nova.js to prevent script crashes that caused "Carregando..." to display forever
 -   **Fixed prospeccoes table empty** - Added seed function `criar_prospeccoes_padrao()` to automatically create 5 test prospections when database is empty
 -   **Fixed prospeccao.js display issue** - Updated JavaScript to properly use empresa/consultor data returned by API instead of requiring separate cache lookup; added better error handling and visual improvements to the table
+-   **Company Editing Feature** - Added complete CRUD functionality for companies on /empresas page:
+    - View Details modal: All users can view complete company information in organized sections (General Info, Address, Activity, Contact, Notes)
+    - Edit modal: Admin users can edit all company fields including: empresa, cnpj, sigla, porte, er, carteira, endereco, bairro, municipio, estado, pais, zona, area, cnae_principal, descricao_cnae, tipo_empresa, numero_funcionarios, contact info, and observacao
+    - Delete functionality: Admin users can delete companies with confirmation
+    - Role-based UI: Edit/Delete buttons only visible to admins, View Details visible to all
