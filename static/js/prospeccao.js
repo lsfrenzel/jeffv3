@@ -1,31 +1,64 @@
-checkAuth();
-atualizarSidebar();
-
-const usuario = getUsuario();
-
 let empresasCache = [];
 let consultoresCache = [];
+let usuario = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM carregado, iniciando...');
+    
+    const token = getToken();
+    if (!token) {
+        console.log('Sem token, redirecionando para login');
+        window.location.href = '/';
+        return;
+    }
+    
+    usuario = getUsuario();
+    console.log('Usuário:', usuario);
+    
+    atualizarSidebar();
+    carregarProspeccoes();
+});
 
 async function carregarProspeccoes() {
+    console.log('Carregando prospecções...');
+    const tbody = document.getElementById('tabelaProspeccoes');
+    
+    if (!tbody) {
+        console.error('Elemento tabelaProspeccoes não encontrado');
+        return;
+    }
+    
     try {
         const response = await apiRequest('/api/prospeccoes/');
-        if (!response || !response.ok) {
-            console.error('Erro ao carregar prospecções:', response?.status);
-            document.getElementById('tabelaProspeccoes').innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-red-400">Erro ao carregar prospecções. Tente fazer login novamente.</td></tr>';
+        console.log('Response status:', response?.status);
+        
+        if (!response) {
+            console.error('Response nula - possível problema de autenticação');
+            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-red-400">Sessão expirada. Faça login novamente.</td></tr>';
             return;
         }
-        const prospeccoes = await response.json();
         
-        const empresasResponse = await apiRequest('/api/empresas/');
-        if (empresasResponse && empresasResponse.ok) {
-            const empresasData = await empresasResponse.json();
-            empresasCache = empresasData.items || [];
+        if (!response.ok) {
+            console.error('Erro na resposta:', response.status);
+            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-red-400">Erro ao carregar prospecções (código ' + response.status + ')</td></tr>';
+            return;
         }
         
-        const tbody = document.getElementById('tabelaProspeccoes');
+        const prospeccoes = await response.json();
+        console.log('Prospecções carregadas:', prospeccoes?.length || 0);
+        
+        try {
+            const empresasResponse = await apiRequest('/api/empresas/');
+            if (empresasResponse && empresasResponse.ok) {
+                const empresasData = await empresasResponse.json();
+                empresasCache = empresasData.items || [];
+            }
+        } catch (e) {
+            console.warn('Erro ao carregar empresas para cache:', e);
+        }
         
         if (!prospeccoes || prospeccoes.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">Nenhuma prospecção encontrada</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">Nenhuma prospecção encontrada. Clique em "Nova Prospecção" para criar uma.</td></tr>';
             return;
         }
         
@@ -53,9 +86,11 @@ async function carregarProspeccoes() {
                 </tr>
             `;
         }).join('');
+        
+        console.log('Tabela atualizada com sucesso');
     } catch (error) {
         console.error('Erro ao carregar prospecções:', error);
-        document.getElementById('tabelaProspeccoes').innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-red-400">Erro ao carregar dados. Verifique sua conexão.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-red-400">Erro ao carregar dados: ' + error.message + '</td></tr>';
     }
 }
 
@@ -99,37 +134,40 @@ function hideNovaProspeccaoModal() {
     document.getElementById('novaProspeccaoForm').reset();
 }
 
-document.getElementById('novaProspeccaoForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const prospeccao = {
-        empresa_id: parseInt(document.getElementById('empresa_id').value),
-        consultor_id: usuario.tipo === 'admin' && document.getElementById('consultor_id').value ? 
-            parseInt(document.getElementById('consultor_id').value) : usuario.id,
-        data_ligacao: document.getElementById('data_ligacao').value || null,
-        hora_ligacao: document.getElementById('hora_ligacao').value || null,
-        resultado: document.getElementById('resultado').value || null,
-        observacoes: document.getElementById('observacoes').value || null
-    };
-    
-    try {
-        const response = await apiRequest('/api/prospeccoes/', {
-            method: 'POST',
-            body: JSON.stringify(prospeccao)
-        });
+const novaProspeccaoForm = document.getElementById('novaProspeccaoForm');
+if (novaProspeccaoForm) {
+    novaProspeccaoForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         
-        if (response.ok) {
-            alert('Prospecção criada com sucesso!');
-            hideNovaProspeccaoModal();
-            carregarProspeccoes();
-        } else {
-            const error = await response.json();
-            alert(error.detail || 'Erro ao criar prospecção');
+        const prospeccao = {
+            empresa_id: parseInt(document.getElementById('empresa_id').value),
+            consultor_id: usuario.tipo === 'admin' && document.getElementById('consultor_id').value ? 
+                parseInt(document.getElementById('consultor_id').value) : usuario.id,
+            data_ligacao: document.getElementById('data_ligacao').value || null,
+            hora_ligacao: document.getElementById('hora_ligacao').value || null,
+            resultado: document.getElementById('resultado').value || null,
+            observacoes: document.getElementById('observacoes').value || null
+        };
+        
+        try {
+            const response = await apiRequest('/api/prospeccoes/', {
+                method: 'POST',
+                body: JSON.stringify(prospeccao)
+            });
+            
+            if (response.ok) {
+                alert('Prospecção criada com sucesso!');
+                hideNovaProspeccaoModal();
+                carregarProspeccoes();
+            } else {
+                const error = await response.json();
+                alert(error.detail || 'Erro ao criar prospecção');
+            }
+        } catch (error) {
+            alert('Erro de conexão com o servidor');
         }
-    } catch (error) {
-        alert('Erro de conexão com o servidor');
-    }
-});
+    });
+}
 
 async function criarAgendamento(prospeccaoId) {
     const data = prompt('Digite a data e hora do agendamento (AAAA-MM-DD HH:MM):');
@@ -158,5 +196,3 @@ async function criarAgendamento(prospeccaoId) {
         alert('Erro de conexão com o servidor');
     }
 }
-
-carregarProspeccoes();
