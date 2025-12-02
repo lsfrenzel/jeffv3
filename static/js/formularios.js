@@ -4,10 +4,46 @@ let empresas = [];
 let perguntaCount = 0;
 
 document.addEventListener('DOMContentLoaded', function() {
+    initTabs();
     carregarFormularios();
     carregarEnvios();
     carregarEmpresas();
 });
+
+function initTabs() {
+    const tabs = document.querySelectorAll('.tab-btn');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetTab = this.dataset.tab;
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(`tab-${targetTab}`).classList.remove('hidden');
+        });
+    });
+}
+
+function abrirModal(modalId) {
+    document.getElementById(modalId).classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function fecharModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+function abrirModalNovoFormulario() {
+    document.getElementById('tituloFormulario').value = '';
+    document.getElementById('descricaoFormulario').value = '';
+    document.getElementById('listaPerguntas').innerHTML = '';
+    perguntaCount = 0;
+    abrirModal('modalNovoFormulario');
+}
 
 async function carregarFormularios() {
     try {
@@ -35,6 +71,7 @@ async function carregarEnvios() {
             envios = await response.json();
             renderizarEnvios();
             renderizarRespostas();
+            atualizarBadges();
         }
     } catch (error) {
         console.error('Erro ao carregar envios:', error);
@@ -50,13 +87,37 @@ async function carregarEmpresas() {
         if (response.ok) {
             empresas = await response.json();
             const select = document.getElementById('empresaDestinatario');
-            select.innerHTML = '<option value="">Selecione uma empresa</option>';
-            empresas.forEach(emp => {
-                select.innerHTML += `<option value="${emp.id}">${emp.razao_social}</option>`;
-            });
+            if (select) {
+                select.innerHTML = '<option value="">Selecione uma empresa</option>';
+                empresas.forEach(emp => {
+                    select.innerHTML += `<option value="${emp.id}">${emp.razao_social}</option>`;
+                });
+            }
         }
     } catch (error) {
         console.error('Erro ao carregar empresas:', error);
+    }
+}
+
+function atualizarBadges() {
+    const pendentes = envios.filter(e => !e.respondido).length;
+    const respondidos = envios.filter(e => e.respondido).length;
+    
+    const badgeEnvios = document.getElementById('badgeEnvios');
+    const badgeRespostas = document.getElementById('badgeRespostas');
+    
+    if (pendentes > 0) {
+        badgeEnvios.textContent = pendentes;
+        badgeEnvios.classList.remove('hidden');
+    } else {
+        badgeEnvios.classList.add('hidden');
+    }
+    
+    if (respondidos > 0) {
+        badgeRespostas.textContent = respondidos;
+        badgeRespostas.classList.remove('hidden');
+    } else {
+        badgeRespostas.classList.add('hidden');
     }
 }
 
@@ -66,12 +127,17 @@ function renderizarFormularios() {
     if (formularios.length === 0) {
         lista.innerHTML = `
             <tr>
-                <td colspan="7" class="text-center text-muted py-4">
-                    <i class="fas fa-file-alt fa-2x mb-2"></i>
-                    <p>Nenhum formulário cadastrado</p>
-                    <button class="btn btn-primary btn-sm" onclick="criarFormularioLideranca()">
-                        Criar Formulário Padrão
-                    </button>
+                <td colspan="7" class="py-16">
+                    <div class="flex flex-col items-center justify-center text-gray-500">
+                        <div class="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-4">
+                            <i class="fas fa-file-alt text-purple-400 text-2xl"></i>
+                        </div>
+                        <p class="text-gray-400 mb-4">Nenhum formulário cadastrado</p>
+                        <button onclick="criarFormularioLideranca()" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-amber-400 hover:bg-amber-500/30 transition text-sm font-medium">
+                            <i class="fas fa-magic"></i>
+                            Criar Formulário Padrão
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
@@ -79,37 +145,50 @@ function renderizarFormularios() {
     }
     
     lista.innerHTML = formularios.map(form => `
-        <tr>
-            <td>
-                <strong>${form.titulo}</strong>
-                ${form.descricao ? `<br><small class="text-muted">${form.descricao}</small>` : ''}
+        <tr class="table-row-hover">
+            <td class="py-4 px-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br ${form.tipo === 'padrao' ? 'from-purple-500/20 to-pink-500/20' : 'from-blue-500/20 to-cyan-500/20'} flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-clipboard-list ${form.tipo === 'padrao' ? 'text-purple-400' : 'text-blue-400'}"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="font-medium text-white truncate">${form.titulo}</p>
+                        ${form.descricao ? `<p class="text-xs text-gray-500 truncate">${form.descricao}</p>` : ''}
+                    </div>
+                </div>
             </td>
-            <td>
-                <span class="badge bg-${form.tipo === 'padrao' ? 'primary' : 'info'}">
+            <td class="py-4 px-4 hidden sm:table-cell">
+                <span class="${form.tipo === 'padrao' ? 'badge-purple' : 'badge-info'} badge">
                     ${form.tipo === 'padrao' ? 'Padrão' : 'Personalizado'}
                 </span>
             </td>
-            <td>${form.total_perguntas}</td>
-            <td>${form.total_envios}</td>
-            <td>${form.total_respostas}</td>
-            <td>
-                <span class="badge bg-${form.ativo ? 'success' : 'secondary'}">
+            <td class="py-4 px-4 text-center">
+                <span class="text-gray-300 font-medium">${form.total_perguntas}</span>
+            </td>
+            <td class="py-4 px-4 text-center hidden md:table-cell">
+                <span class="text-gray-300">${form.total_envios}</span>
+            </td>
+            <td class="py-4 px-4 text-center hidden md:table-cell">
+                <span class="text-emerald-400 font-medium">${form.total_respostas}</span>
+            </td>
+            <td class="py-4 px-4 text-center">
+                <span class="${form.ativo ? 'badge-success' : 'badge-gray'} badge">
                     ${form.ativo ? 'Ativo' : 'Inativo'}
                 </span>
             </td>
-            <td>
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-primary" onclick="verFormulario(${form.id})" title="Visualizar">
-                        <i class="fas fa-eye"></i>
+            <td class="py-4 px-4">
+                <div class="flex items-center justify-end gap-1">
+                    <button onclick="verFormulario(${form.id})" class="btn-icon bg-purple-500/10 hover:bg-purple-500/20 text-purple-400" title="Visualizar">
+                        <i class="fas fa-eye text-xs"></i>
                     </button>
-                    <button class="btn btn-outline-success" onclick="abrirModalEnviar(${form.id})" title="Enviar">
-                        <i class="fas fa-paper-plane"></i>
+                    <button onclick="abrirModalEnviar(${form.id})" class="btn-icon bg-blue-500/10 hover:bg-blue-500/20 text-blue-400" title="Gerar Link">
+                        <i class="fas fa-paper-plane text-xs"></i>
                     </button>
-                    <button class="btn btn-outline-info" onclick="verEstatisticas(${form.id})" title="Estatísticas">
-                        <i class="fas fa-chart-bar"></i>
+                    <button onclick="verEstatisticas(${form.id})" class="btn-icon bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400" title="Estatísticas">
+                        <i class="fas fa-chart-bar text-xs"></i>
                     </button>
-                    <button class="btn btn-outline-danger" onclick="excluirFormulario(${form.id})" title="Excluir">
-                        <i class="fas fa-trash"></i>
+                    <button onclick="excluirFormulario(${form.id})" class="btn-icon bg-red-500/10 hover:bg-red-500/20 text-red-400" title="Excluir">
+                        <i class="fas fa-trash text-xs"></i>
                     </button>
                 </div>
             </td>
@@ -124,9 +203,11 @@ function renderizarEnvios() {
     if (enviosPendentes.length === 0) {
         lista.innerHTML = `
             <tr>
-                <td colspan="6" class="text-center text-muted py-4">
-                    <i class="fas fa-inbox fa-2x mb-2"></i>
-                    <p>Nenhum envio pendente</p>
+                <td colspan="6" class="py-12">
+                    <div class="flex flex-col items-center justify-center text-gray-500">
+                        <i class="fas fa-paper-plane text-4xl mb-3 opacity-30"></i>
+                        <p>Nenhum envio pendente</p>
+                    </div>
                 </td>
             </tr>
         `;
@@ -134,18 +215,33 @@ function renderizarEnvios() {
     }
     
     lista.innerHTML = enviosPendentes.map(envio => `
-        <tr>
-            <td>${envio.formulario?.titulo || '-'}</td>
-            <td>${envio.nome_destinatario || envio.email_destinatario || '-'}</td>
-            <td>${envio.empresa_nome || '-'}</td>
-            <td>${formatarData(envio.data_envio)}</td>
-            <td>
-                <span class="badge bg-warning">Aguardando Resposta</span>
+        <tr class="table-row-hover">
+            <td class="py-4 px-4">
+                <span class="text-white font-medium">${envio.formulario?.titulo || '-'}</span>
             </td>
-            <td>
-                <button class="btn btn-sm btn-outline-primary" onclick="copiarLinkEnvio('${envio.codigo_unico}')" title="Copiar Link">
-                    <i class="fas fa-copy"></i>
-                </button>
+            <td class="py-4 px-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-gray-700 flex items-center justify-center">
+                        <i class="fas fa-user text-gray-400 text-xs"></i>
+                    </div>
+                    <span class="text-gray-300">${envio.nome_destinatario || envio.email_destinatario || 'Anônimo'}</span>
+                </div>
+            </td>
+            <td class="py-4 px-4 hidden md:table-cell">
+                <span class="text-gray-400">${envio.empresa_nome || '-'}</span>
+            </td>
+            <td class="py-4 px-4 hidden sm:table-cell">
+                <span class="text-gray-400 text-sm">${formatarData(envio.data_envio)}</span>
+            </td>
+            <td class="py-4 px-4 text-center">
+                <span class="badge badge-warning">Aguardando</span>
+            </td>
+            <td class="py-4 px-4">
+                <div class="flex items-center justify-end">
+                    <button onclick="copiarLinkEnvio('${envio.codigo_unico}')" class="btn-icon bg-blue-500/10 hover:bg-blue-500/20 text-blue-400" title="Copiar Link">
+                        <i class="fas fa-copy text-xs"></i>
+                    </button>
+                </div>
             </td>
         </tr>
     `).join('');
@@ -158,9 +254,11 @@ function renderizarRespostas() {
     if (enviosRespondidos.length === 0) {
         lista.innerHTML = `
             <tr>
-                <td colspan="5" class="text-center text-muted py-4">
-                    <i class="fas fa-inbox fa-2x mb-2"></i>
-                    <p>Nenhuma resposta recebida</p>
+                <td colspan="5" class="py-12">
+                    <div class="flex flex-col items-center justify-center text-gray-500">
+                        <i class="fas fa-inbox text-4xl mb-3 opacity-30"></i>
+                        <p>Nenhuma resposta recebida</p>
+                    </div>
                 </td>
             </tr>
         `;
@@ -168,15 +266,31 @@ function renderizarRespostas() {
     }
     
     lista.innerHTML = enviosRespondidos.map(envio => `
-        <tr>
-            <td>${envio.formulario?.titulo || '-'}</td>
-            <td>${envio.nome_destinatario || envio.email_destinatario || '-'}</td>
-            <td>${envio.empresa_nome || '-'}</td>
-            <td>${formatarData(envio.data_resposta)}</td>
-            <td>
-                <button class="btn btn-sm btn-primary" onclick="verRespostas(${envio.id})">
-                    <i class="fas fa-eye me-1"></i> Ver Respostas
-                </button>
+        <tr class="table-row-hover">
+            <td class="py-4 px-4">
+                <span class="text-white font-medium">${envio.formulario?.titulo || '-'}</span>
+            </td>
+            <td class="py-4 px-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                        <i class="fas fa-check text-emerald-400 text-xs"></i>
+                    </div>
+                    <span class="text-gray-300">${envio.nome_destinatario || envio.email_destinatario || 'Anônimo'}</span>
+                </div>
+            </td>
+            <td class="py-4 px-4 hidden md:table-cell">
+                <span class="text-gray-400">${envio.empresa_nome || '-'}</span>
+            </td>
+            <td class="py-4 px-4 hidden sm:table-cell">
+                <span class="text-gray-400 text-sm">${formatarData(envio.data_resposta)}</span>
+            </td>
+            <td class="py-4 px-4">
+                <div class="flex items-center justify-end">
+                    <button onclick="verRespostas(${envio.id})" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-medium transition">
+                        <i class="fas fa-eye"></i>
+                        <span class="hidden sm:inline">Ver</span>
+                    </button>
+                </div>
             </td>
         </tr>
     `).join('');
@@ -204,15 +318,15 @@ async function criarFormularioLideranca() {
         
         if (response.ok) {
             const result = await response.json();
-            alert(result.message);
+            mostrarNotificacao(result.message, 'success');
             carregarFormularios();
         } else {
             const error = await response.json();
-            alert(error.detail || 'Erro ao criar formulário');
+            mostrarNotificacao(error.detail || 'Erro ao criar formulário', 'error');
         }
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro de conexão');
+        mostrarNotificacao('Erro de conexão', 'error');
     }
 }
 
@@ -222,34 +336,31 @@ function adicionarPergunta() {
     
     const html = `
         <div class="pergunta-item" id="pergunta-${perguntaCount}">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <strong>Pergunta ${perguntaCount}</strong>
-                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removerPergunta(${perguntaCount})">
-                    <i class="fas fa-times"></i>
+            <div class="flex items-start justify-between gap-3 mb-3">
+                <span class="flex items-center gap-2 text-sm font-medium text-purple-400">
+                    <span class="w-6 h-6 rounded-lg bg-purple-500/20 flex items-center justify-center text-xs">${perguntaCount}</span>
+                    Pergunta
+                </span>
+                <button type="button" onclick="removerPergunta(${perguntaCount})" class="w-6 h-6 rounded-lg bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center text-red-400 transition">
+                    <i class="fas fa-times text-xs"></i>
                 </button>
             </div>
-            <div class="mb-2">
-                <input type="text" class="form-control" placeholder="Texto da pergunta" 
-                       id="pergunta-texto-${perguntaCount}" required>
-            </div>
-            <div class="row mb-2">
-                <div class="col-md-6">
-                    <select class="form-select" id="pergunta-tipo-${perguntaCount}" onchange="toggleOpcoes(${perguntaCount})">
+            <div class="space-y-3">
+                <input type="text" class="w-full input-modern-v2" placeholder="Texto da pergunta" id="pergunta-texto-${perguntaCount}" required>
+                <div class="grid grid-cols-2 gap-3">
+                    <select class="input-modern-v2" id="pergunta-tipo-${perguntaCount}" onchange="toggleOpcoes(${perguntaCount})">
                         <option value="escala">Escala (1-5)</option>
                         <option value="texto">Texto livre</option>
                         <option value="multipla_escolha">Múltipla escolha</option>
                     </select>
+                    <input type="text" class="input-modern-v2" placeholder="Categoria" id="pergunta-categoria-${perguntaCount}">
                 </div>
-                <div class="col-md-6">
-                    <input type="text" class="form-control" placeholder="Categoria (opcional)" 
-                           id="pergunta-categoria-${perguntaCount}">
+                <div id="opcoes-container-${perguntaCount}">
+                    <div id="opcoes-${perguntaCount}" class="grid grid-cols-5 gap-2 mb-2"></div>
+                    <button type="button" onclick="adicionarOpcaoEscala(${perguntaCount})" class="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1">
+                        <i class="fas fa-magic"></i> Usar escala padrão
+                    </button>
                 </div>
-            </div>
-            <div id="opcoes-container-${perguntaCount}" class="mt-2">
-                <div id="opcoes-${perguntaCount}"></div>
-                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="adicionarOpcaoEscala(${perguntaCount})">
-                    <i class="fas fa-plus me-1"></i> Usar Escala Padrão
-                </button>
             </div>
         </div>
     `;
@@ -275,11 +386,11 @@ function toggleOpcoes(perguntaId) {
 function adicionarOpcaoEscala(perguntaId) {
     const container = document.getElementById(`opcoes-${perguntaId}`);
     container.innerHTML = `
-        <div class="opcao-item"><small>1 - Nunca</small></div>
-        <div class="opcao-item"><small>2 - Raramente</small></div>
-        <div class="opcao-item"><small>3 - Ocasionalmente</small></div>
-        <div class="opcao-item"><small>4 - Frequente</small></div>
-        <div class="opcao-item"><small>5 - Muito frequente</small></div>
+        <div class="opcao-escala"><span class="text-lg font-bold text-blue-400">1</span><span class="text-xs text-gray-500">Nunca</span></div>
+        <div class="opcao-escala"><span class="text-lg font-bold text-blue-400">2</span><span class="text-xs text-gray-500">Raramente</span></div>
+        <div class="opcao-escala"><span class="text-lg font-bold text-blue-400">3</span><span class="text-xs text-gray-500">Ocasional</span></div>
+        <div class="opcao-escala"><span class="text-lg font-bold text-blue-400">4</span><span class="text-xs text-gray-500">Frequente</span></div>
+        <div class="opcao-escala"><span class="text-lg font-bold text-emerald-400">5</span><span class="text-xs text-gray-500">Muito freq.</span></div>
     `;
 }
 
@@ -288,7 +399,7 @@ async function salvarFormulario() {
     const descricao = document.getElementById('descricaoFormulario').value;
     
     if (!titulo) {
-        alert('Por favor, informe o título do formulário');
+        mostrarNotificacao('Por favor, informe o título do formulário', 'error');
         return;
     }
     
@@ -341,19 +452,16 @@ async function salvarFormulario() {
         });
         
         if (response.ok) {
-            bootstrap.Modal.getInstance(document.getElementById('modalNovoFormulario')).hide();
-            document.getElementById('formNovoFormulario').reset();
-            document.getElementById('listaPerguntas').innerHTML = '';
-            perguntaCount = 0;
+            fecharModal('modalNovoFormulario');
             carregarFormularios();
-            alert('Formulário criado com sucesso!');
+            mostrarNotificacao('Formulário criado com sucesso!', 'success');
         } else {
             const error = await response.json();
-            alert(error.detail || 'Erro ao criar formulário');
+            mostrarNotificacao(error.detail || 'Erro ao criar formulário', 'error');
         }
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro de conexão');
+        mostrarNotificacao('Erro de conexão', 'error');
     }
 }
 
@@ -362,7 +470,7 @@ function abrirModalEnviar(formularioId) {
     document.getElementById('nomeDestinatario').value = '';
     document.getElementById('emailDestinatario').value = '';
     document.getElementById('empresaDestinatario').value = '';
-    new bootstrap.Modal(document.getElementById('modalEnviar')).show();
+    abrirModal('modalEnviar');
 }
 
 async function enviarFormulario() {
@@ -388,22 +496,22 @@ async function enviarFormulario() {
         
         if (response.ok) {
             const envio = await response.json();
-            bootstrap.Modal.getInstance(document.getElementById('modalEnviar')).hide();
+            fecharModal('modalEnviar');
             
             const baseUrl = window.location.origin;
             const link = `${baseUrl}/formulario/responder/${envio.codigo_unico}`;
             document.getElementById('linkFormulario').value = link;
-            new bootstrap.Modal(document.getElementById('modalLink')).show();
+            abrirModal('modalLink');
             
             carregarEnvios();
             carregarFormularios();
         } else {
             const error = await response.json();
-            alert(error.detail || 'Erro ao gerar link');
+            mostrarNotificacao(error.detail || 'Erro ao gerar link', 'error');
         }
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro de conexão');
+        mostrarNotificacao('Erro de conexão', 'error');
     }
 }
 
@@ -411,14 +519,14 @@ function copiarLink() {
     const input = document.getElementById('linkFormulario');
     input.select();
     document.execCommand('copy');
-    alert('Link copiado!');
+    mostrarNotificacao('Link copiado!', 'success');
 }
 
 function copiarLinkEnvio(codigo) {
     const baseUrl = window.location.origin;
     const link = `${baseUrl}/formulario/responder/${codigo}`;
     navigator.clipboard.writeText(link).then(() => {
-        alert('Link copiado!');
+        mostrarNotificacao('Link copiado!', 'success');
     });
 }
 
@@ -431,10 +539,10 @@ async function verFormulario(formularioId) {
         if (response.ok) {
             const form = await response.json();
             
+            document.getElementById('tituloVisualizacao').textContent = form.titulo;
+            
             let html = `
-                <h4>${form.titulo}</h4>
-                ${form.descricao ? `<p class="text-muted">${form.descricao}</p>` : ''}
-                <hr>
+                ${form.descricao ? `<p class="text-gray-400 mb-6">${form.descricao}</p>` : ''}
             `;
             
             let currentCategoria = '';
@@ -442,19 +550,19 @@ async function verFormulario(formularioId) {
                 if (pergunta.categoria && pergunta.categoria !== currentCategoria) {
                     currentCategoria = pergunta.categoria;
                     html += `
-                        <div class="resposta-categoria mt-4">
-                            <strong>${currentCategoria}</strong>
-                            ${pergunta.descricao_categoria ? `<br><small>${pergunta.descricao_categoria}</small>` : ''}
+                        <div class="resposta-categoria">
+                            <span class="font-semibold text-white">${currentCategoria}</span>
+                            ${pergunta.descricao_categoria ? `<p class="text-purple-200 text-sm mt-1">${pergunta.descricao_categoria}</p>` : ''}
                         </div>
                     `;
                 }
                 
                 html += `
                     <div class="resposta-item">
-                        <strong>${pergunta.texto}</strong>
-                        <div class="mt-2">
+                        <p class="text-white font-medium mb-3">${pergunta.texto}</p>
+                        <div class="flex flex-wrap gap-2">
                             ${pergunta.opcoes.map(o => `
-                                <span class="badge bg-secondary me-1">${o.texto}</span>
+                                <span class="px-3 py-1 rounded-full bg-gray-700/50 text-gray-300 text-xs">${o.texto}</span>
                             `).join('')}
                         </div>
                     </div>
@@ -462,7 +570,7 @@ async function verFormulario(formularioId) {
             });
             
             document.getElementById('conteudoFormulario').innerHTML = html;
-            new bootstrap.Modal(document.getElementById('modalVerFormulario')).show();
+            abrirModal('modalVerFormulario');
         }
     } catch (error) {
         console.error('Erro:', error);
@@ -478,16 +586,21 @@ async function verRespostas(envioId) {
         if (response.ok) {
             const dados = await response.json();
             
+            document.getElementById('tituloRespostas').textContent = dados.formulario_titulo || 'Respostas';
+            
             let html = `
-                <div class="mb-4">
-                    <h5>${dados.formulario_titulo}</h5>
-                    <p class="text-muted">
-                        <strong>Respondido por:</strong> ${dados.nome_destinatario || dados.email_destinatario || 'Anônimo'}
-                        ${dados.empresa_nome ? `<br><strong>Empresa:</strong> ${dados.empresa_nome}` : ''}
-                        <br><strong>Data:</strong> ${formatarData(dados.data_resposta)}
-                    </p>
+                <div class="glass-effect rounded-xl p-4 mb-6 border border-dark-border/50">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                            <i class="fas fa-user-check text-emerald-400"></i>
+                        </div>
+                        <div>
+                            <p class="text-white font-medium">${dados.nome_destinatario || dados.email_destinatario || 'Anônimo'}</p>
+                            ${dados.empresa_nome ? `<p class="text-gray-400 text-sm">${dados.empresa_nome}</p>` : ''}
+                            <p class="text-gray-500 text-xs mt-1">${formatarData(dados.data_resposta)}</p>
+                        </div>
+                    </div>
                 </div>
-                <hr>
             `;
             
             let currentCategoria = '';
@@ -495,28 +608,30 @@ async function verRespostas(envioId) {
                 if (resp.categoria && resp.categoria !== currentCategoria) {
                     currentCategoria = resp.categoria;
                     html += `
-                        <div class="resposta-categoria mt-4">
-                            <strong>${currentCategoria}</strong>
+                        <div class="resposta-categoria">
+                            <span class="font-semibold text-white">${currentCategoria}</span>
                         </div>
                     `;
                 }
                 
                 html += `
                     <div class="resposta-item">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <strong>${resp.pergunta_texto}</strong>
+                        <div class="flex items-start justify-between gap-4">
+                            <p class="text-gray-300">${resp.pergunta_texto}</p>
                             ${resp.valor_numerico !== null ? `
-                                <span class="badge bg-primary fs-5">${resp.valor_numerico}</span>
+                                <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                                    <span class="text-white font-bold">${resp.valor_numerico}</span>
+                                </div>
                             ` : ''}
                         </div>
-                        ${resp.opcao_texto ? `<small class="text-muted">${resp.opcao_texto}</small>` : ''}
-                        ${resp.valor_texto ? `<p class="mt-2 mb-0">${resp.valor_texto}</p>` : ''}
+                        ${resp.opcao_texto ? `<p class="text-gray-500 text-sm mt-2">${resp.opcao_texto}</p>` : ''}
+                        ${resp.valor_texto ? `<p class="text-gray-300 mt-2 p-3 bg-gray-800/50 rounded-lg">${resp.valor_texto}</p>` : ''}
                     </div>
                 `;
             });
             
             document.getElementById('conteudoRespostas').innerHTML = html;
-            new bootstrap.Modal(document.getElementById('modalVerRespostas')).show();
+            abrirModal('modalVerRespostas');
         }
     } catch (error) {
         console.error('Erro:', error);
@@ -532,62 +647,64 @@ async function verEstatisticas(formularioId) {
         if (response.ok) {
             const stats = await response.json();
             
+            document.getElementById('tituloRespostas').textContent = 'Estatísticas: ' + stats.titulo;
+            
             let html = `
-                <h5>${stats.titulo}</h5>
-                <div class="row mt-3">
-                    <div class="col-md-4">
-                        <div class="card bg-light">
-                            <div class="card-body text-center">
-                                <h3>${stats.total_envios}</h3>
-                                <small>Envios</small>
-                            </div>
-                        </div>
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                    <div class="glass-effect rounded-xl p-4 border border-dark-border/50 text-center">
+                        <p class="text-3xl font-bold text-blue-400">${stats.total_envios}</p>
+                        <p class="text-gray-400 text-sm">Envios</p>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card bg-light">
-                            <div class="card-body text-center">
-                                <h3>${stats.total_respostas}</h3>
-                                <small>Respostas</small>
-                            </div>
-                        </div>
+                    <div class="glass-effect rounded-xl p-4 border border-dark-border/50 text-center">
+                        <p class="text-3xl font-bold text-emerald-400">${stats.total_respostas}</p>
+                        <p class="text-gray-400 text-sm">Respostas</p>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card bg-light">
-                            <div class="card-body text-center">
-                                <h3>${stats.taxa_resposta}%</h3>
-                                <small>Taxa de Resposta</small>
-                            </div>
-                        </div>
+                    <div class="glass-effect rounded-xl p-4 border border-dark-border/50 text-center">
+                        <p class="text-3xl font-bold text-amber-400">${stats.taxa_resposta}%</p>
+                        <p class="text-gray-400 text-sm">Taxa</p>
                     </div>
                 </div>
             `;
             
             if (stats.media_por_pergunta && Object.keys(stats.media_por_pergunta).length > 0) {
                 html += `
-                    <h6 class="mt-4">Média por Pergunta</h6>
-                    <div class="list-group">
+                    <div class="glass-effect rounded-xl p-4 border border-dark-border/50">
+                        <h4 class="text-white font-semibold mb-4 flex items-center gap-2">
+                            <i class="fas fa-chart-bar text-purple-400"></i>
+                            Média por Pergunta
+                        </h4>
+                        <div class="space-y-4">
                 `;
                 
                 Object.values(stats.media_por_pergunta).forEach(item => {
                     const porcentagem = (item.media / 5) * 100;
+                    const cor = item.media >= 4 ? 'emerald' : item.media >= 3 ? 'amber' : 'red';
+                    
                     html += `
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small>${item.texto}</small>
-                                <strong>${item.media}</strong>
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-gray-300 text-sm">${item.texto}</span>
+                                <span class="text-${cor}-400 font-bold">${item.media}</span>
                             </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar" style="width: ${porcentagem}%"></div>
+                            <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-${cor}-500 to-${cor}-400 rounded-full transition-all duration-500" style="width: ${porcentagem}%"></div>
                             </div>
                         </div>
                     `;
                 });
                 
-                html += '</div>';
+                html += '</div></div>';
+            } else {
+                html += `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-chart-pie text-4xl mb-3 opacity-30"></i>
+                        <p>Ainda não há respostas suficientes para estatísticas</p>
+                    </div>
+                `;
             }
             
             document.getElementById('conteudoRespostas').innerHTML = html;
-            new bootstrap.Modal(document.getElementById('modalVerRespostas')).show();
+            abrirModal('modalVerRespostas');
         }
     } catch (error) {
         console.error('Erro:', error);
@@ -606,28 +723,59 @@ async function excluirFormulario(formularioId) {
         });
         
         if (response.ok) {
+            mostrarNotificacao('Formulário excluído com sucesso', 'success');
             carregarFormularios();
             carregarEnvios();
-            alert('Formulário excluído com sucesso');
         } else {
             const error = await response.json();
-            alert(error.detail || 'Erro ao excluir formulário');
+            mostrarNotificacao(error.detail || 'Erro ao excluir', 'error');
         }
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro de conexão');
+        mostrarNotificacao('Erro de conexão', 'error');
     }
 }
 
 function formatarData(dataStr) {
     if (!dataStr) return '-';
     const data = new Date(dataStr);
-    return data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    return data.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 }
 
-function getAuthHeaders() {
-    const token = localStorage.getItem('token');
-    return {
-        'Authorization': `Bearer ${token}`
+function mostrarNotificacao(mensagem, tipo = 'info') {
+    const cores = {
+        success: 'from-emerald-500 to-green-500',
+        error: 'from-red-500 to-rose-500',
+        info: 'from-blue-500 to-cyan-500',
+        warning: 'from-amber-500 to-orange-500'
     };
+    
+    const icones = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        info: 'fa-info-circle',
+        warning: 'fa-exclamation-triangle'
+    };
+    
+    const notif = document.createElement('div');
+    notif.className = `fixed bottom-4 right-4 z-[100] flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r ${cores[tipo]} text-white shadow-lg animate-slide-up`;
+    notif.innerHTML = `
+        <i class="fas ${icones[tipo]}"></i>
+        <span>${mensagem}</span>
+    `;
+    
+    document.body.appendChild(notif);
+    
+    setTimeout(() => {
+        notif.style.opacity = '0';
+        notif.style.transform = 'translateY(20px)';
+        notif.style.transition = 'all 0.3s ease';
+        setTimeout(() => notif.remove(), 300);
+    }, 3000);
 }
