@@ -381,6 +381,10 @@ async def pipeline_page(request: Request):
 async def formularios_page(request: Request):
     return templates.TemplateResponse("formularios.html", {"request": request})
 
+@app.get("/formularios/novo", response_class=HTMLResponse)
+async def novo_formulario_page(request: Request):
+    return templates.TemplateResponse("novo_formulario.html", {"request": request})
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=5000)
