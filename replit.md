@@ -102,3 +102,8 @@ The project enforces separation of concerns (`backend/`, `templates/`, `static/`
     - Edit modal: Admin users can edit all company fields including: empresa, cnpj, sigla, porte, er, carteira, endereco, bairro, municipio, estado, pais, zona, area, cnae_principal, descricao_cnae, tipo_empresa, numero_funcionarios, contact info, and observacao
     - Delete functionality: Admin users can delete companies with confirmation
     - Role-based UI: Edit/Delete buttons only visible to admins, View Details visible to all
+-   **Forms Management Page Bug Fixes**:
+    - Fixed hamburger menu button appearing on desktop (now uses lg:hidden)
+    - Fixed scrollbar on form visualization modal (proper full-height scrolling)
+    - Fixed preview close button in form creation page (togglePreview function now works correctly)
+    - Fixed empresas dropdown in "Gerar Link" modal (now uses correct field name emp.empresa)
