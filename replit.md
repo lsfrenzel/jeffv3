@@ -72,3 +72,5 @@ The project enforces separation of concerns (`backend/`, `templates/`, `static/`
 -   **Mobile Responsiveness Improvements** - Enhanced prospeccao_nova.html with horizontal scroll for tables, responsive padding, and hidden columns on mobile
 -   **Auto-fill Date/Time Feature** - Added auto-fill for "Data e hora da ligação" fields with current timestamp as default suggestion
 -   **Date/Time Preservation in Editing** - Implemented timezone-safe string slicing to preserve original date/time values when editing prospections, with current timestamp fallback for empty fields
+-   **Fixed bcrypt compatibility issue** - Changed bcrypt from 4.1.2 to 4.0.1 to fix `AttributeError: module 'bcrypt' has no attribute '__about__'` error with passlib
+-   **Fixed JavaScript null pointer errors** - Added null checks for DOM elements before adding event listeners in prospeccao_nova.js to prevent script crashes that caused "Carregando..." to display forever

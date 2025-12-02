@@ -6,19 +6,23 @@ const usuario = getUsuario();
 let todasProspeccoes = [];
 let visualizacaoAtual = 'lista';
 
-document.getElementById('agendar_proxima').addEventListener('change', function() {
-    const opcoes = document.getElementById('agendamentoOptions');
-    const dataInput = document.getElementById('data_proxima_ligacao');
-    opcoes.classList.toggle('hidden', !this.checked);
-    
-    if (this.checked && !dataInput.value) {
-        const hoje = new Date();
-        hoje.setDate(hoje.getDate() + 7);
-        dataInput.value = hoje.toISOString().split('T')[0];
-    }
-    
-    dataInput.required = this.checked;
-});
+// Inicialização segura do evento agendar_proxima
+const agendarProximaEl = document.getElementById('agendar_proxima');
+if (agendarProximaEl) {
+    agendarProximaEl.addEventListener('change', function() {
+        const opcoes = document.getElementById('agendamentoOptions');
+        const dataInput = document.getElementById('data_proxima_ligacao');
+        if (opcoes) opcoes.classList.toggle('hidden', !this.checked);
+        
+        if (this.checked && dataInput && !dataInput.value) {
+            const hoje = new Date();
+            hoje.setDate(hoje.getDate() + 7);
+            dataInput.value = hoje.toISOString().split('T')[0];
+        }
+        
+        if (dataInput) dataInput.required = this.checked;
+    });
+}
 
 function toggleVisualizacao(modo) {
     visualizacaoAtual = modo;
@@ -330,43 +334,46 @@ function hideEditarProspeccaoModal() {
     prospeccaoEditandoCodigo = null;
 }
 
-document.getElementById('editarProspeccaoForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    if (!prospeccaoEditandoId) {
-        alert('Erro: ID da prospecção não encontrado');
-        return;
-    }
-    
-    const dados = {
-        nome_contato: document.getElementById('edit_nome_contato').value || null,
-        cargo_contato: document.getElementById('edit_cargo_contato').value || null,
-        telefone_contato: document.getElementById('edit_telefone_contato').value || null,
-        email_contato: document.getElementById('edit_email_contato').value || null,
-        data_ligacao: document.getElementById('edit_data_ligacao').value || null,
-        hora_ligacao: document.getElementById('edit_hora_ligacao').value || null,
-        resultado: document.getElementById('edit_resultado').value || null,
-        potencial_negocio: document.getElementById('edit_potencial_negocio').value || null,
-        status_follow_up: document.getElementById('edit_status_follow_up').value || null,
-        observacoes: document.getElementById('edit_observacoes').value || null
-    };
-    
-    try {
-        const response = await apiRequest(`/api/prospeccoes/${prospeccaoEditandoId}`, {
-            method: 'PUT',
-            body: JSON.stringify(dados)
-        });
+const editarProspeccaoForm = document.getElementById('editarProspeccaoForm');
+if (editarProspeccaoForm) {
+    editarProspeccaoForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         
-        if (!response.ok) throw new Error('Erro ao atualizar prospecção');
+        if (!prospeccaoEditandoId) {
+            alert('Erro: ID da prospecção não encontrado');
+            return;
+        }
         
-        alert('Prospecção atualizada com sucesso! As alterações foram salvas no histórico.');
-        hideEditarProspeccaoModal();
-        carregarProspeccoes();
-    } catch (error) {
-        console.error('Erro ao atualizar prospecção:', error);
-        alert('Erro ao atualizar prospecção');
-    }
-});
+        const dados = {
+            nome_contato: document.getElementById('edit_nome_contato')?.value || null,
+            cargo_contato: document.getElementById('edit_cargo_contato')?.value || null,
+            telefone_contato: document.getElementById('edit_telefone_contato')?.value || null,
+            email_contato: document.getElementById('edit_email_contato')?.value || null,
+            data_ligacao: document.getElementById('edit_data_ligacao')?.value || null,
+            hora_ligacao: document.getElementById('edit_hora_ligacao')?.value || null,
+            resultado: document.getElementById('edit_resultado')?.value || null,
+            potencial_negocio: document.getElementById('edit_potencial_negocio')?.value || null,
+            status_follow_up: document.getElementById('edit_status_follow_up')?.value || null,
+            observacoes: document.getElementById('edit_observacoes')?.value || null
+        };
+        
+        try {
+            const response = await apiRequest(`/api/prospeccoes/${prospeccaoEditandoId}`, {
+                method: 'PUT',
+                body: JSON.stringify(dados)
+            });
+            
+            if (!response.ok) throw new Error('Erro ao atualizar prospecção');
+            
+            alert('Prospecção atualizada com sucesso! As alterações foram salvas no histórico.');
+            hideEditarProspeccaoModal();
+            carregarProspeccoes();
+        } catch (error) {
+            console.error('Erro ao atualizar prospecção:', error);
+            alert('Erro ao atualizar prospecção');
+        }
+    });
+}
 
 function verHistorico() {
     if (prospeccaoEditandoId && prospeccaoEditandoCodigo) {
@@ -591,72 +598,74 @@ const empresaIdInput = document.getElementById('empresa_id');
 
 let searchTimeout;
 
-empresaSearchInput.addEventListener('input', async function() {
-    const query = this.value.trim();
-    
-    clearTimeout(searchTimeout);
-    
-    if (query.length < 2) {
-        empresaAutocomplete.classList.add('hidden');
-        empresaIdInput.value = '';
-        empresaSelecionada = null;
-        return;
-    }
-    
-    searchTimeout = setTimeout(async () => {
-        try {
-            const response = await apiRequest(`/api/empresas/?nome=${encodeURIComponent(query)}&page_size=10`);
-            const data = await response.json();
-            const empresas = data.items || [];
-            
-            if (empresas.length === 0) {
-                empresaAutocomplete.innerHTML = '<div class="p-3 text-gray-400 text-sm">Nenhuma empresa encontrada</div>';
-                empresaAutocomplete.classList.remove('hidden');
-                return;
-            }
-            
-            empresaAutocomplete.innerHTML = '';
-            empresas.forEach(empresa => {
-                const div = document.createElement('div');
-                div.className = 'p-3 hover:bg-dark-hover cursor-pointer border-b border-gray-700 last:border-0';
-                div.dataset.empresaId = empresa.id;
+if (empresaSearchInput && empresaAutocomplete && empresaIdInput) {
+    empresaSearchInput.addEventListener('input', async function() {
+        const query = this.value.trim();
+        
+        clearTimeout(searchTimeout);
+        
+        if (query.length < 2) {
+            empresaAutocomplete.classList.add('hidden');
+            empresaIdInput.value = '';
+            empresaSelecionada = null;
+            return;
+        }
+        
+        searchTimeout = setTimeout(async () => {
+            try {
+                const response = await apiRequest(`/api/empresas/?nome=${encodeURIComponent(query)}&page_size=10`);
+                const data = await response.json();
+                const empresas = data.items || [];
                 
-                const nomeDiv = document.createElement('div');
-                nomeDiv.className = 'text-white font-medium';
-                nomeDiv.textContent = empresa.empresa;
+                if (empresas.length === 0) {
+                    empresaAutocomplete.innerHTML = '<div class="p-3 text-gray-400 text-sm">Nenhuma empresa encontrada</div>';
+                    empresaAutocomplete.classList.remove('hidden');
+                    return;
+                }
                 
-                const localDiv = document.createElement('div');
-                localDiv.className = 'text-gray-400 text-sm';
-                localDiv.textContent = `${empresa.municipio || 'N/A'} - ${empresa.estado || 'N/A'}`;
-                
-                div.appendChild(nomeDiv);
-                div.appendChild(localDiv);
-                
-                div.addEventListener('click', () => {
-                    selecionarEmpresa(empresa.id, empresa.empresa, empresa.municipio || '');
+                empresaAutocomplete.innerHTML = '';
+                empresas.forEach(empresa => {
+                    const div = document.createElement('div');
+                    div.className = 'p-3 hover:bg-dark-hover cursor-pointer border-b border-gray-700 last:border-0';
+                    div.dataset.empresaId = empresa.id;
+                    
+                    const nomeDiv = document.createElement('div');
+                    nomeDiv.className = 'text-white font-medium';
+                    nomeDiv.textContent = empresa.empresa;
+                    
+                    const localDiv = document.createElement('div');
+                    localDiv.className = 'text-gray-400 text-sm';
+                    localDiv.textContent = `${empresa.municipio || 'N/A'} - ${empresa.estado || 'N/A'}`;
+                    
+                    div.appendChild(nomeDiv);
+                    div.appendChild(localDiv);
+                    
+                    div.addEventListener('click', () => {
+                        selecionarEmpresa(empresa.id, empresa.empresa, empresa.municipio || '');
+                    });
+                    
+                    empresaAutocomplete.appendChild(div);
                 });
                 
-                empresaAutocomplete.appendChild(div);
-            });
-            
+                empresaAutocomplete.classList.remove('hidden');
+            } catch (error) {
+                console.error('Erro ao buscar empresas:', error);
+            }
+        }, 300);
+    });
+
+    empresaSearchInput.addEventListener('blur', function() {
+        setTimeout(() => {
+            empresaAutocomplete.classList.add('hidden');
+        }, 200);
+    });
+
+    empresaSearchInput.addEventListener('focus', function() {
+        if (empresaAutocomplete.innerHTML && !empresaAutocomplete.classList.contains('hidden')) {
             empresaAutocomplete.classList.remove('hidden');
-        } catch (error) {
-            console.error('Erro ao buscar empresas:', error);
         }
-    }, 300);
-});
-
-empresaSearchInput.addEventListener('blur', function() {
-    setTimeout(() => {
-        empresaAutocomplete.classList.add('hidden');
-    }, 200);
-});
-
-empresaSearchInput.addEventListener('focus', function() {
-    if (empresaAutocomplete.innerHTML && !empresaAutocomplete.classList.contains('hidden')) {
-        empresaAutocomplete.classList.remove('hidden');
-    }
-});
+    });
+}
 
 async function selecionarEmpresa(id, nome, municipio) {
     empresaSelecionada = { id, nome, municipio };
@@ -770,83 +779,86 @@ async function carregarConsultores() {
     }
 }
 
-document.getElementById('novaProspeccaoForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const empresaIdValue = document.getElementById('empresa_id').value;
-    if (!empresaIdValue || isNaN(parseInt(empresaIdValue))) {
-        alert('Por favor, selecione uma empresa da lista de sugestões');
-        return;
-    }
-    
-    const consultorId = usuario.tipo === 'admin' ? 
-        parseInt(document.getElementById('consultor_id').value) : 
-        usuario.id;
-    
-    const agendarProxima = document.getElementById('agendar_proxima').checked;
-    const dataProxima = document.getElementById('data_proxima_ligacao').value;
-    
-    if (agendarProxima && !dataProxima) {
-        alert('Por favor, selecione a data da próxima ligação');
-        return;
-    }
-    
-    const getCheckboxValue = (id) => {
-        const element = document.getElementById(id);
-        return element ? element.checked : false;
-    };
-    
-    const getInputValue = (id) => {
-        const element = document.getElementById(id);
-        return element ? (element.value || null) : null;
-    };
-    
-    const prospeccaoData = {
-        empresa_id: parseInt(document.getElementById('empresa_id').value),
-        consultor_id: consultorId,
-        data_ligacao: getInputValue('data_ligacao'),
-        hora_ligacao: getInputValue('hora_ligacao'),
-        resultado: getInputValue('resultado'),
-        observacoes: getInputValue('observacoes'),
+const novaProspeccaoForm = document.getElementById('novaProspeccaoForm');
+if (novaProspeccaoForm) {
+    novaProspeccaoForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         
-        nome_contato: getInputValue('nome_contato'),
-        telefone_contato: getInputValue('telefone_contato'),
-        email_contato: getInputValue('email_contato'),
-        cargo_contato: getInputValue('cargo_contato'),
+        const empresaIdValue = document.getElementById('empresa_id')?.value;
+        if (!empresaIdValue || isNaN(parseInt(empresaIdValue))) {
+            alert('Por favor, selecione uma empresa da lista de sugestões');
+            return;
+        }
         
-        interesse_treinamento: getCheckboxValue('interesse_treinamento'),
-        interesse_consultoria: getCheckboxValue('interesse_consultoria'),
-        interesse_certificacao: getCheckboxValue('interesse_certificacao'),
-        interesse_eventos: getCheckboxValue('interesse_eventos'),
-        interesse_produtos: getCheckboxValue('interesse_produtos'),
-        interesse_seguranca: getCheckboxValue('interesse_seguranca'),
-        interesse_meio_ambiente: getCheckboxValue('interesse_meio_ambiente'),
-        outros_interesses: getInputValue('outros_interesses'),
+        const consultorId = usuario.tipo === 'admin' ? 
+            parseInt(document.getElementById('consultor_id')?.value) : 
+            usuario.id;
         
-        potencial_negocio: getInputValue('potencial_negocio'),
-        status_follow_up: getInputValue('status_follow_up')
-    };
-    
-    try {
-        const url = agendarProxima ? 
-            `/api/prospeccoes/com-agendamento?agendar_proxima=true&data_proxima_ligacao=${dataProxima}` :
-            '/api/prospeccoes/';
+        const agendarProxima = document.getElementById('agendar_proxima')?.checked;
+        const dataProxima = document.getElementById('data_proxima_ligacao')?.value;
         
-        const response = await apiRequest(url, {
-            method: 'POST',
-            body: JSON.stringify(prospeccaoData)
-        });
+        if (agendarProxima && !dataProxima) {
+            alert('Por favor, selecione a data da próxima ligação');
+            return;
+        }
         
-        if (!response.ok) throw new Error('Erro ao criar prospecção');
+        const getCheckboxValue = (id) => {
+            const element = document.getElementById(id);
+            return element ? element.checked : false;
+        };
         
-        alert(agendarProxima ? 'Prospecção criada e próxima ligação agendada!' : 'Prospecção criada com sucesso!');
-        hideNovaProspeccaoModal();
-        carregarProspeccoes();
-    } catch (error) {
-        console.error('Erro ao criar prospecção:', error);
-        alert('Erro ao criar prospecção');
-    }
-});
+        const getInputValue = (id) => {
+            const element = document.getElementById(id);
+            return element ? (element.value || null) : null;
+        };
+        
+        const prospeccaoData = {
+            empresa_id: parseInt(document.getElementById('empresa_id')?.value),
+            consultor_id: consultorId,
+            data_ligacao: getInputValue('data_ligacao'),
+            hora_ligacao: getInputValue('hora_ligacao'),
+            resultado: getInputValue('resultado'),
+            observacoes: getInputValue('observacoes'),
+            
+            nome_contato: getInputValue('nome_contato'),
+            telefone_contato: getInputValue('telefone_contato'),
+            email_contato: getInputValue('email_contato'),
+            cargo_contato: getInputValue('cargo_contato'),
+            
+            interesse_treinamento: getCheckboxValue('interesse_treinamento'),
+            interesse_consultoria: getCheckboxValue('interesse_consultoria'),
+            interesse_certificacao: getCheckboxValue('interesse_certificacao'),
+            interesse_eventos: getCheckboxValue('interesse_eventos'),
+            interesse_produtos: getCheckboxValue('interesse_produtos'),
+            interesse_seguranca: getCheckboxValue('interesse_seguranca'),
+            interesse_meio_ambiente: getCheckboxValue('interesse_meio_ambiente'),
+            outros_interesses: getInputValue('outros_interesses'),
+            
+            potencial_negocio: getInputValue('potencial_negocio'),
+            status_follow_up: getInputValue('status_follow_up')
+        };
+        
+        try {
+            const url = agendarProxima ? 
+                `/api/prospeccoes/com-agendamento?agendar_proxima=true&data_proxima_ligacao=${dataProxima}` :
+                '/api/prospeccoes/';
+            
+            const response = await apiRequest(url, {
+                method: 'POST',
+                body: JSON.stringify(prospeccaoData)
+            });
+            
+            if (!response.ok) throw new Error('Erro ao criar prospecção');
+            
+            alert(agendarProxima ? 'Prospecção criada e próxima ligação agendada!' : 'Prospecção criada com sucesso!');
+            hideNovaProspeccaoModal();
+            carregarProspeccoes();
+        } catch (error) {
+            console.error('Erro ao criar prospecção:', error);
+            alert('Erro ao criar prospecção');
+        }
+    });
+}
 
 carregarProspeccoes();
 
