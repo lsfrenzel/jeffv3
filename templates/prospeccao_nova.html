@@ -85,19 +85,19 @@
             
             <div id="viewLista" class="">
                 <div class="bg-dark-sidebar rounded-lg shadow-lg overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full table-fixed border-collapse" id="tabelaProspeccoesCompacta">
+                    <div class="overflow-x-auto -mx-4 sm:mx-0">
+                        <table class="w-full table-fixed border-collapse min-w-[800px] sm:min-w-0" id="tabelaProspeccoesCompacta">
                             <thead class="bg-dark-card">
                                 <tr>
-                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[10%]">Código</th>
-                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[12%]">Empresa</th>
-                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[10%]">Consultor</th>
-                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[7%]">Data</th>
-                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[9%]">Resultado</th>
-                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[9%]">Status</th>
-                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[7%]">Potencial</th>
-                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[24%]">Observações</th>
-                                    <th class="px-2 py-2 text-left text-xs font-semibold text-gray-300 w-[12%]">Ações</th>
+                                    <th class="px-1 sm:px-2 py-2 text-left text-[10px] sm:text-xs font-semibold text-gray-300 w-[10%]">Código</th>
+                                    <th class="px-1 sm:px-2 py-2 text-left text-[10px] sm:text-xs font-semibold text-gray-300 w-[14%]">Empresa</th>
+                                    <th class="px-1 sm:px-2 py-2 text-left text-[10px] sm:text-xs font-semibold text-gray-300 w-[10%]">Consultor</th>
+                                    <th class="px-1 sm:px-2 py-2 text-left text-[10px] sm:text-xs font-semibold text-gray-300 w-[8%]">Data</th>
+                                    <th class="px-1 sm:px-2 py-2 text-left text-[10px] sm:text-xs font-semibold text-gray-300 w-[10%]">Resultado</th>
+                                    <th class="px-1 sm:px-2 py-2 text-left text-[10px] sm:text-xs font-semibold text-gray-300 w-[10%]">Status</th>
+                                    <th class="px-1 sm:px-2 py-2 text-left text-[10px] sm:text-xs font-semibold text-gray-300 w-[8%]">Potencial</th>
+                                    <th class="px-1 sm:px-2 py-2 text-left text-[10px] sm:text-xs font-semibold text-gray-300 w-[18%] hidden sm:table-cell">Observações</th>
+                                    <th class="px-1 sm:px-2 py-2 text-left text-[10px] sm:text-xs font-semibold text-gray-300 w-[12%]">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="listaProspeccoesTable" class="divide-y divide-gray-700/50">
@@ -113,69 +113,69 @@
     </main>
 </div>
 
-<div id="novaProspeccaoModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center px-4 z-50 overflow-y-auto">
-    <div class="max-w-4xl w-full bg-dark-sidebar p-8 rounded-lg shadow-2xl my-8 max-h-[90vh] overflow-y-auto">
-        <h2 class="text-2xl font-bold text-white mb-6">Nova Prospecção</h2>
-        <form id="novaProspeccaoForm" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div id="novaProspeccaoModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-start sm:items-center justify-center px-2 sm:px-4 z-50 overflow-y-auto py-4">
+    <div class="max-w-4xl w-full bg-dark-sidebar p-4 sm:p-8 rounded-lg shadow-2xl my-2 sm:my-8 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">Nova Prospecção</h2>
+        <form id="novaProspeccaoForm" class="space-y-4 sm:space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 <div class="relative">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Empresa *</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Empresa *</label>
                     <input 
                         type="text" 
                         id="empresa_search" 
                         placeholder="Digite o nome da empresa..." 
                         autocomplete="off"
                         required
-                        class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full px-3 sm:px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                     >
                     <input type="hidden" id="empresa_id" required>
                     <div id="empresa_autocomplete" class="absolute z-10 w-full bg-dark-sidebar border border-gray-600 rounded-lg mt-1 max-h-60 overflow-y-auto hidden shadow-xl">
                     </div>
                 </div>
                 <div id="consultorDiv">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Consultor *</label>
-                    <select id="consultor_id" required class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Consultor *</label>
+                    <select id="consultor_id" required class="w-full px-3 sm:px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
                         <option value="">Carregando consultores...</option>
                     </select>
                 </div>
             </div>
             
-            <div class="bg-dark-card p-6 rounded-lg">
-                <h3 class="text-lg font-semibold text-white mb-4">Dados do Contato</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-dark-card p-4 sm:p-6 rounded-lg">
+                <h3 class="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Dados do Contato</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Nome do Contato</label>
-                        <input type="text" id="nome_contato" placeholder="Nome completo" class="w-full px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Nome do Contato</label>
+                        <input type="text" id="nome_contato" placeholder="Nome completo" class="w-full px-3 sm:px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Cargo</label>
-                        <input type="text" id="cargo_contato" placeholder="Ex: Gerente de RH" class="w-full px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Cargo</label>
+                        <input type="text" id="cargo_contato" placeholder="Ex: Gerente de RH" class="w-full px-3 sm:px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Telefone</label>
-                        <input type="tel" id="telefone_contato" placeholder="(00) 0000-0000" class="w-full px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Telefone</label>
+                        <input type="tel" id="telefone_contato" placeholder="(00) 0000-0000" class="w-full px-3 sm:px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">E-mail</label>
-                        <input type="email" id="email_contato" placeholder="contato@empresa.com" class="w-full px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">E-mail</label>
+                        <input type="email" id="email_contato" placeholder="contato@empresa.com" class="w-full px-3 sm:px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
                     </div>
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Data da Ligação</label>
-                    <input type="date" id="data_ligacao" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Data da Ligação</label>
+                    <input type="date" id="data_ligacao" class="w-full px-2 sm:px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Hora da Ligação</label>
-                    <input type="time" id="hora_ligacao" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Hora da Ligação</label>
+                    <input type="time" id="hora_ligacao" class="w-full px-2 sm:px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
                 </div>
             </div>
             
             <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Resultado</label>
-                <select id="resultado" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Resultado</label>
+                <select id="resultado" class="w-full px-3 sm:px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
                     <option value="">Selecione...</option>
                     <option value="Interesse">Interesse</option>
                     <option value="Sem interesse">Sem interesse</option>
@@ -186,10 +186,10 @@
             </div>
             
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Potencial de Negócio</label>
-                    <select id="potencial_negocio" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Potencial de Negócio</label>
+                    <select id="potencial_negocio" class="w-full px-3 sm:px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
                         <option value="">Selecione...</option>
                         <option value="Baixo">Baixo</option>
                         <option value="Médio">Médio</option>
@@ -198,8 +198,8 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Status de Follow-up</label>
-                    <select id="status_follow_up" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Status de Follow-up</label>
+                    <select id="status_follow_up" class="w-full px-3 sm:px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
                         <option value="">Selecione...</option>
                         <option value="Aguardando retorno">Aguardando retorno</option>
                         <option value="Em negociação">Em negociação</option>
@@ -212,26 +212,26 @@
             </div>
             
             <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Observações</label>
-                <textarea id="observacoes" rows="3" placeholder="Detalhes da conversa, próximos passos, etc..." class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Observações</label>
+                <textarea id="observacoes" rows="3" placeholder="Detalhes da conversa, próximos passos, etc..." class="w-full px-3 sm:px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"></textarea>
             </div>
             
-            <div class="bg-dark-card p-6 rounded-lg">
-                <label class="flex items-center space-x-3 cursor-pointer">
-                    <input type="checkbox" id="agendar_proxima" class="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500">
-                    <span class="text-gray-300 font-semibold">Agendar próxima ligação automaticamente</span>
+            <div class="bg-dark-card p-4 sm:p-6 rounded-lg">
+                <label class="flex items-center space-x-2 sm:space-x-3 cursor-pointer">
+                    <input type="checkbox" id="agendar_proxima" class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500">
+                    <span class="text-gray-300 font-semibold text-sm sm:text-base">Agendar próxima ligação automaticamente</span>
                 </label>
-                <div id="agendamentoOptions" class="mt-4 hidden">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Data da próxima ligação *</label>
-                    <input type="date" id="data_proxima_ligacao" class="w-full px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div id="agendamentoOptions" class="mt-3 sm:mt-4 hidden">
+                    <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Data da próxima ligação *</label>
+                    <input type="date" id="data_proxima_ligacao" class="w-full px-3 sm:px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
                 </div>
             </div>
             
-            <div class="flex space-x-3">
-                <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition">
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 sm:py-3 px-4 rounded-lg transition text-sm sm:text-base">
                     Salvar Prospecção
                 </button>
-                <button type="button" onclick="hideNovaProspeccaoModal()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition">
+                <button type="button" onclick="hideNovaProspeccaoModal()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2.5 sm:py-3 px-4 rounded-lg transition text-sm sm:text-base">
                     Cancelar
                 </button>
             </div>
@@ -239,67 +239,67 @@
     </div>
 </div>
 
-<div id="editarProspeccaoModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center px-4 z-50 overflow-y-auto">
-    <div class="max-w-4xl w-full bg-dark-sidebar p-8 rounded-lg shadow-2xl my-8 max-h-[90vh] overflow-y-auto">
-        <div class="flex justify-between items-center mb-6">
+<div id="editarProspeccaoModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-start sm:items-center justify-center px-2 sm:px-4 z-50 overflow-y-auto py-4">
+    <div class="max-w-4xl w-full bg-dark-sidebar p-4 sm:p-8 rounded-lg shadow-2xl my-2 sm:my-8 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
             <div>
-                <h2 class="text-2xl font-bold text-white">Editar Prospecção</h2>
+                <h2 class="text-xl sm:text-2xl font-bold text-white">Editar Prospecção</h2>
                 <p class="text-blue-400 text-sm mt-1" id="editCodigoDisplay"></p>
             </div>
-            <button onclick="verHistorico()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+            <button onclick="verHistorico()" class="bg-purple-600 hover:bg-purple-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm flex items-center gap-2 w-full sm:w-auto justify-center">
                 <i class="fas fa-history"></i> Ver Histórico
             </button>
         </div>
-        <form id="editarProspeccaoForm" class="space-y-6">
+        <form id="editarProspeccaoForm" class="space-y-4 sm:space-y-6">
             <input type="hidden" id="edit_prospeccao_id">
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Empresa</label>
-                    <input type="text" id="edit_empresa_nome" readonly class="w-full px-4 py-2 bg-dark-card text-gray-400 rounded-lg cursor-not-allowed">
+                    <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Empresa</label>
+                    <input type="text" id="edit_empresa_nome" readonly class="w-full px-3 sm:px-4 py-2 bg-dark-card text-gray-400 rounded-lg cursor-not-allowed text-sm sm:text-base">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Consultor</label>
-                    <input type="text" id="edit_consultor_nome" readonly class="w-full px-4 py-2 bg-dark-card text-gray-400 rounded-lg cursor-not-allowed">
-                </div>
-            </div>
-            
-            <div class="bg-dark-card p-6 rounded-lg">
-                <h3 class="text-lg font-semibold text-white mb-4">Dados do Contato</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Nome do Contato</label>
-                        <input type="text" id="edit_nome_contato" class="w-full px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Cargo</label>
-                        <input type="text" id="edit_cargo_contato" class="w-full px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Telefone</label>
-                        <input type="tel" id="edit_telefone_contato" class="w-full px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">E-mail</label>
-                        <input type="email" id="edit_email_contato" class="w-full px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Consultor</label>
+                    <input type="text" id="edit_consultor_nome" readonly class="w-full px-3 sm:px-4 py-2 bg-dark-card text-gray-400 rounded-lg cursor-not-allowed text-sm sm:text-base">
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-dark-card p-4 sm:p-6 rounded-lg">
+                <h3 class="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Dados do Contato</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Nome do Contato</label>
+                        <input type="text" id="edit_nome_contato" class="w-full px-3 sm:px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Cargo</label>
+                        <input type="text" id="edit_cargo_contato" class="w-full px-3 sm:px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Telefone</label>
+                        <input type="tel" id="edit_telefone_contato" class="w-full px-3 sm:px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">E-mail</label>
+                        <input type="email" id="edit_email_contato" class="w-full px-3 sm:px-4 py-2 bg-dark-sidebar text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Data da Ligação</label>
-                    <input type="date" id="edit_data_ligacao" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Data da Ligação</label>
+                    <input type="date" id="edit_data_ligacao" class="w-full px-2 sm:px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Hora da Ligação</label>
-                    <input type="time" id="edit_hora_ligacao" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Hora da Ligação</label>
+                    <input type="time" id="edit_hora_ligacao" class="w-full px-2 sm:px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
                 </div>
             </div>
             
             <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Resultado</label>
-                <select id="edit_resultado" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Resultado</label>
+                <select id="edit_resultado" class="w-full px-3 sm:px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
                     <option value="">Selecione...</option>
                     <option value="Interesse">Interesse</option>
                     <option value="Sem interesse">Sem interesse</option>
@@ -309,10 +309,10 @@
                 </select>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Potencial de Negócio</label>
-                    <select id="edit_potencial_negocio" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Potencial de Negócio</label>
+                    <select id="edit_potencial_negocio" class="w-full px-3 sm:px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
                         <option value="">Selecione...</option>
                         <option value="Baixo">Baixo</option>
                         <option value="Médio">Médio</option>
@@ -321,8 +321,8 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Status de Follow-up</label>
-                    <select id="edit_status_follow_up" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Status de Follow-up</label>
+                    <select id="edit_status_follow_up" class="w-full px-3 sm:px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
                         <option value="">Selecione...</option>
                         <option value="Aguardando retorno">Aguardando retorno</option>
                         <option value="Em negociação">Em negociação</option>
@@ -335,15 +335,15 @@
             </div>
             
             <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Observações</label>
-                <textarea id="edit_observacoes" rows="3" class="w-full px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Observações</label>
+                <textarea id="edit_observacoes" rows="3" class="w-full px-3 sm:px-4 py-2 bg-dark-card text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"></textarea>
             </div>
             
-            <div class="flex space-x-3">
-                <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition">
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 sm:py-3 px-4 rounded-lg transition text-sm sm:text-base">
                     Salvar Alterações
                 </button>
-                <button type="button" onclick="hideEditarProspeccaoModal()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition">
+                <button type="button" onclick="hideEditarProspeccaoModal()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2.5 sm:py-3 px-4 rounded-lg transition text-sm sm:text-base">
                     Cancelar
                 </button>
             </div>

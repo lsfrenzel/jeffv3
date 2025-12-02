@@ -157,30 +157,30 @@ function mostrarProspeccoesLista(prospeccoes) {
         
         return `
             <tr class="hover:bg-dark-hover/50 transition border-b border-gray-700/30">
-                <td class="px-2 py-1.5 align-top">
-                    <div class="text-blue-400 text-[10px] font-mono truncate cursor-pointer hover:text-blue-300" onclick="abrirEditarProspeccao(${prosp.id})" title="${codigo}">${codigo}</div>
+                <td class="px-1 sm:px-2 py-1.5 align-top">
+                    <div class="text-blue-400 text-[9px] sm:text-[10px] font-mono truncate cursor-pointer hover:text-blue-300" onclick="abrirEditarProspeccao(${prosp.id})" title="${codigo}">${codigo}</div>
                 </td>
-                <td class="px-2 py-1.5 align-top">
-                    <div class="text-white text-xs font-medium truncate" title="${empresaNome}">${empresaNome}</div>
-                    <div class="text-gray-500 text-[10px] truncate">${empresaMunicipio}-${empresaEstado}</div>
+                <td class="px-1 sm:px-2 py-1.5 align-top">
+                    <div class="text-white text-[10px] sm:text-xs font-medium truncate" title="${empresaNome}">${empresaNome}</div>
+                    <div class="text-gray-500 text-[9px] sm:text-[10px] truncate">${empresaMunicipio}-${empresaEstado}</div>
                 </td>
-                <td class="px-2 py-1.5 text-gray-300 text-xs truncate align-top" title="${consultorNome}">${consultorNome}</td>
-                <td class="px-2 py-1.5 text-gray-300 text-xs align-top whitespace-nowrap">${prosp.data_ligacao ? new Date(prosp.data_ligacao).toLocaleDateString('pt-BR') : '-'}</td>
-                <td class="px-2 py-1.5 ${resultadoClass} text-xs font-medium align-top">${prosp.resultado || '-'}</td>
-                <td class="px-2 py-1.5 text-gray-300 text-xs align-top">${prosp.status_follow_up || '-'}</td>
-                <td class="px-2 py-1.5 text-gray-300 text-xs align-top">${prosp.potencial_negocio || '-'}</td>
-                <td class="px-2 py-1.5 align-top">
+                <td class="px-1 sm:px-2 py-1.5 text-gray-300 text-[10px] sm:text-xs truncate align-top" title="${consultorNome}">${consultorNome}</td>
+                <td class="px-1 sm:px-2 py-1.5 text-gray-300 text-[10px] sm:text-xs align-top whitespace-nowrap">${prosp.data_ligacao ? new Date(prosp.data_ligacao).toLocaleDateString('pt-BR') : '-'}</td>
+                <td class="px-1 sm:px-2 py-1.5 ${resultadoClass} text-[10px] sm:text-xs font-medium align-top">${prosp.resultado || '-'}</td>
+                <td class="px-1 sm:px-2 py-1.5 text-gray-300 text-[10px] sm:text-xs align-top">${prosp.status_follow_up || '-'}</td>
+                <td class="px-1 sm:px-2 py-1.5 text-gray-300 text-[10px] sm:text-xs align-top">${prosp.potencial_negocio || '-'}</td>
+                <td class="px-1 sm:px-2 py-1.5 align-top hidden sm:table-cell">
                     <div class="${obsFontClass} text-gray-400 leading-tight max-h-16 overflow-y-auto break-words" title="${obsText}">${obsText}</div>
                 </td>
-                <td class="px-2 py-1.5 align-top">
-                    <div class="flex gap-1">
-                        <button onclick="abrirEditarProspeccao(${prosp.id})" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded text-[10px] transition" title="Editar">
+                <td class="px-1 sm:px-2 py-1.5 align-top">
+                    <div class="flex gap-0.5 sm:gap-1">
+                        <button onclick="abrirEditarProspeccao(${prosp.id})" class="bg-blue-600 hover:bg-blue-700 text-white px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] transition" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button onclick="abrirHistorico(${prosp.id}, '${codigo}')" class="bg-purple-600 hover:bg-purple-700 text-white px-2 py-0.5 rounded text-[10px] transition" title="Histórico">
+                        <button onclick="abrirHistorico(${prosp.id}, '${codigo}')" class="bg-purple-600 hover:bg-purple-700 text-white px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] transition" title="Histórico">
                             <i class="fas fa-history"></i>
                         </button>
-                        <button onclick="exportarPDF(${prosp.id})" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-[10px] transition" title="PDF">
+                        <button onclick="exportarPDF(${prosp.id})" class="bg-red-600 hover:bg-red-700 text-white px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] transition" title="PDF">
                             <i class="fas fa-file-pdf"></i>
                         </button>
                     </div>
@@ -206,8 +206,22 @@ async function abrirEditarProspeccao(prospeccaoId) {
         document.getElementById('edit_cargo_contato').value = prosp.cargo_contato || '';
         document.getElementById('edit_telefone_contato').value = prosp.telefone_contato || '';
         document.getElementById('edit_email_contato').value = prosp.email_contato || '';
-        document.getElementById('edit_data_ligacao').value = prosp.data_ligacao || '';
-        document.getElementById('edit_hora_ligacao').value = prosp.hora_ligacao || '';
+        
+        const { date: currentDate, time: currentTime } = getCurrentDateTimeForInputs();
+        
+        let dataLigacaoValue = currentDate;
+        if (prosp.data_ligacao && prosp.data_ligacao.length >= 10) {
+            dataLigacaoValue = prosp.data_ligacao.slice(0, 10);
+        }
+        
+        let horaLigacaoValue = currentTime;
+        if (prosp.hora_ligacao && prosp.hora_ligacao.length >= 5) {
+            horaLigacaoValue = prosp.hora_ligacao.slice(0, 5);
+        }
+        
+        document.getElementById('edit_data_ligacao').value = dataLigacaoValue;
+        document.getElementById('edit_hora_ligacao').value = horaLigacaoValue;
+        
         document.getElementById('edit_resultado').value = prosp.resultado || '';
         document.getElementById('edit_potencial_negocio').value = prosp.potencial_negocio || '';
         document.getElementById('edit_status_follow_up').value = prosp.status_follow_up || '';
@@ -585,6 +599,20 @@ async function preencherDadosContato(empresaId) {
     }
 }
 
+function getCurrentDateTimeForInputs() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    return {
+        date: `${year}-${month}-${day}`,
+        time: `${hours}:${minutes}`
+    };
+}
+
 function showNovaProspeccaoModal() {
     if (usuario.tipo === 'admin') {
         carregarConsultores();
@@ -592,6 +620,11 @@ function showNovaProspeccaoModal() {
         document.getElementById('consultorDiv').style.display = 'none';
         document.getElementById('consultor_id').value = usuario.id;
     }
+    
+    const { date, time } = getCurrentDateTimeForInputs();
+    document.getElementById('data_ligacao').value = date;
+    document.getElementById('hora_ligacao').value = time;
+    
     document.getElementById('novaProspeccaoModal').classList.remove('hidden');
 }
 
