@@ -1,7 +1,22 @@
-checkAuth();
-atualizarSidebar();
+// Verificação de autenticação
+if (typeof checkAuth === 'function') {
+    checkAuth();
+} else {
+    console.error('auth.js não carregado corretamente');
+    window.location.href = '/';
+}
 
-const usuario = getUsuario();
+if (typeof atualizarSidebar === 'function') {
+    atualizarSidebar();
+}
+
+// Variável global do usuário
+let usuario = null;
+try {
+    usuario = typeof getUsuario === 'function' ? getUsuario() : null;
+} catch (e) {
+    console.error('Erro ao obter usuário:', e);
+}
 
 // Variáveis globais
 let todasProspeccoes = [];
