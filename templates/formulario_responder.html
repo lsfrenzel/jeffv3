@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ formulario.titulo }} - Núcleo 1.03</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-header {
+            text-align: center;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+        }
+        .form-header h1 {
+            color: #a78bfa;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .form-header p {
+            color: #94a3b8;
+        }
+        .categoria-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            margin-top: 30px;
+        }
+        .categoria-header h4 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        .categoria-header p {
+            margin: 5px 0 0 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .pergunta-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .pergunta-texto {
+            color: #e2e8f0;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+        .opcoes-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .opcao-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .opcao-btn:hover {
+            border-color: #a78bfa;
+            background: rgba(167, 139, 250, 0.1);
+        }
+        .opcao-btn.selected {
+            border-color: #a78bfa;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .opcao-valor {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: block;
+        }
+        .opcao-texto {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+        .btn-enviar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            color: white;
+            width: 100%;
+            margin-top: 30px;
+        }
+        .btn-enviar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        .btn-enviar:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .progress-bar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .logo i {
+            font-size: 1.8rem;
+            color: white;
+        }
+        @media (max-width: 576px) {
+            .opcoes-container {
+                flex-direction: column;
+            }
+            .opcao-btn {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progressBar" style="width: 0%"></div>
+    </div>
+
+    <div class="form-container">
+        <div class="form-header">
+            <div class="logo">
+                <i class="fas fa-atom"></i>
+            </div>
+            <h1>{{ formulario.titulo }}</h1>
+            {% if formulario.descricao %}
+            <p>{{ formulario.descricao }}</p>
+            {% endif %}
+            {% if envio.nome_destinatario %}
+            <p class="mt-3"><strong>Respondendo como:</strong> {{ envio.nome_destinatario }}</p>
+            {% endif %}
+        </div>
+
+        <form id="formRespostas">
+            {% set current_category = namespace(value='') %}
+            {% for pergunta in perguntas %}
+                {% if pergunta.categoria != current_category.value %}
+                    {% set current_category.value = pergunta.categoria %}
+                    <div class="categoria-header">
+                        <h4><i class="fas fa-folder-open me-2"></i>{{ pergunta.categoria }}</h4>
+                        {% if pergunta.descricao_categoria %}
+                        <p>{{ pergunta.descricao_categoria }}</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                <div class="pergunta-card" data-pergunta-id="{{ pergunta.id }}" data-obrigatoria="{{ pergunta.obrigatoria|lower }}">
+                    <div class="pergunta-texto">
+                        {{ pergunta.texto }}
+                        {% if pergunta.obrigatoria %}<span class="text-danger">*</span>{% endif %}
+                    </div>
+
+                    {% if pergunta.tipo == 'escala' %}
+                    <div class="opcoes-container">
+                        {% for opcao in pergunta.opcoes|sort(attribute='valor') %}
+                        <div class="opcao-btn" data-valor="{{ opcao.valor }}" onclick="selecionarOpcao(this, {{ pergunta.id }})">
+                            <span class="opcao-valor">{{ opcao.valor }}</span>
+                            <span class="opcao-texto">{{ opcao.texto.split(' - ')[1] if ' - ' in opcao.texto else opcao.texto }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% elif pergunta.tipo == 'texto' %}
+                    <textarea class="form-control bg-dark text-white border-secondary" rows="3" 
+                              onchange="salvarTexto(this, {{ pergunta.id }})" 
+                              placeholder="Digite sua resposta..."></textarea>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="button" class="btn btn-enviar" onclick="enviarRespostas()" id="btnEnviar">
+                <i class="fas fa-paper-plane me-2"></i>Enviar Respostas
+            </button>
+        </form>
+    </div>
+
+    <script>
+        const codigoFormulario = '{{ envio.codigo_unico }}';
+        const respostas = {};
+        const totalPerguntas = {{ perguntas|length }};
+        let perguntasRespondidas = 0;
+
+        function selecionarOpcao(elemento, perguntaId) {
+            const container = elemento.parentElement;
+            const wasSelected = elemento.classList.contains('selected');
+            
+            container.querySelectorAll('.opcao-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            if (!wasSelected) {
+                elemento.classList.add('selected');
+                const valor = parseInt(elemento.dataset.valor);
+                if (!respostas[perguntaId]) {
+                    perguntasRespondidas++;
+                }
+                respostas[perguntaId] = { valor_numerico: valor };
+            } else {
+                if (respostas[perguntaId]) {
+                    perguntasRespondidas--;
+                }
+                delete respostas[perguntaId];
+            }
+            
+            atualizarProgresso();
+        }
+
+        function salvarTexto(elemento, perguntaId) {
+            const valor = elemento.value.trim();
+            if (valor) {
+                if (!respostas[perguntaId]) {
+                    perguntasRespondidas++;
+                }
+                respostas[perguntaId] = { valor_texto: valor };
+            } else {
+                if (respostas[perguntaId]) {
+                    perguntasRespondidas--;
+                }
+                delete respostas[perguntaId];
+            }
+            atualizarProgresso();
+        }
+
+        function atualizarProgresso() {
+            const progresso = (perguntasRespondidas / totalPerguntas) * 100;
+            document.getElementById('progressBar').style.width = progresso + '%';
+        }
+
+        async function enviarRespostas() {
+            const perguntasObrigatorias = document.querySelectorAll('[data-obrigatoria="true"]');
+            let todasRespondidas = true;
+            
+            perguntasObrigatorias.forEach(card => {
+                const perguntaId = card.dataset.perguntaId;
+                if (!respostas[perguntaId]) {
+                    todasRespondidas = false;
+                    card.style.border = '2px solid #ef4444';
+                } else {
+                    card.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+                }
+            });
+
+            if (!todasRespondidas) {
+                alert('Por favor, responda todas as perguntas obrigatórias marcadas com *');
+                return;
+            }
+
+            const btn = document.getElementById('btnEnviar');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
+
+            try {
+                const respostasArray = Object.entries(respostas).map(([perguntaId, dados]) => ({
+                    pergunta_id: parseInt(perguntaId),
+                    ...dados
+                }));
+
+                const response = await fetch(`/formulario/responder/${codigoFormulario}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ respostas: respostasArray })
+                });
+
+                if (response.ok) {
+                    document.body.innerHTML = `
+                        <div class="form-container text-center" style="padding-top: 100px;">
+                            <div class="logo mb-4">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <h1 style="color: #a78bfa;">Obrigado!</h1>
+                            <p class="text-muted">Suas respostas foram enviadas com sucesso.</p>
+                        </div>
+                    `;
+                } else {
+                    const error = await response.json();
+                    alert(error.detail || 'Erro ao enviar respostas');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Enviar Respostas';
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro de conexão. Tente novamente.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Enviar Respostas';
+            }
+        }
+    </script>
+</body>
+</html>

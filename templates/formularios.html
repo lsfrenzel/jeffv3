@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+{% block title %}Formulários - Núcleo 1.03{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1"><i class="fas fa-file-alt me-2"></i>Formulários</h2>
+                    <p class="text-muted mb-0">Gerencie formulários e envie questionários para empresas</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary me-2" onclick="criarFormularioLideranca()">
+                        <i class="fas fa-magic me-1"></i> Criar Formulário Padrão
+                    </button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNovoFormulario">
+                        <i class="fas fa-plus me-1"></i> Novo Formulário Personalizado
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-white-50 mb-1">Total de Formulários</h6>
+                            <h3 class="mb-0" id="totalFormularios">0</h3>
+                        </div>
+                        <div class="ms-3">
+                            <i class="fas fa-file-alt fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-gradient-success text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-white-50 mb-1">Enviados</h6>
+                            <h3 class="mb-0" id="totalEnviados">0</h3>
+                        </div>
+                        <div class="ms-3">
+                            <i class="fas fa-paper-plane fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-gradient-info text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-white-50 mb-1">Respondidos</h6>
+                            <h3 class="mb-0" id="totalRespondidos">0</h3>
+                        </div>
+                        <div class="ms-3">
+                            <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-gradient-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-white-50 mb-1">Taxa de Resposta</h6>
+                            <h3 class="mb-0" id="taxaResposta">0%</h3>
+                        </div>
+                        <div class="ms-3">
+                            <i class="fas fa-chart-line fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs mb-4" id="formTabs" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" id="formularios-tab" data-bs-toggle="tab" data-bs-target="#formularios" type="button">
+                <i class="fas fa-list me-1"></i> Meus Formulários
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="envios-tab" data-bs-toggle="tab" data-bs-target="#envios" type="button">
+                <i class="fas fa-paper-plane me-1"></i> Envios
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="respostas-tab" data-bs-toggle="tab" data-bs-target="#respostas" type="button">
+                <i class="fas fa-inbox me-1"></i> Respostas Recebidas
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="formTabsContent">
+        <div class="tab-pane fade show active" id="formularios" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="tabelaFormularios">
+                            <thead>
+                                <tr>
+                                    <th>Título</th>
+                                    <th>Tipo</th>
+                                    <th>Perguntas</th>
+                                    <th>Envios</th>
+                                    <th>Respostas</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaFormularios">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="envios" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="tabelaEnvios">
+                            <thead>
+                                <tr>
+                                    <th>Formulário</th>
+                                    <th>Destinatário</th>
+                                    <th>Empresa</th>
+                                    <th>Data Envio</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaEnvios">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="respostas" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="tabelaRespostas">
+                            <thead>
+                                <tr>
+                                    <th>Formulário</th>
+                                    <th>Destinatário</th>
+                                    <th>Empresa</th>
+                                    <th>Data Resposta</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaRespostas">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalNovoFormulario" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Novo Formulário Personalizado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNovoFormulario">
+                    <div class="mb-3">
+                        <label class="form-label">Título do Formulário *</label>
+                        <input type="text" class="form-control" id="tituloFormulario" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descrição</label>
+                        <textarea class="form-control" id="descricaoFormulario" rows="2"></textarea>
+                    </div>
+                    
+                    <hr>
+                    <h6 class="mb-3"><i class="fas fa-question-circle me-1"></i> Perguntas</h6>
+                    
+                    <div id="listaPerguntas" class="mb-3">
+                    </div>
+                    
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="adicionarPergunta()">
+                        <i class="fas fa-plus me-1"></i> Adicionar Pergunta
+                    </button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="salvarFormulario()">
+                    <i class="fas fa-save me-1"></i> Criar Formulário
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEnviar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-paper-plane me-2"></i>Enviar Formulário</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEnviar">
+                    <input type="hidden" id="enviarFormularioId">
+                    <div class="mb-3">
+                        <label class="form-label">Nome do Destinatário</label>
+                        <input type="text" class="form-control" id="nomeDestinatario">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email do Destinatário</label>
+                        <input type="email" class="form-control" id="emailDestinatario">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Empresa (opcional)</label>
+                        <select class="form-select" id="empresaDestinatario">
+                            <option value="">Selecione uma empresa</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="enviarFormulario()">
+                    <i class="fas fa-link me-1"></i> Gerar Link
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalLink" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-check-circle me-2"></i>Link Gerado!</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Compartilhe o link abaixo com o destinatário:</p>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="linkFormulario" readonly>
+                    <button class="btn btn-outline-primary" type="button" onclick="copiarLink()">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <small class="text-muted">Este link é único e só pode ser respondido uma vez.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalVerRespostas" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-poll me-2"></i>Respostas do Formulário</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="conteudoRespostas">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalVerFormulario" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-eye me-2"></i>Visualizar Formulário</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="conteudoFormulario">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.bg-gradient-success {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+.bg-gradient-info {
+    background: linear-gradient(135deg, #667eea 0%, #00d4ff 100%);
+}
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+.pergunta-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+.opcao-item {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 5px;
+}
+.resposta-categoria {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+.resposta-item {
+    background: #f8f9fa;
+    border-left: 4px solid #667eea;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 0 8px 8px 0;
+}
+</style>
+
+<script src="/static/js/formularios.js"></script>
+{% endblock %}
