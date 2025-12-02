@@ -36,15 +36,29 @@ async function carregarEmpresas(filtros = {}, pagina = 1) {
         }
         
         tbody.innerHTML = data.items.map(emp => `
-            <tr class="hover:bg-dark-hover cursor-pointer" onclick="window.location.href='/empresa/${emp.id}'">
+            <tr class="hover:bg-dark-hover">
                 <td class="px-6 py-4 text-gray-300">${emp.empresa}</td>
                 <td class="px-6 py-4 text-gray-300">${emp.cnpj || '-'}</td>
                 <td class="px-6 py-4 text-gray-300">${emp.municipio || '-'}</td>
                 <td class="px-6 py-4 text-gray-300">${emp.er || '-'}</td>
                 <td class="px-6 py-4 text-gray-300">${emp.carteira || '-'}</td>
                 <td class="px-6 py-4">
-                    <button onclick="event.stopPropagation(); window.location.href='/empresa/${emp.id}'" 
-                        class="text-blue-400 hover:text-blue-300">Ver Detalhes</button>
+                    <div class="flex gap-2">
+                        <button onclick="abrirDetalhesEmpresa(${emp.id})" 
+                            class="text-blue-400 hover:text-blue-300 px-2 py-1 rounded hover:bg-dark-hover transition" title="Ver Detalhes">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        ${usuario.tipo === 'admin' ? `
+                        <button onclick="abrirEditarEmpresa(${emp.id})" 
+                            class="text-amber-400 hover:text-amber-300 px-2 py-1 rounded hover:bg-dark-hover transition" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="confirmarExcluirEmpresa(${emp.id}, '${emp.empresa.replace(/'/g, "\\'")}')" 
+                            class="text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-dark-hover transition" title="Excluir">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        ` : ''}
+                    </div>
                 </td>
             </tr>
         `).join('');
@@ -245,5 +259,287 @@ document.getElementById('uploadExcelForm').addEventListener('submit', async (e) 
         resultDiv.classList.remove('hidden');
     }
 });
+
+async function abrirDetalhesEmpresa(empresaId) {
+    document.getElementById('detalhesEmpresaModal').classList.remove('hidden');
+    document.getElementById('detalhesEmpresaContent').innerHTML = `
+        <div class="flex items-center justify-center py-8">
+            <div class="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+    `;
+    
+    try {
+        const response = await apiRequest(`/api/empresas/${empresaId}`);
+        if (!response.ok) {
+            throw new Error('Erro ao carregar dados da empresa');
+        }
+        
+        const emp = await response.json();
+        
+        document.getElementById('detalhesEmpresaContent').innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-white flex items-center gap-2 border-b border-dark-border/50 pb-2">
+                        <i class="fas fa-building text-blue-400"></i>
+                        Informações Gerais
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <span class="text-gray-400 text-sm">Empresa</span>
+                            <p class="text-white font-medium">${emp.empresa || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">CNPJ</span>
+                            <p class="text-white">${emp.cnpj || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">Sigla</span>
+                            <p class="text-white">${emp.sigla || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">Porte</span>
+                            <p class="text-white">${emp.porte || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">ER</span>
+                            <p class="text-white">${emp.er || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">Carteira</span>
+                            <p class="text-white">${emp.carteira || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">Tipo Empresa</span>
+                            <p class="text-white">${emp.tipo_empresa || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">Nº Funcionários</span>
+                            <p class="text-white">${emp.numero_funcionarios || '-'}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-white flex items-center gap-2 border-b border-dark-border/50 pb-2">
+                        <i class="fas fa-map-marker-alt text-emerald-400"></i>
+                        Endereço
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="col-span-2">
+                            <span class="text-gray-400 text-sm">Endereço</span>
+                            <p class="text-white">${emp.endereco || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">Bairro</span>
+                            <p class="text-white">${emp.bairro || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">Zona</span>
+                            <p class="text-white">${emp.zona || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">Município</span>
+                            <p class="text-white">${emp.municipio || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">Estado</span>
+                            <p class="text-white">${emp.estado || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">País</span>
+                            <p class="text-white">${emp.pais || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">Área</span>
+                            <p class="text-white">${emp.area || '-'}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-white flex items-center gap-2 border-b border-dark-border/50 pb-2">
+                        <i class="fas fa-industry text-purple-400"></i>
+                        Atividade
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <span class="text-gray-400 text-sm">CNAE Principal</span>
+                            <p class="text-white">${emp.cnae_principal || '-'}</p>
+                        </div>
+                        <div class="col-span-2">
+                            <span class="text-gray-400 text-sm">Descrição CNAE</span>
+                            <p class="text-white">${emp.descricao_cnae || '-'}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-white flex items-center gap-2 border-b border-dark-border/50 pb-2">
+                        <i class="fas fa-user-tie text-amber-400"></i>
+                        Contato
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <span class="text-gray-400 text-sm">Nome</span>
+                            <p class="text-white">${emp.nome_contato || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">Cargo</span>
+                            <p class="text-white">${emp.cargo_contato || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">Telefone</span>
+                            <p class="text-white">${emp.telefone_contato || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">E-mail</span>
+                            <p class="text-white">${emp.email_contato || '-'}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                ${emp.observacao ? `
+                <div class="md:col-span-2 space-y-4">
+                    <h3 class="text-lg font-semibold text-white flex items-center gap-2 border-b border-dark-border/50 pb-2">
+                        <i class="fas fa-sticky-note text-cyan-400"></i>
+                        Observação
+                    </h3>
+                    <p class="text-gray-300">${emp.observacao}</p>
+                </div>
+                ` : ''}
+            </div>
+        `;
+    } catch (error) {
+        console.error('Erro ao carregar empresa:', error);
+        document.getElementById('detalhesEmpresaContent').innerHTML = `
+            <div class="text-center text-red-400 py-8">
+                <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
+                <p>Erro ao carregar dados da empresa</p>
+            </div>
+        `;
+    }
+}
+
+function hideDetalhesEmpresaModal() {
+    document.getElementById('detalhesEmpresaModal').classList.add('hidden');
+}
+
+async function abrirEditarEmpresa(empresaId) {
+    try {
+        const response = await apiRequest(`/api/empresas/${empresaId}`);
+        if (!response.ok) {
+            throw new Error('Erro ao carregar dados da empresa');
+        }
+        
+        const empresa = await response.json();
+        
+        document.getElementById('edit_empresa_id').value = empresa.id;
+        document.getElementById('edit_empresa').value = empresa.empresa || '';
+        document.getElementById('edit_cnpj').value = empresa.cnpj || '';
+        document.getElementById('edit_sigla').value = empresa.sigla || '';
+        document.getElementById('edit_porte').value = empresa.porte || '';
+        document.getElementById('edit_er').value = empresa.er || '';
+        document.getElementById('edit_carteira').value = empresa.carteira || '';
+        document.getElementById('edit_endereco').value = empresa.endereco || '';
+        document.getElementById('edit_bairro').value = empresa.bairro || '';
+        document.getElementById('edit_municipio').value = empresa.municipio || '';
+        document.getElementById('edit_estado').value = empresa.estado || '';
+        document.getElementById('edit_pais').value = empresa.pais || '';
+        document.getElementById('edit_zona').value = empresa.zona || '';
+        document.getElementById('edit_area').value = empresa.area || '';
+        document.getElementById('edit_cnae_principal').value = empresa.cnae_principal || '';
+        document.getElementById('edit_descricao_cnae').value = empresa.descricao_cnae || '';
+        document.getElementById('edit_tipo_empresa').value = empresa.tipo_empresa || '';
+        document.getElementById('edit_numero_funcionarios').value = empresa.numero_funcionarios || '';
+        document.getElementById('edit_nome_contato').value = empresa.nome_contato || '';
+        document.getElementById('edit_cargo_contato').value = empresa.cargo_contato || '';
+        document.getElementById('edit_telefone_contato').value = empresa.telefone_contato || '';
+        document.getElementById('edit_email_contato').value = empresa.email_contato || '';
+        document.getElementById('edit_observacao').value = empresa.observacao || '';
+        
+        document.getElementById('editarEmpresaModal').classList.remove('hidden');
+    } catch (error) {
+        console.error('Erro ao carregar empresa:', error);
+        alert('Erro ao carregar dados da empresa');
+    }
+}
+
+function hideEditarEmpresaModal() {
+    document.getElementById('editarEmpresaModal').classList.add('hidden');
+    document.getElementById('editarEmpresaForm').reset();
+}
+
+document.getElementById('editarEmpresaForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const empresaId = document.getElementById('edit_empresa_id').value;
+    
+    const empresaData = {
+        empresa: document.getElementById('edit_empresa').value,
+        cnpj: document.getElementById('edit_cnpj').value || null,
+        sigla: document.getElementById('edit_sigla').value || null,
+        porte: document.getElementById('edit_porte').value || null,
+        er: document.getElementById('edit_er').value || null,
+        carteira: document.getElementById('edit_carteira').value || null,
+        endereco: document.getElementById('edit_endereco').value || null,
+        bairro: document.getElementById('edit_bairro').value || null,
+        municipio: document.getElementById('edit_municipio').value || null,
+        estado: document.getElementById('edit_estado').value || null,
+        pais: document.getElementById('edit_pais').value || null,
+        zona: document.getElementById('edit_zona').value || null,
+        area: document.getElementById('edit_area').value || null,
+        cnae_principal: document.getElementById('edit_cnae_principal').value || null,
+        descricao_cnae: document.getElementById('edit_descricao_cnae').value || null,
+        tipo_empresa: document.getElementById('edit_tipo_empresa').value || null,
+        numero_funcionarios: document.getElementById('edit_numero_funcionarios').value ? parseInt(document.getElementById('edit_numero_funcionarios').value) : null,
+        nome_contato: document.getElementById('edit_nome_contato').value || null,
+        cargo_contato: document.getElementById('edit_cargo_contato').value || null,
+        telefone_contato: document.getElementById('edit_telefone_contato').value || null,
+        email_contato: document.getElementById('edit_email_contato').value || null,
+        observacao: document.getElementById('edit_observacao').value || null
+    };
+    
+    try {
+        const response = await apiRequest(`/api/empresas/${empresaId}`, {
+            method: 'PUT',
+            body: JSON.stringify(empresaData)
+        });
+        
+        if (response.ok) {
+            alert('Empresa atualizada com sucesso!');
+            hideEditarEmpresaModal();
+            carregarEmpresas(filtrosAtuais, paginaAtual);
+        } else {
+            const error = await response.json();
+            alert(error.detail || 'Erro ao atualizar empresa');
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar empresa:', error);
+        alert('Erro de conexão com o servidor');
+    }
+});
+
+async function confirmarExcluirEmpresa(empresaId, empresaNome) {
+    if (!confirm(`Tem certeza que deseja excluir a empresa "${empresaNome}"?\n\nEsta ação não pode ser desfeita.`)) {
+        return;
+    }
+    
+    try {
+        const response = await apiRequest(`/api/empresas/${empresaId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            alert('Empresa excluída com sucesso!');
+            carregarEmpresas(filtrosAtuais, paginaAtual);
+        } else {
+            const error = await response.json();
+            alert(error.detail || 'Erro ao excluir empresa');
+        }
+    } catch (error) {
+        console.error('Erro ao excluir empresa:', error);
+        alert('Erro de conexão com o servidor');
+    }
+}
 
 carregarEmpresas();
