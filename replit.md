@@ -45,6 +45,17 @@ The backend uses FastAPI, PostgreSQL, and SQLAlchemy. Authentication is handled 
     - Create, edit, and delete events via modals
     - Morning (M) and Afternoon (T) periods
 -   **Chat System**: Internal messaging with real-time conversations, read statuses, unread counts, user lookup, and file attachment capabilities.
+-   **Formulários (Forms) System**: Complete survey/questionnaire management with:
+    - Create custom forms with multiple question types (text, scale 1-5, multiple choice)
+    - Generate unique shareable links (UUID-based) for clients to fill forms without authentication
+    - Default "Avaliação das Lideranças" (Leadership Evaluation) form with 19 questions in 3 categories:
+      - Liderança, Pessoas e Desenvolvimento (7 questions)
+      - Comunicação, Clima e Cultura (6 questions)
+      - Processos, Qualidade e Resultados (6 questions)
+    - 5-point Likert scale from "1 - Nunca" to "5 - Muito frequente"
+    - Admin statistics dashboard with response rates and averages per question
+    - Link management for companies with email tracking
+    - View individual responses with detailed breakdown
 
 ### System Design Choices
 The project enforces separation of concerns (`backend/`, `templates/`, `static/`). Security measures include JWT authentication, password hashing, XSS protection, and environment variables for sensitive configurations. The system is fully mobile-responsive across all pages.
